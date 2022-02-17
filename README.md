@@ -11,4 +11,6 @@ This repository is setup for version control during my writing.
 
 # Content 目录
 
-[0. Introduction and Motivation 风起青萍之末](halo0. Introduction and Motivation/风起青萍之末.md)
+Chapter 0. [Introduction and Motivation | 风起青萍之末](halo0.%20Introduction%20and%20Motivation/风起青萍之末.md)
+
+Chapter 1. [Symmetry | 迷镜千幻不离宗](halo1.%20Symmetry/迷镜千幻不离宗.md)
