@@ -1,0 +1,6 @@
+*.jpeg filter=lfs diff=lfs merge=lfs -text
+*.jpg filter=lfs diff=lfs merge=lfs -text
+*.png filter=lfs diff=lfs merge=lfs -text
+*.svg filter=lfs diff=lfs merge=lfs -text
+*.psd filter=lfs diff=lfs merge=lfs -text
+halo2.[[:space:]]All[[:space:]]Possible[[:space:]]Raypaths/IceHaloEndless filter=lfs diff=lfs merge=lfs -text
