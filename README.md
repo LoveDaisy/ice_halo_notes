@@ -8,3 +8,7 @@ This repository is setup for version control during my writing.
 # 现代冰晕研究漫谈
 
 记录一些我对冰晕研究的一些零碎思考，文章会发到我的知乎专栏 [光怪陆离](https://www.zhihu.com/column/OpticPhantasm)，这个仓库是为了方便写作过程中的版本管理。
+
+# Content 目录
+
+[0. Introduction and Motivation 风起青萍之末](halo0. Introduction and Motivation/风起青萍之末.md)
