@@ -71,6 +71,7 @@ obsidian rename file=<旧名> name=<新名>.md   # 重命名 md 必须走 Obsidi
 
 - `README.md` — 系列目录与各章状态，是规范的第一份载体
 - `docs/roadmap.md` — 系列路线图（正向 / 反向 / 番外）与 `halo_notes/` 需求汇总
+- `docs/framework.md` — 7–11 章共用的理论骨架（对象链、已核验定理、证据等级、未决）；`docs/checks/` 是其数值核验脚本，各章 bootstrap 时迁入 `code/`
 - `.gitattributes` — LFS 规则
 - `*/<副标题>.md` — 各章导演剪辑版正文（唯一 source）
 - `~/Virtual-Jiajie/Jiajie-Knowledge/WRITING-WORKFLOW.md` — 写作工作模式约定（跨系列）
