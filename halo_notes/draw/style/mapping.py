@@ -86,7 +86,7 @@ DEFAULT_MAP = SemanticStyleMap(
     face_fill=None,
     face_fill_hidden=None,
     face_highlight=FillStyle("highlight", alpha=0.9),
-    face_highlight_hidden=FillStyle("highlight", alpha=0.35),  # 与 *_hidden 惯例一致：同色减淡
+    face_highlight_hidden=FillStyle("highlight", alpha=0.5),  # 与 *_hidden 惯例一致：同色减淡（线框透明，背面也要看得出是黄的）
     ray_incident=LineStyle("accent_warm", linewidth=1.6),
     ray_internal=LineStyle("accent_warm", linewidth=1.6, alpha=0.3),
     ray_exit=LineStyle("accent_cool", linewidth=1.6),

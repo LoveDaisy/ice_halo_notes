@@ -113,6 +113,34 @@ def render_crystal(ax, crystal: Polyhedron, raypaths: Iterable[RayPath] | None =
         draw_raypath(ax, path, crystal, camera=camera, preset=preset)
 
 
+def render_corridor(ax, crystal: Polyhedron, path: RayPath, *, camera: Camera,
+                    preset: Preset = PRESETS["default"], ghost_crystal: bool = True,
+                    highlight: bool = True, face_numbers: bool = False) -> list[Polyhedron]:
+    """画光路 ``path`` 的展开"光走廊"：真实晶体 + 级联幽灵晶体，光路依次穿过的面高亮。
+
+    ``ghost_crystal=False`` 时真实晶体按默认样式画（2.4 / 3.2 观感），否则也画成幽灵
+    线框（2.5–2.9 观感）。光路本身不在这里画——调用方按需用 :func:`draw_raypath`
+    叠加真实折线（``ray_folded``）或展开直线（``ray_unfolded``）。
+    返回 ``[crystal, ghost_1, ghost_2, …]``，下标与 :func:`unfold.corridor_faces` 一致。
+    """
+    from .unfold import corridor_faces, unfold  # 局部导入：unfold 依赖 raypath，避免循环
+
+    chain = [crystal] + unfold(crystal, path)
+    faces: dict[int, set[int]] = {k: set() for k in range(len(chain))}
+    if highlight:
+        corridor = corridor_faces(path)
+        for i, (k, number) in enumerate(corridor):
+            # 反射面同时是晶体 k-1 与幽灵 k 的同编号面（同一多边形、法向相反）：
+            # 归到从当前视角能看见它的那一侧，避免明明正对观察者却按"背面"减淡
+            if 0 < i < len(corridor) - 1 and not face_visible(chain[k], chain[k].face(number), camera):
+                k -= 1
+            faces[k].add(number)
+    for k, poly in enumerate(chain):
+        render_crystal(ax, poly, camera=camera, preset=preset, face_numbers=face_numbers,
+                       highlight=faces[k], ghost=ghost_crystal or k > 0)
+    return chain
+
+
 # ---- 光路 --------------------------------------------------------------------
 
 def _occluded_mask(points: np.ndarray, occluder: Polyhedron | None, camera: Camera) -> np.ndarray:

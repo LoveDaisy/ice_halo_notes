@@ -272,3 +272,32 @@ def test_ghost_face_numbers_all_use_hidden_style():
     assert len(labels) == 8
     assert all(p.get_alpha() == hidden_alpha for p in labels)
     plt.close(fig)
+
+
+def test_render_corridor_highlights_corridor_faces_on_the_right_bodies():
+    """光走廊：入射面高亮在真实晶体上、反射面在对应幽灵上、出射面在最后一个幽灵上；
+    幽灵一律线框，真实晶体按 ghost_crystal 决定。"""
+    from matplotlib.colors import to_rgba
+    from halo_notes.draw import render_corridor
+    from halo_notes.draw.unfold import corridor_faces
+    c = HexPrism(1, 1.0)
+    cam = Camera(azimuth=72, elevation=20)
+    preset = PRESETS["ice_filled"]  # 有默认面填充，便于区分"真实晶体按默认画"与"幽灵不填充"
+    p = trace(c, [-5, 0.0, -2.0], [1, 0, 0.5], ["refract", "reflect", "refract"])  # 6-1-3
+    assert corridor_faces(p) == [(0, 6), (1, 1), (1, 3)]
+    hi = to_rgba(preset.fill_kwargs("face_highlight")["facecolor"])
+    for ghost_crystal in (True, False):
+        fig, ax = new_figure(400, 300, dpi=50)
+        chain = render_corridor(ax, c, p, camera=cam, preset=preset, ghost_crystal=ghost_crystal)
+        assert len(chain) == 2 and np.allclose(chain[1].vertices, c.mirrored(c.face(1)).vertices)
+        fills = _fills(ax)
+        hi_patches = [pt for pt in fills if pt.get_facecolor()[:3] == hi[:3]]
+        assert len(hi_patches) == 3  # 6 / 1 / 3 三个走廊面
+        # 反射面 1 与晶体顶面共面：从这个视角晶体的面 1 可见、幽灵的面 1 背对，应归到晶体并按"可见"画
+        vis_alpha = preset.fill_kwargs("face_highlight")["alpha"]
+        assert sum(pt.get_facecolor()[3] == vis_alpha for pt in hi_patches) >= 1
+        n_default = len(fills) - len(hi_patches)
+        vis_numbers = {f.number for f in visible_faces(c, cam)}
+        expected = 0 if ghost_crystal else len(vis_numbers - {6, 1})  # 6 / 1 被高亮顶掉
+        assert n_default == expected
+        plt.close(fig)
