@@ -36,7 +36,7 @@ def test_render_crystal_with_raypath_and_axes():
     render_crystal(ax, c, [p], camera=cam, preset=PRESETS["ice_filled"])
     draw_axes(ax, camera=cam, preset=PRESETS["default"], occluder=c)
     finish(ax, (-3, 3), (-2, 2))
-    assert len(ax.patches) >= 8 + 3   # 8 个面填充 + 3 个实心轴箭头
+    assert len(ax.patches) == len(visible_faces(c, cam)) + 3  # 可见面填充 + 3 个实心轴箭头
     assert len(ax.lines) > 18
     assert [t.get_text() for t in ax.texts] == ["$x$", "$y$", "$z$"]
     plt.close(fig)
@@ -51,6 +51,15 @@ def test_hidden_edges_can_be_suppressed():
     render_crystal(ax, c, camera=cam, preset=preset)
     assert 0 < len(ax.lines) < 18
     plt.close(fig)
+
+
+def test_new_figure_pixel_size_exact(tmp_path):
+    from PIL import Image
+    fig, _ = new_figure(1956, 1279, dpi=200)
+    out = tmp_path / "f.png"
+    fig.savefig(out, dpi=200)
+    plt.close(fig)
+    assert Image.open(out).size == (1956, 1279)
 
 
 def test_swapping_preset_does_not_change_geometry_of_output():

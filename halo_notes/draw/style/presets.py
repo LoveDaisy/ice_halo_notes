@@ -63,8 +63,8 @@ ICE_FILLED = DEFAULT.replace(
     style_map=DEFAULT_MAP.replace(
         edge_visible=LineStyle("ice_edge", linewidth=1.3),
         edge_hidden=LineStyle("ice_edge", linewidth=0.7, alpha=0.5),
-        face_fill=FillStyle("ice", alpha=0.75),
-        face_fill_hidden=FillStyle("ice", alpha=0.35),
+        face_fill=FillStyle("ice", alpha=0.8),   # 只填可见面：半透明让背面线框/编号隐约透出
+        face_fill_hidden=None,
     ),
 )
 
