@@ -301,3 +301,15 @@ def test_render_corridor_highlights_corridor_faces_on_the_right_bodies():
         expected = 0 if ghost_crystal else len(vis_numbers - {6, 1})  # 6 / 1 被高亮顶掉
         assert n_default == expected
         plt.close(fig)
+
+
+def test_frame_fits_points_with_aspect_and_margin():
+    from halo_notes.draw import frame
+    cam = Camera(azimuth=0, elevation=0, projection="orthographic")  # 画面 x = 世界 -y… 取正交便于验算
+    pts = np.array([[0, -2.0, -1.0], [0, 2.0, 1.0]])
+    (x0, x1), (y0, y1) = frame(cam, [pts], 400, 200, margin=0.1)
+    xy = cam.project_xy(pts)
+    assert np.isclose((x1 - x0) / (y1 - y0), 2.0)                         # 宽高比 = 图片宽高比
+    assert x0 <= xy[:, 0].min() and x1 >= xy[:, 0].max()                  # 包住所有点
+    assert y0 <= xy[:, 1].min() and y1 >= xy[:, 1].max()
+    assert np.isclose(y1 - y0, np.ptp(xy[:, 1]) * 1.2)                    # 竖向是瓶颈：留 10% 边
