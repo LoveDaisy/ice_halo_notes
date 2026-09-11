@@ -26,7 +26,8 @@ Z_VISIBLE_FILL, Z_VISIBLE_EDGE, Z_VISIBLE_LABEL, Z_EXTERNAL, Z_TEXT = 5, 6, 7, 8
 
 def new_figure(width_px: int, height_px: int, dpi: int = 200, preset: Preset | None = None):
     """按目标像素尺寸建 figure + 单个铺满的 axes。"""
-    fig = plt.figure(figsize=(width_px / dpi, height_px / dpi), dpi=dpi)
+    # +0.5 px 抵消 figsize×dpi 的浮点截断（否则 1956/200×200 会落成 1955）
+    fig = plt.figure(figsize=((width_px + 0.5) / dpi, (height_px + 0.5) / dpi), dpi=dpi)
     if preset is not None:
         fig.patch.set_facecolor(preset.palette["background"])
     ax = fig.add_axes([0, 0, 1, 1])
@@ -89,14 +90,15 @@ def render_crystal(ax, crystal: Polyhedron, raypaths: Iterable[RayPath] | None =
 # ---- 光路 --------------------------------------------------------------------
 
 def _occluded_mask(points: np.ndarray, occluder: Polyhedron | None, camera: Camera) -> np.ndarray:
-    """各点是否被遮挡体挡住：从该点朝观察者发射线，若先穿过遮挡体则被挡。"""
+    """各点是否被遮挡体挡住：从该点朝观察者发射线，前方仍有遮挡体材料
+    （点在体内，或射线稍后穿入）即被挡。"""
     if occluder is None:
         return np.zeros(len(points), dtype=bool)
     vv = camera.view_vector(points)
     out = np.zeros(len(points), dtype=bool)
     for i, (p, v) in enumerate(zip(points, vv)):
         hit = occluder.intersect_ray(p, v)
-        out[i] = hit is not None and hit[0] > 1e-7
+        out[i] = hit is not None and hit[2] > 1e-7
     return out
 
 
@@ -180,23 +182,24 @@ def draw_raypath(ax, path: RayPath, crystal: Polyhedron | None = None, *,
 
 # ---- 坐标轴 ------------------------------------------------------------------
 
-def draw_axes(ax, *, camera: Camera, preset: Preset, length: float | None = None,
+def draw_axes(ax, *, camera: Camera, preset: Preset,
+              length: float | Sequence[float] | None = None,
               labels: Sequence[str] = ("x", "y", "z"), origin: Sequence[float] = (0, 0, 0),
               occluder: Polyhedron | None = None, negative: bool = True) -> None:
     """画世界坐标系 xyz 三根轴（实心锥体箭头 + 斜体标签）。
 
-    ``negative=True`` 时负半轴也画一段（无箭头）；穿过 ``occluder`` 内部的部分
-    换 ``axis_occluded`` 样式。
+    ``length`` 可以是一个数或三根轴各一个；``negative=True`` 时负半轴也画一段
+    （无箭头）；穿过 ``occluder`` 内部的部分换 ``axis_occluded`` 样式。
     """
     geom = preset.geom
-    L = geom.axis_length if length is None else length
+    L = np.broadcast_to(np.asarray(geom.axis_length if length is None else length, float), (3,))
     o = np.asarray(origin, float)
     kw = preset.line_kwargs("axis")
     for k, lab in enumerate(labels):
         d = np.zeros(3)
         d[k] = 1.0
-        tip = o + d * L
-        start = o - d * L if negative else o
+        tip = o + d * L[k]
+        start = o - d * L[k] if negative else o
         draw_segment(ax, start, tip - d * geom.cone_length, camera=camera, preset=preset,
                      semantic="axis", occluded_semantic="axis_occluded", occluder=occluder,
                      z_visible=Z_EXTERNAL, z_hidden=Z_INTERNAL)

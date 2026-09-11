@@ -44,6 +44,20 @@ def rotation(axis: Sequence[float], angle_deg: float) -> np.ndarray:
     return np.eye(3) + np.sin(t) * kx + (1 - np.cos(t)) * kx @ kx
 
 
+def rotation_between(src: Sequence[float], dst: Sequence[float]) -> np.ndarray:
+    """把方向 ``src`` 转到 ``dst`` 的最小旋转矩阵。"""
+    a, b = unit(src), unit(dst)
+    c = np.cross(a, b)
+    s = np.linalg.norm(c)
+    if s < 1e-12:
+        if a @ b > 0:
+            return np.eye(3)
+        # 反向：绕任一垂直轴转 180°
+        helper = np.array([1.0, 0, 0]) if abs(a[0]) < 0.9 else np.array([0, 1.0, 0])
+        return rotation(np.cross(a, helper), 180.0)
+    return rotation(c, np.rad2deg(np.arctan2(s, a @ b)))
+
+
 class Polyhedron:
     """凸多面体：顶点数组 + 带编号的面。所有几何查询均基于顶点即时计算，
     所以刚体变换只需变换顶点。"""

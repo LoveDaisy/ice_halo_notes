@@ -66,3 +66,13 @@ def test_intersect_ray_miss(prism):
 def test_contains(prism):
     assert prism.contains([0, 0, 0])
     assert not prism.contains([0, 0, 1])
+
+
+def test_rotation_between():
+    from halo_notes.draw.geometry import rotation_between
+    r = rotation_between([0, 0, 1], [1, 1, 0])
+    assert np.allclose(r @ [0, 0, 1], [1, 1, 0] / np.sqrt(2))
+    assert np.allclose(rotation_between([0, 0, 1], [0, 0, 1]), np.eye(3))
+    r180 = rotation_between([0, 0, 1], [0, 0, -1])
+    assert np.allclose(r180 @ [0, 0, 1], [0, 0, -1])
+    assert np.allclose(r180 @ r180.T, np.eye(3))

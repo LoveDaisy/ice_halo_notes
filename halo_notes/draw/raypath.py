@@ -152,6 +152,13 @@ def trace(crystal: Polyhedron, origin: Sequence[float], direction: Sequence[floa
     raise ValueError("event sequence ended while the ray is still inside the crystal")
 
 
+def aim(crystal: Polyhedron, face_number: int, direction: Sequence[float], *,
+        offset: Sequence[float] = (0.0, 0.0, 0.0), back: float = 3.0) -> np.ndarray:
+    """给 :func:`trace` 选起点：让沿 ``direction`` 的射线正好打在某面质心（+ ``offset``）上。"""
+    target = crystal.centroid(crystal.face(face_number)) + np.asarray(offset, dtype=float)
+    return target - unit(direction) * back
+
+
 # ---- 锥体箭头 --------------------------------------------------------------
 
 @dataclass(frozen=True)
