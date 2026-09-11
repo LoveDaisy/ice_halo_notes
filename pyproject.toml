@@ -1,0 +1,13 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "halo-notes"
+version = "0.1.0"
+description = "《现代冰晕研究漫谈》系列的画图 / 仿真胶水代码（系列级共享包）"
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.hatch.build.targets.wheel]
+packages = ["halo_notes"]
