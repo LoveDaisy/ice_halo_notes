@@ -18,6 +18,7 @@ from .projection import (Camera, depth_sorted_faces, edge_visible, face_visible,
                          point_on_visible_face)
 from .raypath import Cone, RayPath, SegmentKind
 from .style import PRESETS, HiddenEdgeMode, MarkerStyle, Preset
+from .unfold import corridor_faces, unfold
 
 # 绘制层级：从后往前。光线锥体的遮挡衬底压在光线 / 晶体线之上、锥体轮廓之下
 Z_HIDDEN_FILL, Z_HIDDEN_EDGE, Z_HIDDEN_LABEL, Z_INTERNAL = 1, 2, 3, 4
@@ -136,8 +137,6 @@ def render_corridor(ax, crystal: Polyhedron, path: RayPath, *, camera: Camera,
     叠加真实折线（``ray_folded``）或展开直线（``ray_unfolded``）。
     返回 ``[crystal, ghost_1, ghost_2, …]``，下标与 :func:`unfold.corridor_faces` 一致。
     """
-    from .unfold import corridor_faces, unfold  # 局部导入：unfold 依赖 raypath，避免循环
-
     chain = [crystal] + unfold(crystal, path)
     faces: dict[int, set[int]] = {k: set() for k in range(len(chain))}
     if highlight:
