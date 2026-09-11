@@ -73,9 +73,10 @@ def draw_face_number_warped(ax, poly: Polyhedron, face: Face, camera: Camera, pr
                             visible: bool | None = None, text: str | None = None):
     """面编号贴面：``TextPath`` 字形经面内仿射铺到面上，随视角倾斜 / 缩放。"""
     style = preset.style(_text_semantic(poly, face, camera, visible))
-    prop = FontProperties(weight=style.weight, style=style.style,
-                          family=style.family) if style.family else \
-        FontProperties(weight=style.weight, style=style.style)
+    if style.family:
+        prop = FontProperties(weight=style.weight, style=style.style, family=style.family)
+    else:
+        prop = FontProperties(weight=style.weight, style=style.style)
     path = TextPath((0, 0), text if text is not None else str(face.number),
                     size=style.fontsize, prop=prop)
     bb = path.get_extents()

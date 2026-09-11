@@ -147,6 +147,11 @@ def face_in_plane_basis(poly: Polyhedron, face: Face) -> tuple[np.ndarray, np.nd
     "向右"），``v = n × u`` 是从外侧看的"向上"。贴面文字用这组基就像是写在晶体
     表面上：晶体转动文字跟着转，从背面透过晶体看到时呈镜像——与旧图（0.2 里
     背面的 7 / 2 / 6）一致。``HexPrism`` 的柱面首条边是底边，故文字"上"即 c 轴。
+
+    注意：「首条边=地面边」只是 ``HexPrism`` 当前顶点排列的事实，不是
+    ``Face``/``Polyhedron`` 的通用契约（后者只保证「外侧看逆时针」）。新增
+    非棱柱几何或顶点排列不同的棱柱时，需要重新核实这条假设，否则贴面文字
+    可能静默转向错误方向（当前 test_labels.py 只覆盖 ``HexPrism``）。
     """
     pts = poly.face_vertices(face)
     u = unit(pts[1] - pts[0])
