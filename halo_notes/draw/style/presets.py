@@ -46,7 +46,7 @@ class Preset:
         kw = dict(color=self.palette[s.color], fontsize=s.fontsize, alpha=s.alpha,
                   fontweight=s.weight, fontstyle=s.style)
         if s.family:
-            kw["fontfamily"] = s.family
+            kw["fontfamily"] = list(s.family) if isinstance(s.family, tuple) else s.family
         return kw
 
     def marker_kwargs(self, semantic: str | MarkerStyle) -> dict[str, Any]:

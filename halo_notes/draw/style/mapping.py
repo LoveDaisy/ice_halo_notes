@@ -12,6 +12,11 @@ from dataclasses import dataclass, replace
 from typing import Any
 
 
+# 含 CJK 字形的无衬线字体回退序列：macOS 自带的冬青黑体在前，缺时退回 matplotlib 默认
+# （列表里每个缺失的族 matplotlib 都会打一条 findfont 警告，所以不堆一长串候选）
+CJK_SANS = ("Hiragino Sans GB", "DejaVu Sans")
+
+
 @dataclass(frozen=True)
 class LineStyle:
     color: str            # 配色板颜色名
@@ -33,7 +38,7 @@ class TextStyle:
     alpha: float = 1.0
     weight: str = "normal"
     style: str = "normal"   # "normal" / "italic"
-    family: str | None = None
+    family: str | tuple[str, ...] | None = None   # 元组 = 按序回退的字体族列表
 
 
 @dataclass(frozen=True)
@@ -91,5 +96,6 @@ DEFAULT_MAP = SemanticStyleMap(
     axis=LineStyle("accent_warm", linewidth=1.3),
     axis_occluded=LineStyle("accent_warm", linewidth=1.3, alpha=0.2),
     axis_label=TextStyle("ink", fontsize=22, style="italic"),
-    annotation=TextStyle("ink", fontsize=14),
+    # 注释文字是中文（2.2 / 2.3 / 2.8 / 3.2 的图注），默认字体族给一串含 CJK 的回退序列
+    annotation=TextStyle("ink", fontsize=18, family=CJK_SANS),
 )
