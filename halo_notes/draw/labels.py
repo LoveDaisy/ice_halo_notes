@@ -12,7 +12,7 @@ import numpy as np
 from matplotlib.font_manager import FontProperties
 from matplotlib.patches import PathPatch
 from matplotlib.textpath import TextPath
-from matplotlib.transforms import Affine2D, ScaledTranslation
+from matplotlib.transforms import Affine2D
 
 from .geometry import Face, Polyhedron
 from .projection import Camera, face_jacobian, face_visible
@@ -54,19 +54,21 @@ def draw_face_number_flat(ax, poly: Polyhedron, face: Face, camera: Camera, pres
                    ha="center", va="center", **kw)
 
 
-def face_text_transform(ax, poly: Polyhedron, face: Face, camera: Camera):
-    """把「以 (0,0) 为中心、以印刷点为单位」的字形坐标贴到面上的 matplotlib 变换。
+def face_text_transform(ax, poly: Polyhedron, face: Face, camera: Camera, *,
+                        glyph_height: float, world_height: float):
+    """把「以 (0,0) 为中心」的字形坐标贴到面上的 matplotlib 变换（贴纸语义）。
 
-    点 → 面内仿射（:func:`face_jacobian`，无量纲）→ 点换英寸 → 英寸换像素
-    → 平移到面心的像素位置。末两步都是惰性变换，所以 ``finish()`` 事后再改
-    坐标范围 / dpi 也照样正确；字号与 ``ax.text`` 一样按印刷点计，不随视野缩放。
+    字形单位 → 缩放到世界单位（字高 = ``world_height``，与晶体同单位）→ 面内仿射
+    （:func:`face_jacobian`，世界 → 数据坐标）→ 平移到面心 → ``transData``。
+    字高随晶体缩放、随透视近大远小，不按印刷点计。
     """
     J = face_jacobian(poly, face, camera)
     x, y = face_label_anchor(poly, face, camera)
-    return (Affine2D(np.array([[J[0, 0], J[0, 1], 0.0], [J[1, 0], J[1, 1], 0.0], [0, 0, 1.0]]))
-            .scale(1.0 / 72.0)
-            + ax.figure.dpi_scale_trans
-            + ScaledTranslation(x, y, ax.transData))
+    k = world_height / glyph_height
+    return (Affine2D(np.array([[J[0, 0] * k, J[0, 1] * k, x],
+                               [J[1, 0] * k, J[1, 1] * k, y],
+                               [0.0, 0.0, 1.0]]))
+            + ax.transData)
 
 
 def draw_face_number_warped(ax, poly: Polyhedron, face: Face, camera: Camera, preset: Preset,
@@ -81,7 +83,11 @@ def draw_face_number_warped(ax, poly: Polyhedron, face: Face, camera: Camera, pr
                     size=style.fontsize, prop=prop)
     bb = path.get_extents()
     centered = Affine2D().translate(-(bb.x0 + bb.x1) / 2, -(bb.y0 + bb.y1) / 2).transform_path(path)
-    patch = PathPatch(centered, transform=face_text_transform(ax, poly, face, camera),
+    # 以数字「0」的字高为基准，同一预设下各编号等高（"1" 比 "8" 窄但一样高）
+    ref_h = TextPath((0, 0), "0", size=style.fontsize, prop=prop).get_extents().height
+    tf = face_text_transform(ax, poly, face, camera, glyph_height=ref_h,
+                             world_height=preset.geom.face_number_height)
+    patch = PathPatch(centered, transform=tf,
                       facecolor=preset.palette[style.color], alpha=style.alpha, edgecolor="none",
                       linewidth=0)
     ax.add_patch(patch)

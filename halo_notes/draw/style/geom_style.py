@@ -32,6 +32,9 @@ class GeomStyle:
     label_hidden_faces: bool = True
     # 面编号
     face_number_style: FaceNumberStyle = FaceNumberStyle.WARPED
+    # 贴面编号的字高（世界单位，a=1 的 crystal units）：贴面文字像贴纸一样随晶体缩放，
+    # 不按印刷点计；正放模式仍用 TextStyle.fontsize（点）
+    face_number_height: float = 0.55
     # 锥体箭头（长度单位与晶体同：a=1 时的 crystal units）
     cone_length: float = 0.36
     cone_radius: float = 0.13
