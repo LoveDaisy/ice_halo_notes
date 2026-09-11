@@ -120,8 +120,23 @@ class Polyhedron:
             v = v + np.asarray(translation, dtype=float)
         return type(self)._copy_with(self, v)
 
-    def _copy_with(self, vertices: np.ndarray) -> "Polyhedron":
-        return Polyhedron(vertices, self.faces)
+    def mirrored(self, face: Face) -> "Polyhedron":
+        """返回关于 ``face`` 所在平面镜像后的副本（光路展开用的"幽灵晶体"）。
+
+        镜像变换行列式为 -1，会把"从外侧看逆时针"的顶点环翻成顺时针，所以每个
+        面的顶点环必须同步反转，否则 Newell 法向全部朝内、可见性与射线求交全错。
+        面编号原样保留：幽灵晶体上的 5 号面仍叫 5。
+        """
+        n = self.normal(face)
+        p0 = self.face_vertices(face)[0]
+        v = self.vertices
+        mirrored_v = v - 2.0 * ((v - p0) @ n)[:, None] * n[None, :]
+        mirrored_faces = tuple(Face(f.number, tuple(reversed(f.vertex_ids))) for f in self.faces)
+        return type(self)._copy_with(self, mirrored_v, mirrored_faces)
+
+    def _copy_with(self, vertices: np.ndarray,
+                   faces: Iterable[Face] | None = None) -> "Polyhedron":
+        return Polyhedron(vertices, self.faces if faces is None else faces)
 
     # ---- 射线求交 --------------------------------------------------------
     def intersect_ray(self, origin: Sequence[float], direction: Sequence[float],
@@ -193,10 +208,12 @@ class HexPrism(Polyhedron):
         """按高径比 ``h/a`` 构造。"""
         return cls(a=a, h=ratio * a)
 
-    def _copy_with(self, vertices: np.ndarray) -> "HexPrism":
+    def _copy_with(self, vertices: np.ndarray,
+                   faces: Iterable[Face] | None = None) -> "HexPrism":
         # 手动搬运字段以绕开 __init__（它会按 a/h 重新生成顶点，覆盖掉变换后的 vertices）；
         # HexPrism.__init__ 新增构造参数时必须同步在这里搬运，否则变换后的实例会悄悄丢字段。
+        # ``faces`` 须透传：mirrored() 用它传入顶点环已反转的面。
         obj = HexPrism.__new__(HexPrism)
         obj.a, obj.h = self.a, self.h
-        Polyhedron.__init__(obj, vertices, self.faces)
+        Polyhedron.__init__(obj, vertices, self.faces if faces is None else faces)
         return obj
