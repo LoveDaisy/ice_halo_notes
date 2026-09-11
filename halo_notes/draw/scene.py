@@ -47,6 +47,19 @@ def finish(ax, xlim: Sequence[float], ylim: Sequence[float]) -> None:
     ax.set_axis_off()
 
 
+def frame(camera: Camera, points: Sequence[np.ndarray] | np.ndarray, width_px: int, height_px: int,
+          margin: float = 0.08) -> tuple[tuple[float, float], tuple[float, float]]:
+    """把一组 3D 点的投影包进画面：返回按图片宽高比取的 ``(xlim, ylim)``，四周留 ``margin``
+    比例的空白（居中）。供 :func:`finish` 使用。"""
+    xy = camera.project_xy(np.vstack([np.asarray(p, float).reshape(-1, 3) for p in points]))
+    lo, hi = xy.min(axis=0), xy.max(axis=0)
+    center, span = (lo + hi) / 2, (hi - lo) * (1 + 2 * margin)
+    aspect = width_px / height_px
+    w = max(span[0], span[1] * aspect)
+    h = w / aspect
+    return (center[0] - w / 2, center[0] + w / 2), (center[1] - h / 2, center[1] + h / 2)
+
+
 # ---- 晶体 --------------------------------------------------------------------
 
 def render_crystal(ax, crystal: Polyhedron, raypaths: Iterable[RayPath] | None = None, *,
