@@ -186,7 +186,7 @@ def draw_axes(ax, *, camera: Camera, preset: Preset,
               length: float | Sequence[float] | None = None,
               labels: Sequence[str] = ("x", "y", "z"), origin: Sequence[float] = (0, 0, 0),
               occluder: Polyhedron | None = None, negative: bool = True) -> None:
-    """画世界坐标系 xyz 三根轴（实心锥体箭头 + 斜体标签）。
+    """画世界坐标系 xyz 三根轴（线框锥体箭头，与光线箭头同一画法 + 斜体标签）。
 
     ``length`` 可以是一个数或三根轴各一个；``negative=True`` 时负半轴也画一段
     （无箭头）；穿过 ``occluder`` 内部的部分换 ``axis_occluded`` 样式。
@@ -203,9 +203,11 @@ def draw_axes(ax, *, camera: Camera, preset: Preset,
         draw_segment(ax, start, tip - d * geom.cone_length, camera=camera, preset=preset,
                      semantic="axis", occluded_semantic="axis_occluded", occluder=occluder,
                      z_visible=Z_EXTERNAL, z_hidden=Z_INTERNAL)
-        cone = Cone.along(tip - d * geom.cone_length, d, length=geom.cone_length,
+        # 轴箭头是标准箭头：锥尖在轴端、锥底朝原点（旧图 3.3 约定）；
+        # 与光线端点「沿传播方向张开」的喇叭锥（Cone.along(apex, d)）方向相反
+        cone = Cone.along(tip, -d, length=geom.cone_length,
                           radius=geom.cone_radius * 0.8, samples=geom.cone_samples)
-        draw_cone(ax, cone, camera=camera, line_kwargs=kw, z=Z_EXTERNAL, filled=True)
+        draw_cone(ax, cone, camera=camera, line_kwargs=kw, z=Z_EXTERNAL)
         x, y = camera.project_xy(tip + d * geom.axis_label_pad)[0]
         ax.text(x, y, f"${lab}$", ha="center", va="center", zorder=Z_TEXT,
                 **preset.text_kwargs("axis_label"))

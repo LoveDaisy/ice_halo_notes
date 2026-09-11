@@ -36,7 +36,7 @@ def test_render_crystal_with_raypath_and_axes():
     render_crystal(ax, c, [p], camera=cam, preset=PRESETS["ice_filled"])
     draw_axes(ax, camera=cam, preset=PRESETS["default"], occluder=c)
     finish(ax, (-3, 3), (-2, 2))
-    assert len(ax.patches) == len(visible_faces(c, cam)) + 3  # 可见面填充 + 3 个实心轴箭头
+    assert len(ax.patches) == len(visible_faces(c, cam))  # 只有可见面填充；轴箭头是线框锥，不产生 patch
     assert len(ax.lines) > 18
     assert [t.get_text() for t in ax.texts] == ["$x$", "$y$", "$z$"]
     plt.close(fig)

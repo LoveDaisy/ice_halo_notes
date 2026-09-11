@@ -81,7 +81,7 @@ DEFAULT_MAP = SemanticStyleMap(
     ray_marker=MarkerStyle("accent_warm", size=5.0),
     ray_marker_hidden=MarkerStyle("accent_warm", size=5.0, alpha=0.3),
     face_number=TextStyle("slate", fontsize=26, weight="bold"),
-    face_number_hidden=TextStyle("slate", fontsize=26, weight="bold", alpha=0.45),
+    face_number_hidden=TextStyle("slate", fontsize=20, weight="bold", alpha=0.2),
     axis=LineStyle("accent_warm", linewidth=1.3),
     axis_occluded=LineStyle("accent_warm", linewidth=1.3, alpha=0.2),
     axis_label=TextStyle("ink", fontsize=22, style="italic"),
