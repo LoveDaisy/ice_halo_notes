@@ -38,6 +38,7 @@ class GeomStyle:
     # 坐标轴
     axis_length: float = 2.4
     axis_label_pad: float = 0.18   # 轴标签离箭头尖的距离
+    axis_cone_scale: float = 0.6   # 轴箭头（实心）相对光线锥体的整体缩放（长度与半径同缩）
 
     def replace(self, **changes: Any) -> "GeomStyle":
         return replace(self, **changes)

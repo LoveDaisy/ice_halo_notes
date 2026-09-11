@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 
-from typing import Iterable, Sequence
+from typing import Iterable, Literal, Sequence
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -19,9 +19,13 @@ from .projection import (Camera, depth_sorted_faces, edge_visible, face_visible,
 from .raypath import Cone, RayPath, SegmentKind
 from .style import PRESETS, HiddenEdgeMode, Preset
 
-# 绘制层级：从后往前
+# 绘制层级：从后往前。光线锥体的遮挡衬底压在光线 / 晶体线之上、锥体轮廓之下
 Z_HIDDEN_FILL, Z_HIDDEN_EDGE, Z_HIDDEN_LABEL, Z_INTERNAL = 1, 2, 3, 4
-Z_VISIBLE_FILL, Z_VISIBLE_EDGE, Z_VISIBLE_LABEL, Z_EXTERNAL, Z_TEXT = 5, 6, 7, 8, 9
+Z_VISIBLE_FILL, Z_VISIBLE_EDGE, Z_VISIBLE_LABEL, Z_EXTERNAL = 5, 6, 7, 8
+Z_CONE_FILL, Z_CONE_OUTLINE = 9, 10
+Z_TEXT = 11
+
+ConeFillMode = Literal["wire", "solid", "occlude"]
 
 
 def new_figure(width_px: int, height_px: int, dpi: int = 200, preset: Preset | None = None):
@@ -131,13 +135,26 @@ def draw_segment(ax, p0, p1, *, camera: Camera, preset: Preset, semantic: str,
 
 
 def draw_cone(ax, cone: Cone, *, camera: Camera, line_kwargs: dict, z: int,
-              filled: bool = False) -> None:
-    """画锥体箭头：线框（轮廓母线 + 纬线弧）或实心轮廓。"""
-    if filled:
+              fill_mode: ConeFillMode = "wire", fill_kwargs: dict | None = None,
+              z_fill: int | None = None) -> None:
+    """画锥体箭头，三种填充语义：
+
+    - ``"wire"``：只画线框（轮廓母线 + 纬线弧）
+    - ``"solid"``：单色实心三角（取 ``line_kwargs`` 的颜色），不画纬线——坐标轴箭头
+    - ``"occlude"``：先在 ``z_fill`` 用 ``fill_kwargs``（背景色）铺实心衬底遮住穿过锥体
+      内部的线，再在 ``z`` 叠线框——光线箭头
+    """
+    if fill_mode == "solid":
         ax.add_patch(Polygon(cone.outline(camera), closed=True, zorder=z,
                              facecolor=line_kwargs["color"], edgecolor=line_kwargs["color"],
                              alpha=line_kwargs.get("alpha", 1.0)))
         return
+    if fill_mode == "occlude":
+        if fill_kwargs is None or z_fill is None:
+            raise ValueError("fill_mode='occlude' requires fill_kwargs and z_fill")
+        ax.add_patch(Polygon(cone.outline(camera), closed=True, zorder=z_fill, **fill_kwargs))
+    elif fill_mode != "wire":
+        raise ValueError(f"unknown fill_mode {fill_mode!r}")
     for piece in cone.wireframe(camera):
         ax.plot(piece[:, 0], piece[:, 1], zorder=z, solid_capstyle="round", **line_kwargs)
 
@@ -163,7 +180,8 @@ def draw_raypath(ax, path: RayPath, crystal: Polyhedron | None = None, *,
         cone = Cone.along(apex, d, length=geom.cone_length, radius=geom.cone_radius,
                           rings=geom.cone_rings, samples=geom.cone_samples)
         draw_cone(ax, cone, camera=camera, line_kwargs=preset.line_kwargs(semantic),
-                  z=Z_EXTERNAL)
+                  z=Z_CONE_OUTLINE, fill_mode="occlude", z_fill=Z_CONE_FILL,
+                  fill_kwargs=dict(facecolor=preset.palette["background"], edgecolor="none"))
 
     # 小圆点：首尾 + 事件点
     dots: list[tuple[np.ndarray, bool]] = []
@@ -186,7 +204,7 @@ def draw_axes(ax, *, camera: Camera, preset: Preset,
               length: float | Sequence[float] | None = None,
               labels: Sequence[str] = ("x", "y", "z"), origin: Sequence[float] = (0, 0, 0),
               occluder: Polyhedron | None = None, negative: bool = True) -> None:
-    """画世界坐标系 xyz 三根轴（线框锥体箭头，与光线箭头同一画法 + 斜体标签）。
+    """画世界坐标系 xyz 三根轴（小号实心箭头，与光线的线框锥体区分 + 斜体标签）。
 
     ``length`` 可以是一个数或三根轴各一个；``negative=True`` 时负半轴也画一段
     （无箭头）；穿过 ``occluder`` 内部的部分换 ``axis_occluded`` 样式。
@@ -200,14 +218,15 @@ def draw_axes(ax, *, camera: Camera, preset: Preset,
         d[k] = 1.0
         tip = o + d * L[k]
         start = o - d * L[k] if negative else o
-        draw_segment(ax, start, tip - d * geom.cone_length, camera=camera, preset=preset,
-                     semantic="axis", occluded_semantic="axis_occluded", occluder=occluder,
+        draw_segment(ax, start, tip - d * geom.cone_length * geom.axis_cone_scale,
+                     camera=camera, preset=preset, semantic="axis", occluded_semantic="axis_occluded", occluder=occluder,
                      z_visible=Z_EXTERNAL, z_hidden=Z_INTERNAL)
         # 轴箭头是标准箭头：锥尖在轴端、锥底朝原点（旧图 3.3 约定）；
         # 与光线端点「沿传播方向张开」的喇叭锥（Cone.along(apex, d)）方向相反
-        cone = Cone.along(tip, -d, length=geom.cone_length,
-                          radius=geom.cone_radius * 0.8, samples=geom.cone_samples)
-        draw_cone(ax, cone, camera=camera, line_kwargs=kw, z=Z_EXTERNAL)
+        k_scale = geom.axis_cone_scale
+        cone = Cone.along(tip, -d, length=geom.cone_length * k_scale,
+                          radius=geom.cone_radius * k_scale, samples=geom.cone_samples)
+        draw_cone(ax, cone, camera=camera, line_kwargs=kw, z=Z_EXTERNAL, fill_mode="solid")
         x, y = camera.project_xy(tip + d * geom.axis_label_pad)[0]
         ax.text(x, y, f"${lab}$", ha="center", va="center", zorder=Z_TEXT,
                 **preset.text_kwargs("axis_label"))
