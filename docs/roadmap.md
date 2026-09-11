@@ -1,7 +1,7 @@
 # 系列路线图
 
 > 2026-09-11 起草，2026-09-12 定下正向深化五章（7–11）。章节内容由作者定，本文只固定结构与线索；「需要的能力」一列是 `halo_notes/` 的需求清单来源。理论骨架本身见 [framework.md](framework.md)。
-> 状态：`published` / `outline` / `idea`（只有一句话）/ `todo`（已决定写、未起提纲）。
+> 状态：`published` / `draft`（正文已成、未发表）/ `outline` / `idea`（只有一句话）/ `todo`（已决定写、未起提纲）。
 
 ## 主线
 
@@ -35,7 +35,7 @@
 
 | 章 | 目录（拟） | 标题（拟） | 锚定的悬念 | 核心结果 | 计算机核验交付 | 需要的能力 | 状态 |
 |---|---|---|---|---|---|---|---|
-| 7 | `07-reflection-group` | 为什么恰好是十二个 | ch3 结尾「这些结果和整体变换矩阵有什么联系？且听下回分解」 | 12 = 六棱柱镜面生成群 $D_{3h}$；6 类 = 该群下的共轭类（特征值 / Jordan 型是 O(3) 共轭不变量，太粗：#11 会并进 #2）；4 锐 2 散 ⇔ 是否与 $R_z$ 对易；$\dim(\text{晕})=\dim Q-\dim\mathrm{Stab}$。定理假设（镜面夹角 60°/90°）要写明，给 ch9 埋线 | 群闭包 + 共轭类 + 对易判据（`07-reflection-group/code/check_group.py` 已通过） | `math.group`：$D_{3h}$ 作用与共轭类 | todo |
+| 7 | `07-reflection-group` | 为什么恰好是十二个 | ch3 结尾「这些结果和整体变换矩阵有什么联系？且听下回分解」 | 12 = 六棱柱镜面生成群 $D_{3h}$；6 类 = 该群下的共轭类（特征值 / Jordan 型是 O(3) 共轭不变量，太粗：#11 会并进 #2）；4 锐 2 散 ⇔ 是否与 $R_z$ 对易；$\dim(\text{晕})=\dim Q-\dim\mathrm{Stab}$。定理假设（镜面夹角 60°/90°）要写明，给 ch9 埋线 | 群闭包 + 共轭类 + 对易判据（`07-reflection-group/code/check_group.py` 已通过） | `math.group`：$D_{3h}$ 作用与共轭类 | draft（插图占位，另起任务绘制） |
 | 8 | `08-wedge-times-fold` | 三种楔子、十二种折叠 | ch2/ch3「进一步的对称性」；ch3 楔角光路图；ch3 工作笔记「推导一下楔角光路」 | $\Phi_P = M\circ W_{\mathbf n_a,\,M^{-1}\mathbf n_b}$（Snell 的旋转等变性）；$M^{-1}\mathbf n_b$ 仍是面法向 ⇒ 六棱柱任意长度光路 = {0°, 60°, 90°} 三种有效楔 × 12 种折叠（120° 楔全反射死角）；平行光路 = $W=I$ 退化；与 Tape 的 wedge theory / Tricker 万花筒展开合流；signature $[M,\mathbf n_a,M^{-1}\mathbf n_b]/\text{对称}$ 做穷举分类 | 用 ch2 枚举器算 signature 穷举分类，报告不同 $\Phi$ 类数 | `signature`：规范型；ch2 枚举器 python 复活 | todo |
 | 9 | `09-pyramid` | 锥晶：结构还是巧合 | ch7 定理的假设 | 锥面法向与 c 轴夹 62.0°（由 $c/a=1.6288$ 算出），不是 Coxeter 角 ⇒ 镜面群无限，矩阵数随字长爆炸（1, 11, 70, 372, 1884, …）；但 $\Phi=M\circ W$ 与 signature 幸存，有限性改由可达性（TIR、几何）保证；同一公式 $\cos A=-\langle\mathbf n_a,\mathbf n_b\rangle$ 扫 20 个面得 9 个可透射楔角 0/28.0/52.4/56.0/60/62.0/63.8/80.2/90 ⇔ 平行、9°、18°、23°、22°、20°、24°、35°、46° 晕；Tape 的「Angle x」在此只是参数 $c/a$。**篇幅卡在四样交付**：增长对照表、9 个楔角推导、加字长上限的 signature 计数、一两个 odd-radius 晕实例；完整目录不进正文 | 增长表 + 楔角表（`docs/checks/check_pyramid.py` 已通过）；加字长上限的 signature 穷举 | `geometry.polyhedron`：一般凸多面体的面相交可达性（ch9 最贵的前置） | todo |
 | 10 | `10-two-focusing-mechanisms` | 两种聚光 | ch3「明亮凝聚」的说法不严谨 | 纤维化定理：$SO(3)\cong$ 以「太阳在晶体系中的方向 $\mathbf u$」为底的圆丛，$\angle(\mathbf x,\mathbf s)=D_P(\mathbf u)$ 与姿态无关（两章共用接口）；径向部分：dimension collapse（$DF$ 沿某方向恒为零，对称性）vs Jacobian focusing（$DF$ 只在特殊姿态降秩，奇点）；最小偏折 = fold caustic，$I\sim 1/\sqrt{D-D_{\min}}$；Tape 1980 的 halo function 奇点语言；pushforward $\mu_{\rm sky}=F_*[\rho\,w\,dq]$ 就是 ch4 的渲染方程，ch6 是算它的两条路 | 22° 晕的 $F$、$DF$ 数值 + 仿真径向剖面对照 | `math`：$D_P(\mathbf u)$ 及其 Jacobian | todo |
