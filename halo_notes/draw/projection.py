@@ -1,7 +1,8 @@
 """相机、3D→2D 投影与凸多面体的可见性判定。
 
 约定：``Camera`` 用「从原点指向观察者」的单位向量 ``view_dir`` 描述视角，
-由方位角 / 仰角给出；投影默认正交，可切换透视。深度值越大离观察者越近。
+由方位角 / 仰角给出；投影默认透视（旧图 Mathematica 观感），可切换正交。
+深度值越大离观察者越近。
 """
 
 from __future__ import annotations
@@ -22,15 +23,15 @@ class Camera:
 
     - ``azimuth`` / ``elevation``：观察者相对原点的方位角（xy 平面内从 +x 起，
       逆时针）与仰角，角度制
-    - ``projection``：``"orthographic"``（默认）或 ``"perspective"``
-    - ``distance``：透视投影时相机到原点的距离；正交投影忽略
+    - ``projection``：``"perspective"``（默认）或 ``"orthographic"``
+    - ``distance``：透视投影时相机到原点的距离（晶体单位，a=1）；正交投影忽略
     - ``up``：世界系里的"上"方向，决定画面竖直方向
     - ``roll``：绕视线的画面旋转（度，逆时针为正）
     """
 
     azimuth: float = 30.0
     elevation: float = 20.0
-    projection: Projection = "orthographic"
+    projection: Projection = "perspective"
     distance: float = 8.0
     up: Sequence[float] = (0.0, 0.0, 1.0)
     roll: float = 0.0
