@@ -63,6 +63,8 @@ class SemanticStyleMap:
     ray_internal: LineStyle              # 晶体内部段
     ray_exit: LineStyle
     ray_occluded: LineStyle              # 外部段被晶体挡住的部分
+    ray_unfolded: LineStyle              # 展开后的直线光路（穿过幽灵晶体串）
+    ray_folded: LineStyle                # 与展开直线同图时退居次要的真实折线光路
     ray_marker: MarkerStyle              # 光路端点 / 事件点
     ray_marker_hidden: MarkerStyle
     face_number: TextStyle
@@ -89,6 +91,8 @@ DEFAULT_MAP = SemanticStyleMap(
     ray_internal=LineStyle("accent_warm", linewidth=1.6, alpha=0.3),
     ray_exit=LineStyle("accent_cool", linewidth=1.6),
     ray_occluded=LineStyle("accent_warm", linewidth=1.6, alpha=0.3),
+    ray_unfolded=LineStyle("accent_cool", linewidth=1.6),                    # 2.5 旧图：实线蓝
+    ray_folded=LineStyle("accent_warm", linewidth=1.4, linestyle=":", alpha=0.9),  # 2.5 旧图：红点线
     ray_marker=MarkerStyle("accent_warm", size=5.0),
     ray_marker_hidden=MarkerStyle("accent_warm", size=5.0, alpha=0.3),
     face_number=TextStyle("slate", fontsize=26, weight="bold"),

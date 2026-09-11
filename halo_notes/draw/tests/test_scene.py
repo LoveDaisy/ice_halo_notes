@@ -232,3 +232,43 @@ def test_annotate_uses_annotation_semantic_style_and_optional_arrow():
     xy = ax.lines[0].get_xydata()
     assert np.allclose(xy[0], t.get_position()) and np.allclose(xy[1], cam.project_xy([0, 0, 0])[0])
     plt.close(fig)
+
+
+def test_draw_raypath_mono_semantic_colours_everything_alike():
+    """``semantic=`` 单色模式：所有线段、锥体线、圆点都用该语义的颜色（展开直线 / 折线用）。"""
+    from matplotlib.colors import to_rgba
+    from halo_notes.draw import draw_raypath
+    c = HexPrism(1, 0.8)
+    cam = Camera(azimuth=72, elevation=20)
+    preset = PRESETS["default"]
+    p = trace(c, [-3, -1.2, 0.3], [1, 0.35, -0.1], ["refract", "reflect", "refract"])
+    fig, ax = new_figure(400, 300, dpi=50)
+    draw_raypath(ax, p, c, camera=cam, preset=preset, semantic="ray_folded")
+    kw = preset.line_kwargs("ray_folded")
+    assert ax.lines and all(to_rgba(ln.get_color()) == to_rgba(kw["color"]) for ln in ax.lines)
+    lines = [ln for ln in ax.lines if len(ln.get_xydata()) > 1]
+    assert all(ln.get_linestyle() == ":" for ln in lines if ln.get_zorder() != Z_CONE_OUTLINE)
+    assert len(ax.patches) == 2  # 入射 / 出射两个锥体的遮挡衬底仍在
+    default_incident = to_rgba(preset.line_kwargs("ray_incident")["color"])
+    assert to_rgba(kw["color"]) == default_incident  # 同色不同线型：确认下一条断言不是靠颜色蒙混
+    fig2, ax2 = new_figure(400, 300, dpi=50)
+    draw_raypath(ax2, p, c, camera=cam, preset=preset, semantic="ray_unfolded")
+    blue = to_rgba(preset.line_kwargs("ray_unfolded")["color"])
+    assert all(to_rgba(ln.get_color()) == blue for ln in ax2.lines)
+    plt.close(fig)
+    plt.close(fig2)
+
+
+def test_ghost_face_numbers_all_use_hidden_style():
+    """幽灵晶体的面编号全部用 face_number_hidden（淡）样式，可见面也不例外。"""
+    from matplotlib.colors import to_rgba
+    c = HexPrism(1, 0.8)
+    cam = Camera(azimuth=72, elevation=20)
+    preset = PRESETS["default"]
+    fig, ax = new_figure(400, 300, dpi=50)
+    render_crystal(ax, c, camera=cam, preset=preset, face_numbers=True, ghost=True)
+    hidden_alpha = preset.text_kwargs("face_number_hidden")["alpha"]
+    labels = [p for p in ax.patches]  # 默认贴面编号是 PathPatch，且 ghost 无面填充
+    assert len(labels) == 8
+    assert all(p.get_alpha() == hidden_alpha for p in labels)
+    plt.close(fig)
