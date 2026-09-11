@@ -51,3 +51,21 @@ def test_hidden_face_number_only_fades_not_shrinks():
     from halo_notes.draw.style import DEFAULT_MAP
     assert DEFAULT_MAP.face_number_hidden.fontsize == DEFAULT_MAP.face_number.fontsize
     assert DEFAULT_MAP.face_number_hidden.alpha < DEFAULT_MAP.face_number.alpha
+
+
+def test_unfold_semantics_resolve_and_differ_from_neighbours():
+    """新增三个语义都能解析出色值，且不与最相邻的既有字段巧合同值
+    （plan-review Minor 2：防"新字段 = 旧字段复制值"被静默吞掉）。"""
+    p = PRESETS["default"]
+    ghost = p.line_kwargs("edge_ghost")
+    hi, hi_hidden = p.fill_kwargs("face_highlight"), p.fill_kwargs("face_highlight_hidden")
+    assert ghost != p.line_kwargs("edge_hidden") and ghost != p.line_kwargs("edge_visible")
+    assert hi["facecolor"] == DEFAULT_LIGHT["highlight"]
+    assert hi != p.fill_kwargs("face_fill") and hi_hidden != p.fill_kwargs("face_fill_hidden")
+    ice = PRESETS["ice_filled"]
+    assert ice.fill_kwargs("face_highlight")["facecolor"] != ice.fill_kwargs("face_fill")["facecolor"]
+
+
+def test_face_highlight_hidden_is_fainter_than_visible():
+    assert DEFAULT_MAP.face_highlight_hidden.alpha < DEFAULT_MAP.face_highlight.alpha
+    assert DEFAULT_MAP.face_highlight_hidden.color == DEFAULT_MAP.face_highlight.color

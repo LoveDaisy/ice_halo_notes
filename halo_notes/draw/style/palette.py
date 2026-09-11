@@ -43,4 +43,5 @@ DEFAULT_LIGHT = Palette("default_light", {
     "slate": "#848897",        # 面编号
     "accent_warm": "#FC5D53",  # 入射光 / 坐标轴（4.1 / 3.3 旧图的珊瑚红）
     "accent_cool": "#3C7DD9",  # 出射光
+    "highlight": "#F8E66F",    # 高亮面（2.5 旧图光走廊的黄色填充）
 })

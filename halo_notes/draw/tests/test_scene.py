@@ -9,8 +9,9 @@ from halo_notes.draw import (PRESETS, Camera, HexPrism, draw_axes, finish, new_f
 from halo_notes.draw.labels import face_label_anchor, point_in_polygon  # noqa: E402
 from halo_notes.draw.projection import visible_faces  # noqa: E402
 from halo_notes.draw.raypath import SegmentKind  # noqa: E402
-from halo_notes.draw.scene import (Z_CONE_FILL, Z_CONE_OUTLINE, Z_EXTERNAL, Z_HIDDEN_LABEL,  # noqa: E402
-                                   Z_INTERNAL, Z_VISIBLE_EDGE, Z_VISIBLE_LABEL)
+from halo_notes.draw.scene import (Z_CONE_FILL, Z_CONE_OUTLINE, Z_EXTERNAL, Z_HIDDEN_FILL,  # noqa: E402
+                                   Z_HIDDEN_LABEL, Z_INTERNAL, Z_VISIBLE_EDGE, Z_VISIBLE_FILL,
+                                   Z_VISIBLE_LABEL)
 
 
 def test_face_label_anchor_inside_projected_polygon():
@@ -137,3 +138,178 @@ def test_axes_arrows_are_solid_and_scaled():
         sizes[scale] = max(np.ptp(pt.get_xy(), axis=0).max() for pt in ax.patches)
         plt.close(fig)
     assert sizes[0.3] < sizes[0.6]  # 配置确实接入：改 scale 箭头随之缩放
+
+
+# ---- 高亮 / 幽灵（光路展开） --------------------------------------------------
+
+def _fills(ax):
+    """面填充 patch（排除贴面编号 PathPatch）。"""
+    from matplotlib.patches import Polygon
+    return [p for p in ax.patches if isinstance(p, Polygon)]
+
+
+def test_render_crystal_highlight_face_uses_highlight_style():
+    from matplotlib.colors import to_rgba
+    c = HexPrism(1, 0.8)
+    cam = Camera(azimuth=72, elevation=20)  # 顶面 1 可见、底面 2 不可见
+    preset = PRESETS["default"]
+    fig, ax = new_figure(400, 300, dpi=50)
+    render_crystal(ax, c, camera=cam, preset=preset, highlight=(1, 2))
+    fills = _fills(ax)
+    assert len(fills) == 2  # 默认预设无面填充，只有两个高亮面
+    hi = preset.fill_kwargs("face_highlight")
+    hi_hidden = preset.fill_kwargs("face_highlight_hidden")
+    colors = sorted((p.get_facecolor(), p.get_zorder()) for p in fills)
+    assert (to_rgba(hi["facecolor"], hi["alpha"]), Z_VISIBLE_FILL) in colors
+    assert (to_rgba(hi_hidden["facecolor"], hi_hidden["alpha"]), Z_HIDDEN_FILL) in colors
+    plt.close(fig)
+
+
+def test_render_crystal_ghost_mode_forces_no_default_fill_and_uses_edge_ghost():
+    from matplotlib.colors import to_rgba
+    from halo_notes.draw.style import DEFAULT_GEOM, HiddenEdgeMode
+    c = HexPrism(1, 0.8)
+    cam = Camera(azimuth=72, elevation=20)
+    # ice_filled 本身有 face_fill；再把 hidden_edges 设成 HIDE——两者都应被 ghost 覆盖
+    preset = PRESETS["ice_filled"].replace(geom=DEFAULT_GEOM.replace(hidden_edges=HiddenEdgeMode.HIDE))
+    fig, ax = new_figure(400, 300, dpi=50)
+    render_crystal(ax, c, camera=cam, preset=preset, ghost=True)
+    assert _fills(ax) == []
+    assert len(ax.lines) == 18
+    kw = preset.line_kwargs("edge_ghost")
+    for ln in ax.lines:
+        assert to_rgba(ln.get_color(), ln.get_alpha()) == to_rgba(kw["color"], kw["alpha"])
+        assert ln.get_linewidth() == kw["linewidth"]
+    plt.close(fig)
+
+
+def test_render_crystal_highlight_and_ghost_together():
+    from matplotlib.colors import to_rgba
+    c = HexPrism(1, 0.8)
+    cam = Camera(azimuth=72, elevation=20)
+    preset = PRESETS["ice_filled"]
+    fig, ax = new_figure(400, 300, dpi=50)
+    render_crystal(ax, c, camera=cam, preset=preset, ghost=True, highlight=(3,))
+    fills = _fills(ax)
+    assert len(fills) == 1  # 只有高亮面被填充，ghost 的"不填充"不压过 highlight
+    vis = visible_faces(c, cam)
+    sem = "face_highlight" if c.face(3) in vis else "face_highlight_hidden"
+    kw = preset.fill_kwargs(sem)
+    assert fills[0].get_facecolor() == to_rgba(kw["facecolor"], kw["alpha"])
+    plt.close(fig)
+
+
+# ---- 文字注释 ----------------------------------------------------------------
+
+def test_annotate_places_text_at_projected_point_plus_offset():
+    from halo_notes.draw import annotate
+    from halo_notes.draw.scene import Z_TEXT
+    cam = Camera(azimuth=72, elevation=20)
+    preset = PRESETS["default"]
+    fig, ax = new_figure(400, 300, dpi=50)
+    anchor, off = [0.3, -0.2, 0.5], (0.7, -0.4)
+    t = annotate(ax, "全反射路径", anchor, off, camera=cam, preset=preset)
+    assert list(ax.texts) == [t]
+    assert np.allclose(t.get_position(), cam.project_xy(anchor)[0] + off)
+    assert t.get_zorder() == Z_TEXT and len(ax.lines) == 0
+    plt.close(fig)
+
+
+def test_annotate_uses_annotation_semantic_style_and_optional_arrow():
+    from matplotlib.colors import to_rgba
+    from halo_notes.draw import annotate
+    from halo_notes.draw.style import DEFAULT_MAP, TextStyle
+    cam = Camera(azimuth=72, elevation=20)
+    # 故意用与默认不同的注释样式，确认确实从 annotation 语义取值（不是用默认字体）
+    preset = PRESETS["default"].replace(
+        style_map=DEFAULT_MAP.replace(annotation=TextStyle("accent_cool", fontsize=9, alpha=0.6)))
+    fig, ax = new_figure(400, 300, dpi=50)
+    t = annotate(ax, "x", [0, 0, 0], (0.5, 0.5), camera=cam, preset=preset, arrow=True)
+    kw = preset.text_kwargs("annotation")
+    assert to_rgba(t.get_color()) == to_rgba(kw["color"]) and t.get_fontsize() == 9
+    assert t.get_alpha() == 0.6
+    assert len(ax.lines) == 1  # arrow=True：文字到锚点一条连线
+    xy = ax.lines[0].get_xydata()
+    assert np.allclose(xy[0], t.get_position()) and np.allclose(xy[1], cam.project_xy([0, 0, 0])[0])
+    plt.close(fig)
+
+
+def test_draw_raypath_mono_semantic_colours_everything_alike():
+    """``semantic=`` 单色模式：所有线段、锥体线、圆点都用该语义的颜色（展开直线 / 折线用）。"""
+    from matplotlib.colors import to_rgba
+    from halo_notes.draw import draw_raypath
+    c = HexPrism(1, 0.8)
+    cam = Camera(azimuth=72, elevation=20)
+    preset = PRESETS["default"]
+    p = trace(c, [-3, -1.2, 0.3], [1, 0.35, -0.1], ["refract", "reflect", "refract"])
+    fig, ax = new_figure(400, 300, dpi=50)
+    draw_raypath(ax, p, c, camera=cam, preset=preset, semantic="ray_folded")
+    kw = preset.line_kwargs("ray_folded")
+    assert ax.lines and all(to_rgba(ln.get_color()) == to_rgba(kw["color"]) for ln in ax.lines)
+    lines = [ln for ln in ax.lines if len(ln.get_xydata()) > 1]
+    assert all(ln.get_linestyle() == ":" for ln in lines if ln.get_zorder() != Z_CONE_OUTLINE)
+    assert len(ax.patches) == 2  # 入射 / 出射两个锥体的遮挡衬底仍在
+    default_incident = to_rgba(preset.line_kwargs("ray_incident")["color"])
+    assert to_rgba(kw["color"]) == default_incident  # 同色不同线型：确认下一条断言不是靠颜色蒙混
+    fig2, ax2 = new_figure(400, 300, dpi=50)
+    draw_raypath(ax2, p, c, camera=cam, preset=preset, semantic="ray_unfolded")
+    blue = to_rgba(preset.line_kwargs("ray_unfolded")["color"])
+    assert all(to_rgba(ln.get_color()) == blue for ln in ax2.lines)
+    plt.close(fig)
+    plt.close(fig2)
+
+
+def test_ghost_face_numbers_all_use_hidden_style():
+    """幽灵晶体的面编号全部用 face_number_hidden（淡）样式，可见面也不例外。"""
+    from matplotlib.colors import to_rgba
+    c = HexPrism(1, 0.8)
+    cam = Camera(azimuth=72, elevation=20)
+    preset = PRESETS["default"]
+    fig, ax = new_figure(400, 300, dpi=50)
+    render_crystal(ax, c, camera=cam, preset=preset, face_numbers=True, ghost=True)
+    hidden_alpha = preset.text_kwargs("face_number_hidden")["alpha"]
+    labels = [p for p in ax.patches]  # 默认贴面编号是 PathPatch，且 ghost 无面填充
+    assert len(labels) == 8
+    assert all(p.get_alpha() == hidden_alpha for p in labels)
+    plt.close(fig)
+
+
+def test_render_corridor_highlights_corridor_faces_on_the_right_bodies():
+    """光走廊：入射面高亮在真实晶体上、反射面在对应幽灵上、出射面在最后一个幽灵上；
+    幽灵一律线框，真实晶体按 ghost_crystal 决定。"""
+    from matplotlib.colors import to_rgba
+    from halo_notes.draw import render_corridor
+    from halo_notes.draw.unfold import corridor_faces
+    c = HexPrism(1, 1.0)
+    cam = Camera(azimuth=72, elevation=20)
+    preset = PRESETS["ice_filled"]  # 有默认面填充，便于区分"真实晶体按默认画"与"幽灵不填充"
+    p = trace(c, [-5, 0.0, -2.0], [1, 0, 0.5], ["refract", "reflect", "refract"])  # 6-1-3
+    assert corridor_faces(p) == [(0, 6), (1, 1), (1, 3)]
+    hi = to_rgba(preset.fill_kwargs("face_highlight")["facecolor"])
+    for ghost_crystal in (True, False):
+        fig, ax = new_figure(400, 300, dpi=50)
+        chain = render_corridor(ax, c, p, camera=cam, preset=preset, ghost_crystal=ghost_crystal)
+        assert len(chain) == 2 and np.allclose(chain[1].vertices, c.mirrored(c.face(1)).vertices)
+        fills = _fills(ax)
+        hi_patches = [pt for pt in fills if pt.get_facecolor()[:3] == hi[:3]]
+        assert len(hi_patches) == 3  # 6 / 1 / 3 三个走廊面
+        # 反射面 1 与晶体顶面共面：从这个视角晶体的面 1 可见、幽灵的面 1 背对，应归到晶体并按"可见"画
+        vis_alpha = preset.fill_kwargs("face_highlight")["alpha"]
+        assert sum(pt.get_facecolor()[3] == vis_alpha for pt in hi_patches) >= 1
+        n_default = len(fills) - len(hi_patches)
+        vis_numbers = {f.number for f in visible_faces(c, cam)}
+        expected = 0 if ghost_crystal else len(vis_numbers - {6, 1})  # 6 / 1 被高亮顶掉
+        assert n_default == expected
+        plt.close(fig)
+
+
+def test_frame_fits_points_with_aspect_and_margin():
+    from halo_notes.draw import frame
+    cam = Camera(azimuth=0, elevation=0, projection="orthographic")  # 画面 x = 世界 -y… 取正交便于验算
+    pts = np.array([[0, -2.0, -1.0], [0, 2.0, 1.0]])
+    (x0, x1), (y0, y1) = frame(cam, [pts], 400, 200, margin=0.1)
+    xy = cam.project_xy(pts)
+    assert np.isclose((x1 - x0) / (y1 - y0), 2.0)                         # 宽高比 = 图片宽高比
+    assert x0 <= xy[:, 0].min() and x1 >= xy[:, 0].max()                  # 包住所有点
+    assert y0 <= xy[:, 1].min() and y1 >= xy[:, 1].max()
+    assert np.isclose(y1 - y0, np.ptp(xy[:, 1]) * 1.2)                    # 竖向是瓶颈：留 10% 边
