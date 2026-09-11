@@ -27,7 +27,8 @@ def test_render_crystal_smoke():
     fig, ax = new_figure(400, 300, dpi=50)
     render_crystal(ax, c, camera=cam, preset=PRESETS["default"], face_numbers=True)
     assert len(ax.lines) == 18  # 每条边一条线
-    assert len(ax.texts) == 8
+    assert len(ax.patches) == 8  # 默认贴面编号是 PathPatch，不是 Text
+    assert len(ax.texts) == 0
     plt.close(fig)
 
 

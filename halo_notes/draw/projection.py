@@ -140,6 +140,35 @@ def edge_visible(poly: Polyhedron, edge: tuple[int, int], camera: Camera) -> boo
     return any(face_visible(poly, f, camera) for f in poly.edge_faces(edge))
 
 
+def face_in_plane_basis(poly: Polyhedron, face: Face) -> tuple[np.ndarray, np.ndarray]:
+    """面内一对正交单位向量 ``(u, v)``，取自面自身的顶点环，与相机无关。
+
+    ``u`` 沿顶点环的首条边（``Face`` 约定从外侧看逆时针，所以这是从外侧看的
+    "向右"），``v = n × u`` 是从外侧看的"向上"。贴面文字用这组基就像是写在晶体
+    表面上：晶体转动文字跟着转，从背面透过晶体看到时呈镜像——与旧图（0.2 里
+    背面的 7 / 2 / 6）一致。``HexPrism`` 的柱面首条边是底边，故文字"上"即 c 轴。
+    """
+    pts = poly.face_vertices(face)
+    u = unit(pts[1] - pts[0])
+    v = np.cross(poly.normal(face), u)
+    return u, v
+
+
+def face_jacobian(poly: Polyhedron, face: Face, camera: Camera, eps: float = 1e-3) -> np.ndarray:
+    """面心处「面内位移 → 画面位移」的 2×2 雅可比（列对应 :func:`face_in_plane_basis` 的 u、v）。
+
+    正交投影下正对相机且 ``u`` 水平的面给出单位阵；侧对时列向量被压缩（透视
+    变形），从背面看到时行列式为负（镜像），透视投影下还带一层近大远小的整体
+    缩放。用于把贴面文字按仿射近似铺到面上。
+    """
+    c = poly.centroid(face)
+    u, v = face_in_plane_basis(poly, face)
+    base = camera.project_xy(c)[0]
+    du = (camera.project_xy(c + eps * u)[0] - base) / eps
+    dv = (camera.project_xy(c + eps * v)[0] - base) / eps
+    return np.stack([du, dv], axis=1)
+
+
 def depth_sorted_faces(poly: Polyhedron, camera: Camera) -> list[Face]:
     """按面质心深度从远到近排序（painter's algorithm 的绘制顺序）。"""
     depths = {f.number: camera.project(poly.centroid(f))[1][0] for f in poly.faces}
