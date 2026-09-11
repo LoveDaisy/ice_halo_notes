@@ -49,8 +49,11 @@ class SemanticStyleMap:
 
     edge_visible: LineStyle
     edge_hidden: LineStyle
+    edge_ghost: LineStyle                # 展开幽灵晶体的线框（透明线框：所有边都画，不分可见/不可见）
     face_fill: FillStyle | None          # None 表示不填充
     face_fill_hidden: FillStyle | None
+    face_highlight: FillStyle            # 高亮面（光走廊里的反射面 / 出入面）
+    face_highlight_hidden: FillStyle     # 高亮面背对观察者时
     ray_incident: LineStyle
     ray_internal: LineStyle              # 晶体内部段
     ray_exit: LineStyle
@@ -72,8 +75,11 @@ class SemanticStyleMap:
 DEFAULT_MAP = SemanticStyleMap(
     edge_visible=LineStyle("ink", linewidth=1.3),
     edge_hidden=LineStyle("ink_faint", linewidth=0.7),
+    edge_ghost=LineStyle("ink", linewidth=0.8, linestyle=":", alpha=0.5),  # 旧图幽灵晶体：灰色点线
     face_fill=None,
     face_fill_hidden=None,
+    face_highlight=FillStyle("highlight", alpha=0.9),
+    face_highlight_hidden=FillStyle("highlight", alpha=0.35),  # 与 *_hidden 惯例一致：同色减淡
     ray_incident=LineStyle("accent_warm", linewidth=1.6),
     ray_internal=LineStyle("accent_warm", linewidth=1.6, alpha=0.3),
     ray_exit=LineStyle("accent_cool", linewidth=1.6),

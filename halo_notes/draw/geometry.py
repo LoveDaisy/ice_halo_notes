@@ -36,6 +36,18 @@ def unit(v: Vec3) -> Vec3:
     return v / n
 
 
+def perp_basis(v: Sequence[float]) -> tuple[Vec3, Vec3]:
+    """与 ``v`` 垂直的一对正交单位向量 ``(u, w)``，``(u, w, v̂)`` 成右手系。
+
+    选取规则确定（不随机）：``u = v̂ × helper``，helper 取 +z（``v`` 接近 z 轴时改取 +x）。
+    """
+    a = unit(v)
+    helper = np.array([0.0, 0.0, 1.0]) if abs(a[2]) < 0.9 else np.array([1.0, 0.0, 0.0])
+    u = unit(np.cross(a, helper))
+    w = np.cross(a, u)
+    return u, w
+
+
 def rotation(axis: Sequence[float], angle_deg: float) -> np.ndarray:
     """绕任意轴的旋转矩阵（Rodrigues 公式），右手系、角度制。"""
     k = unit(np.asarray(axis, dtype=float))

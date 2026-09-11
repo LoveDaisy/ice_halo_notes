@@ -51,30 +51,49 @@ def finish(ax, xlim: Sequence[float], ylim: Sequence[float]) -> None:
 
 def render_crystal(ax, crystal: Polyhedron, raypaths: Iterable[RayPath] | None = None, *,
                    camera: Camera, preset: Preset = PRESETS["default"],
-                   face_numbers: bool | Iterable[int] = False) -> None:
-    """画一个晶体（面填充 + 可见/不可见边 + 面编号）及其光路。"""
+                   face_numbers: bool | Iterable[int] = False,
+                   highlight: Iterable[int] = (), ghost: bool = False) -> None:
+    """画一个晶体（面填充 + 可见/不可见边 + 面编号）及其光路。
+
+    ``highlight``：要高亮的面号，按该面在**这个**晶体上的可见性选
+    ``face_highlight`` / ``face_highlight_hidden``（不查其他晶体的遮挡）。
+    ``ghost``：按展开幽灵晶体画——不填充（高亮面除外）、全部边用 ``edge_ghost``
+    样式画出（透明线框，不受 ``hidden_edges`` 开关影响）。两个参数正交。
+    """
     raypaths = list(raypaths or [])
     sm, geom = preset.style_map, preset.geom
+    highlight = set(highlight)
     visible = {f.number: face_visible(crystal, f, camera) for f in crystal.faces}
 
-    # 面填充：painter 顺序，远的先画
+    # 面填充：painter 顺序，远的先画。优先级：高亮 > 幽灵（不填） > 预设默认填充
     for f in depth_sorted_faces(crystal, camera):
-        fill = preset.fill_kwargs(sm.face_fill if visible[f.number] else sm.face_fill_hidden)
+        vis = visible[f.number]
+        if f.number in highlight:
+            fill = preset.fill_kwargs(sm.face_highlight if vis else sm.face_highlight_hidden)
+        elif ghost:
+            fill = None
+        else:
+            fill = preset.fill_kwargs(sm.face_fill if vis else sm.face_fill_hidden)
         if fill is None:
             continue
         xy = camera.project_xy(crystal.face_vertices(f))
-        z = Z_VISIBLE_FILL if visible[f.number] else Z_HIDDEN_FILL
-        ax.add_patch(Polygon(xy, closed=True, zorder=z, **fill))
+        ax.add_patch(Polygon(xy, closed=True, zorder=Z_VISIBLE_FILL if vis else Z_HIDDEN_FILL,
+                             **fill))
 
     # 边
     for e in crystal.edges:
         vis = edge_visible(crystal, e, camera)
-        if not vis and geom.hidden_edges is HiddenEdgeMode.HIDE:
+        if ghost:
+            semantic = "edge_ghost"
+        elif vis:
+            semantic = "edge_visible"
+        elif geom.hidden_edges is HiddenEdgeMode.HIDE:
             continue
+        else:
+            semantic = "edge_hidden"
         xy = camera.project_xy(crystal.vertices[list(e)])
-        kw = preset.line_kwargs("edge_visible" if vis else "edge_hidden")
         ax.plot(xy[:, 0], xy[:, 1], zorder=Z_VISIBLE_EDGE if vis else Z_HIDDEN_EDGE,
-                solid_capstyle="round", **kw)
+                solid_capstyle="round", **preset.line_kwargs(semantic))
 
     # 面编号
     if face_numbers:
@@ -196,6 +215,23 @@ def draw_raypath(ax, path: RayPath, crystal: Polyhedron | None = None, *,
         x, y = camera.project_xy(p)[0]
         ax.plot([x], [y], zorder=Z_EXTERNAL if vis else Z_INTERNAL,
                 **preset.marker_kwargs("ray_marker" if vis else "ray_marker_hidden"))
+
+
+# ---- 文字注释 ----------------------------------------------------------------
+
+def annotate(ax, text: str, anchor3d: Sequence[float], offset2d: Sequence[float] = (0.0, 0.0), *,
+             camera: Camera, preset: Preset, ha: str = "left", va: str = "center",
+             arrow: bool = False):
+    """在 3D 锚点的投影处加 2D 偏移（与投影同量纲，即晶体单位）写一段注释文字，
+    样式走 ``annotation`` 语义。``arrow=True`` 时从文字到锚点画一条同色细连线。
+    返回 ``Text`` 对象。"""
+    x, y = camera.project_xy(anchor3d)[0]
+    tx, ty = x + offset2d[0], y + offset2d[1]
+    kw = preset.text_kwargs("annotation")
+    if arrow:
+        ax.plot([tx, x], [ty, y], zorder=Z_TEXT, linewidth=0.8, color=kw["color"],
+                alpha=kw["alpha"], solid_capstyle="round")
+    return ax.text(tx, ty, text, ha=ha, va=va, zorder=Z_TEXT, **kw)
 
 
 # ---- 坐标轴 ------------------------------------------------------------------

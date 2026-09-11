@@ -15,7 +15,7 @@ from typing import Iterator, Sequence
 
 import numpy as np
 
-from .geometry import Polyhedron, unit
+from .geometry import Polyhedron, perp_basis, unit
 from .projection import Camera
 
 N_ICE = 1.31  # 冰的折射率（可见光中段）
@@ -166,6 +166,24 @@ def face_toward(crystal: Polyhedron, direction: Sequence[float], *, sides_only: 
     return max(faces, key=lambda f: crystal.normal(f) @ d).number
 
 
+def parallel_origins(anchor: Sequence[float], direction: Sequence[float],
+                     offsets: Sequence[float], *,
+                     perp: Sequence[float] | None = None) -> np.ndarray:
+    """平行光束的起点分布：``anchor`` 沿与 ``direction`` 垂直的方向 ``perp``
+    平移 ``offsets`` 各距离，返回 ``(N, 3)``。``perp`` 缺省取 :func:`perp_basis` 的
+    第一个向量；显式给出时先投影掉沿 ``direction`` 的分量再归一化。
+    每条光线仍各自用 :func:`trace` 追迹（本函数只管起点）。
+    """
+    d = unit(direction)
+    if perp is None:
+        p = perp_basis(d)[0]
+    else:
+        p = np.asarray(perp, dtype=float)
+        p = unit(p - (p @ d) * d)
+    off = np.asarray(offsets, dtype=float).reshape(-1)
+    return np.asarray(anchor, dtype=float)[None, :] + off[:, None] * p[None, :]
+
+
 # ---- 锥体箭头 --------------------------------------------------------------
 
 @dataclass(frozen=True)
@@ -193,11 +211,7 @@ class Cone:
     # ---- 3D 采样 ---------------------------------------------------------
     def _frame(self) -> tuple[np.ndarray, np.ndarray]:
         """与轴垂直的两个正交单位向量。"""
-        a = self.axis
-        helper = np.array([0.0, 0.0, 1.0]) if abs(a[2]) < 0.9 else np.array([1.0, 0.0, 0.0])
-        u = unit(np.cross(a, helper))
-        w = np.cross(a, u)
-        return u, w
+        return perp_basis(self.axis)
 
     def ring_points(self, t: float) -> np.ndarray:
         """底面方向距顶点 ``t·length`` 处的纬线圆（(samples+1, 3)，首尾闭合）。"""
