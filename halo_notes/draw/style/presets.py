@@ -65,6 +65,8 @@ ICE_FILLED = DEFAULT.replace(
         edge_hidden=LineStyle("ice_edge", linewidth=0.7, alpha=0.5),
         face_fill=FillStyle("ice", alpha=0.8),   # 只填可见面：半透明让背面线框/编号隐约透出
         face_fill_hidden=None,
+        # 背面编号压在 0.8 的填充之下只透出两成，alpha 要比无填充预设高得多才看得见
+        face_number_hidden=replace(DEFAULT_MAP.face_number_hidden, alpha=0.7),
     ),
 )
 

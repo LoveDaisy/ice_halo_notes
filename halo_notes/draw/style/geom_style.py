@@ -18,11 +18,23 @@ class HiddenEdgeMode(Enum):
     HIDE = "hide"
 
 
+class FaceNumberStyle(Enum):
+    """面编号：贴在面上随视角仿射变形（旧图观感），或在面心水平正放。"""
+
+    WARPED = "warped"
+    FLAT = "flat"
+
+
 @dataclass(frozen=True)
 class GeomStyle:
     # 不可见面
     hidden_edges: HiddenEdgeMode = HiddenEdgeMode.DRAW
     label_hidden_faces: bool = True
+    # 面编号
+    face_number_style: FaceNumberStyle = FaceNumberStyle.WARPED
+    # 贴面编号的字高（世界单位，a=1 的 crystal units）：贴面文字像贴纸一样随晶体缩放，
+    # 不按印刷点计；正放模式仍用 TextStyle.fontsize（点）
+    face_number_height: float = 0.55
     # 锥体箭头（长度单位与晶体同：a=1 时的 crystal units）
     cone_length: float = 0.36
     cone_radius: float = 0.13
@@ -38,6 +50,7 @@ class GeomStyle:
     # 坐标轴
     axis_length: float = 2.4
     axis_label_pad: float = 0.18   # 轴标签离箭头尖的距离
+    axis_cone_scale: float = 0.5   # 轴箭头（实心）相对光线锥体的整体缩放（长度与半径同缩；旧图 3.3 目测约 0.35，取裁定区间 0.5–0.7 下限）
 
     def replace(self, **changes: Any) -> "GeomStyle":
         return replace(self, **changes)

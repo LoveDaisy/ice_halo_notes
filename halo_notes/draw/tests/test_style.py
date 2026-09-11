@@ -44,3 +44,10 @@ def test_unknown_color_name_is_loud():
 def test_layers_are_immutable():
     with pytest.raises(Exception):
         DEFAULT_GEOM.cone_rings = 5  # type: ignore[misc]
+
+
+def test_hidden_face_number_only_fades_not_shrinks():
+    """作者裁定：隐藏面编号与可见编号同字号，只靠 alpha 表达在背面。"""
+    from halo_notes.draw.style import DEFAULT_MAP
+    assert DEFAULT_MAP.face_number_hidden.fontsize == DEFAULT_MAP.face_number.fontsize
+    assert DEFAULT_MAP.face_number_hidden.alpha < DEFAULT_MAP.face_number.alpha

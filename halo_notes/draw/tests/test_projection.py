@@ -9,14 +9,14 @@ from halo_notes.draw.projection import (Camera, depth_sorted_faces, edge_visible
 
 def test_orthographic_projection_known_view():
     """从 +x 看（方位 0°、仰角 0°）：画面 x = 世界 y，画面 y = 世界 z。"""
-    cam = Camera(azimuth=0, elevation=0)
+    cam = Camera(azimuth=0, elevation=0, projection="orthographic")
     xy, depth = cam.project([[1, 2, 3]])
     assert np.allclose(xy[0], [2, 3])
     assert np.isclose(depth[0], 1)
 
 
 def test_orthographic_projection_from_top():
-    cam = Camera(azimuth=0, elevation=80)
+    cam = Camera(azimuth=0, elevation=80, projection="orthographic")
     xy, _ = cam.project([[1, 0, 0]])
     assert np.allclose(xy[0], [0, -np.sin(np.deg2rad(80))])  # 俯视时 +x 在画面下方（up=z）
     with pytest.raises(ValueError):
@@ -89,3 +89,22 @@ def test_point_on_visible_face():
     assert point_on_visible_face(prism, [np.sqrt(3) / 2, 0, 0], cam) is True
     assert point_on_visible_face(prism, [-np.sqrt(3) / 2, 0, 0], cam) is False
     assert point_on_visible_face(prism, [0, 0, 0], cam) is None
+
+
+def test_default_projection_is_perspective():
+    assert Camera().projection == "perspective"
+
+
+def test_projection_mode_flips_visibility_of_grazing_face():
+    """红绿对照：同一方位/仰角下，正交与近距透视对同一面给出相反的可见性。
+
+    仰角 5°、距离 3 时透视相机高度 z = 3·sin5° ≈ 0.26 低于顶面（z = 0.4），
+    从顶面质心看相机在其下方 → 顶面 1 不可见；正交视线常向量仍有 +z 分量 → 可见。
+    """
+    prism = HexPrism(1, 0.8)
+    ortho = Camera(azimuth=0, elevation=5, projection="orthographic")
+    persp = Camera(azimuth=0, elevation=5, projection="perspective", distance=3)
+    assert persp.position[2] < prism.centroid(prism.face(1))[2]
+    assert face_visible(prism, prism.face(1), ortho)
+    assert not face_visible(prism, prism.face(1), persp)
+    assert face_visible(prism, prism.face(1), ortho) != face_visible(prism, prism.face(1), persp)
