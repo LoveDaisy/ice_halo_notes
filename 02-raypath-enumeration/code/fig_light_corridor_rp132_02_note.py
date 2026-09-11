@@ -30,8 +30,9 @@ def main() -> None:
 
     # 全反射路径：把走廊直线沿反方向延长到晶体外——要产生这条内部直线，外面的光线得从这里来，
     # 但这个角度在底面上只会全反射
+    # 旧图约定：折射束是点线，唯一的全反射路径是实线——这是本图的信息所在，不能同一线型
     tir = RayPath([entry - d_line * tail, entry], (SegmentKind.INCIDENT,))
-    draw_raypath(ax, tir, camera=CAMERA, preset=PRESET, semantic="ray_folded")
+    draw_raypath(ax, tir, camera=CAMERA, preset=PRESET, semantic="ray_incident")
     annotate(ax, "全反射路径", entry - d_line * tail, (-0.1, -0.5), camera=CAMERA, preset=PRESET,
              ha="center")
 
