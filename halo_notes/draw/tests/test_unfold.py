@@ -90,8 +90,14 @@ def test_straighten_matches_unfolded_geometry(two_reflection_path):
     f = last.face(1)
     assert abs(last.normal(f) @ (s.points[2] - last.face_vertices(f)[0])) < 1e-6
     assert last.contains(s.points[2], eps=1e-6)
-    # 出射段保持原长度与方向
-    assert np.allclose(s.points[3] - s.points[2], p.points[-1] - p.points[-2])
+    # 出射段：长度不变；方向 = 直线 d1 在最后一个幽灵的出射面上按 Snell 折射的方向
+    # （即真实出射方向经两次镜像搬到展开空间），而不是原样照搬真实出射方向
+    from halo_notes.draw.raypath import N_ICE, refract
+    d1 = unit(p.points[2] - p.points[1])
+    out_dir = s.points[3] - s.points[2]
+    assert np.isclose(np.linalg.norm(out_dir), np.linalg.norm(p.points[-1] - p.points[-2]))
+    assert np.allclose(unit(out_dir), refract(d1, -last.normal(f), N_ICE, 1.0), atol=1e-9)
+    assert not np.allclose(unit(out_dir), unit(p.points[-1] - p.points[-2]))
 
 
 def test_straighten_rejects_path_without_exit():
@@ -99,3 +105,30 @@ def test_straighten_rejects_path_without_exit():
     p = trace(c, [-0.8, 0.1, 5], [0.2, 0, -1], ["reflect"])
     with pytest.raises(ValueError):
         straighten(p)
+
+
+def test_unfolded_tail_drops_incident_segment(two_reflection_path):
+    from halo_notes.draw.unfold import unfolded_tail
+    _, p = two_reflection_path
+    s = straighten(p)
+    t = unfolded_tail(s)
+    assert t.kinds == (SegmentKind.INTERNAL, SegmentKind.EXIT)
+    assert np.allclose(t.points, s.points[1:])
+    assert [(e.point_index, e.kind) for e in t.events] == [
+        (0, EventKind.REFRACT_IN), (1, EventKind.REFRACT_OUT)]
+
+
+def test_corridor_faces_assigns_faces_to_crystal_and_ghosts(two_reflection_path):
+    from halo_notes.draw.unfold import corridor_faces
+    c, p = two_reflection_path  # 3-2-5-1
+    faces = corridor_faces(p)
+    assert faces == [(0, 3), (1, 2), (2, 5), (2, 1)]
+    ghosts = unfold(c, p)
+    # 反射面在幽灵 k 上与晶体 k-1 的同编号面共面（这就是光线穿入幽灵 k 的那个面）
+    chain = [c] + ghosts
+    for k, number in faces[1:-1]:
+        prev, ghost = chain[k - 1], chain[k]
+        a = {tuple(np.round(v, 9)) for v in prev.face_vertices(prev.face(number))}
+        b = {tuple(np.round(v, 9)) for v in ghost.face_vertices(ghost.face(number))}
+        assert a == b
+    assert corridor_faces(_synthetic_path([])) == [(0, 6), (0, 3)]

@@ -17,7 +17,7 @@ from .labels import draw_face_number
 from .projection import (Camera, depth_sorted_faces, edge_visible, face_visible,
                          point_on_visible_face)
 from .raypath import Cone, RayPath, SegmentKind
-from .style import PRESETS, HiddenEdgeMode, Preset
+from .style import PRESETS, HiddenEdgeMode, MarkerStyle, Preset
 
 # 绘制层级：从后往前。光线锥体的遮挡衬底压在光线 / 晶体线之上、锥体轮廓之下
 Z_HIDDEN_FILL, Z_HIDDEN_EDGE, Z_HIDDEN_LABEL, Z_INTERNAL = 1, 2, 3, 4
@@ -58,7 +58,8 @@ def render_crystal(ax, crystal: Polyhedron, raypaths: Iterable[RayPath] | None =
     ``highlight``：要高亮的面号，按该面在**这个**晶体上的可见性选
     ``face_highlight`` / ``face_highlight_hidden``（不查其他晶体的遮挡）。
     ``ghost``：按展开幽灵晶体画——不填充（高亮面除外）、全部边用 ``edge_ghost``
-    样式画出（透明线框，不受 ``hidden_edges`` 开关影响）。两个参数正交。
+    样式画出（透明线框，不受 ``hidden_edges`` 开关影响）、面编号一律用淡的
+    ``face_number_hidden`` 样式。两个参数正交。
     """
     raypaths = list(raypaths or [])
     sm, geom = preset.style_map, preset.geom
@@ -103,7 +104,9 @@ def render_crystal(ax, crystal: Polyhedron, raypaths: Iterable[RayPath] | None =
                 continue
             if not visible[f.number] and not geom.label_hidden_faces:
                 continue
-            t = draw_face_number(ax, crystal, f, camera, preset, visible=visible[f.number])
+            # 幽灵晶体的编号一律用 face_number_hidden（淡）样式，只有层级仍按真实可见性排
+            t = draw_face_number(ax, crystal, f, camera, preset,
+                                 visible=visible[f.number] and not ghost)
             t.set_zorder(Z_VISIBLE_LABEL if visible[f.number] else Z_HIDDEN_LABEL)
 
     for path in raypaths:
@@ -141,10 +144,11 @@ def _plot_runs(ax, pts3d: np.ndarray, mask: np.ndarray, camera: Camera,
         i = max(j, i + 1)
 
 
-def draw_segment(ax, p0, p1, *, camera: Camera, preset: Preset, semantic: str,
-                 occluded_semantic: str, occluder: Polyhedron | None, z_visible: int,
+def draw_segment(ax, p0, p1, *, camera: Camera, preset: Preset, semantic,
+                 occluded_semantic, occluder: Polyhedron | None, z_visible: int,
                  z_hidden: int, samples: int = 64) -> None:
-    """画一条 3D 线段，被 ``occluder`` 挡住的部分换 ``occluded_semantic`` 样式。"""
+    """画一条 3D 线段，被 ``occluder`` 挡住的部分换 ``occluded_semantic`` 样式
+    （两个样式参数都是语义名或 ``LineStyle``，与 ``Preset.line_kwargs`` 同）。"""
     p0, p1 = np.asarray(p0, float), np.asarray(p1, float)
     ts = np.linspace(0, 1, samples)
     pts = p0[None, :] + ts[:, None] * (p1 - p0)[None, :]
@@ -179,30 +183,40 @@ def draw_cone(ax, cone: Cone, *, camera: Camera, line_kwargs: dict, z: int,
 
 
 def draw_raypath(ax, path: RayPath, crystal: Polyhedron | None = None, *,
-                 camera: Camera, preset: Preset) -> None:
-    """画光路：入射 / 出射段（含遮挡处理与锥体箭头）、内部段、事件点与端点。"""
+                 camera: Camera, preset: Preset, semantic: str | None = None) -> None:
+    """画光路：入射 / 出射段（含遮挡处理与锥体箭头）、内部段、事件点与端点。
+
+    ``semantic`` 给定时整条光路（各段、锥体、圆点）都用这一个线样式画成单色，
+    不做遮挡分段——用于展开图里的"展开直线"（``ray_unfolded``）与退居次要的
+    真实折线（``ray_folded``）；此时 ``crystal`` 只用于判断事件点是否在可见面上。
+    """
     sm, geom = preset.style_map, preset.geom
+    mono = preset.style(semantic) if semantic else None
     for p0, p1, kind in path.segments():
-        if kind is SegmentKind.INTERNAL:
+        if kind is SegmentKind.INTERNAL or mono is not None:
+            line = mono if mono is not None else sm.ray_internal
             xy = camera.project_xy(np.stack([p0, p1]))
-            ax.plot(xy[:, 0], xy[:, 1], zorder=Z_INTERNAL, solid_capstyle="round",
-                    **preset.line_kwargs("ray_internal"))
-            continue
-        semantic = "ray_incident" if kind is SegmentKind.INCIDENT else "ray_exit"
-        draw_segment(ax, p0, p1, camera=camera, preset=preset, semantic=semantic,
-                     occluded_semantic="ray_occluded", occluder=crystal,
-                     z_visible=Z_EXTERNAL, z_hidden=Z_INTERNAL)
+            ax.plot(xy[:, 0], xy[:, 1], solid_capstyle="round",
+                    zorder=Z_INTERNAL if kind is SegmentKind.INTERNAL else Z_EXTERNAL,
+                    **preset.line_kwargs(line))
+            if kind is SegmentKind.INTERNAL:
+                continue
+        else:
+            line = sm.ray_incident if kind is SegmentKind.INCIDENT else sm.ray_exit
+            draw_segment(ax, p0, p1, camera=camera, preset=preset, semantic=line,
+                         occluded_semantic="ray_occluded", occluder=crystal,
+                         z_visible=Z_EXTERNAL, z_hidden=Z_INTERNAL)
         # 锥体箭头：顶点在上游、底面朝传播方向
         d = unit(p1 - p0)
         at = geom.incident_cone_at if kind is SegmentKind.INCIDENT else geom.exit_cone_at
         apex = p0 + (p1 - p0) * at
         cone = Cone.along(apex, d, length=geom.cone_length, radius=geom.cone_radius,
                           rings=geom.cone_rings, samples=geom.cone_samples)
-        draw_cone(ax, cone, camera=camera, line_kwargs=preset.line_kwargs(semantic),
+        draw_cone(ax, cone, camera=camera, line_kwargs=preset.line_kwargs(line),
                   z=Z_CONE_OUTLINE, fill_mode="occlude", z_fill=Z_CONE_FILL,
                   fill_kwargs=dict(facecolor=preset.palette["background"], edgecolor="none"))
 
-    # 小圆点：首尾 + 事件点
+    # 小圆点：首尾 + 事件点；单色模式下圆点取线的颜色 / 透明度、沿用 ray_marker 的尺寸
     dots: list[tuple[np.ndarray, bool]] = []
     if geom.end_markers:
         dots += [(path.start, True), (path.end, True)]
@@ -213,8 +227,12 @@ def draw_raypath(ax, path: RayPath, crystal: Polyhedron | None = None, *,
             dots.append((p, on_vis is not False))
     for p, vis in dots:
         x, y = camera.project_xy(p)[0]
+        if mono is not None:
+            marker = MarkerStyle(mono.color, size=sm.ray_marker.size, alpha=mono.alpha)
+        else:
+            marker = sm.ray_marker if vis else sm.ray_marker_hidden
         ax.plot([x], [y], zorder=Z_EXTERNAL if vis else Z_INTERNAL,
-                **preset.marker_kwargs("ray_marker" if vis else "ray_marker_hidden"))
+                **preset.marker_kwargs(marker))
 
 
 # ---- 文字注释 ----------------------------------------------------------------
