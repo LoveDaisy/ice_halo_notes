@@ -159,6 +159,13 @@ def aim(crystal: Polyhedron, face_number: int, direction: Sequence[float], *,
     return target - unit(direction) * back
 
 
+def face_toward(crystal: Polyhedron, direction: Sequence[float], *, sides_only: bool = True) -> int:
+    """外法向最贴近 ``direction`` 的面编号（默认只在侧面 3–8 中找，配合 :func:`aim` 使用）。"""
+    d = unit(direction)
+    faces = (f for f in crystal.faces if f.number >= 3) if sides_only else crystal.faces
+    return max(faces, key=lambda f: crystal.normal(f) @ d).number
+
+
 # ---- 锥体箭头 --------------------------------------------------------------
 
 @dataclass(frozen=True)
