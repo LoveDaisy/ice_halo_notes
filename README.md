@@ -15,7 +15,8 @@
 | 4 | `04-render-equation/` | [冰晕模拟仿真的朴素(naive)思路](04-render-equation/冰晕模拟仿真的朴素思路.md) | published | [p/512594144](https://zhuanlan.zhihu.com/p/512594144) | `[[现代冰晕研究漫谈(4)： 冰晕模拟仿真的朴素(naive)思路]]` |
 | 5 | `05-rotation-3d/` | [三维旋转](05-rotation-3d/三维旋转.md) | published | [p/516883186](https://zhuanlan.zhihu.com/p/516883186) | `[[现代冰晕研究漫谈(5)： 三维旋转]]` |
 | 6 | `06-monte-carlo-vs-integration/` | [蒙特卡洛 vs. 直接积分](06-monte-carlo-vs-integration/蒙特卡洛%20vs.%20直接积分.md) | published | [p/536772578](https://zhuanlan.zhihu.com/p/536772578) | `[[现代冰晕研究漫谈(6)： 蒙特卡洛 vs. 直接积分]]` |
-| 7 | `07-halo-detection/` | [变换法探测冰晕](07-halo-detection/变换法探测冰晕.md) | outline | — | — |
+| 7 | `07-reflection-group/` | [为什么恰好是十二个](07-reflection-group/为什么恰好是十二个.md) | outline | — | — |
+| 12 | `12-halo-detection/` | [变换法探测冰晕](12-halo-detection/变换法探测冰晕.md) | outline | — | — |
 
 状态取值：`outline`（只有提纲）/ `draft`（写作中）/ `published`（已发表，正文冻结为导演剪辑版）。每章 md 的 frontmatter 是状态与链接的权威来源，本表随之同步。
 

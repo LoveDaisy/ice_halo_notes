@@ -161,7 +161,7 @@ $$
 
 ## 附：核验脚本
 
-- `docs/checks/check_group.py` — 定理 1、2、3、5，及「特征值只得 5 类」。
+- `07-reflection-group/code/check_group.py` — 定理 1、2、3、5，及「特征值只得 5 类」。
 - `docs/checks/check_pyramid.py` — 定理 6、7。
 
 ch7 / ch9 bootstrap 时迁入各章 `code/`。
