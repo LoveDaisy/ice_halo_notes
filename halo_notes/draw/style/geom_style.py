@@ -18,11 +18,20 @@ class HiddenEdgeMode(Enum):
     HIDE = "hide"
 
 
+class FaceNumberStyle(Enum):
+    """面编号：贴在面上随视角仿射变形（旧图观感），或在面心水平正放。"""
+
+    WARPED = "warped"
+    FLAT = "flat"
+
+
 @dataclass(frozen=True)
 class GeomStyle:
     # 不可见面
     hidden_edges: HiddenEdgeMode = HiddenEdgeMode.DRAW
     label_hidden_faces: bool = True
+    # 面编号
+    face_number_style: FaceNumberStyle = FaceNumberStyle.WARPED
     # 锥体箭头（长度单位与晶体同：a=1 时的 crystal units）
     cone_length: float = 0.36
     cone_radius: float = 0.13
