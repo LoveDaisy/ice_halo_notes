@@ -9,8 +9,8 @@ from halo_notes.draw import (PRESETS, Camera, HexPrism, draw_axes, finish, new_f
 from halo_notes.draw.labels import face_label_anchor, point_in_polygon  # noqa: E402
 from halo_notes.draw.projection import visible_faces  # noqa: E402
 from halo_notes.draw.raypath import SegmentKind  # noqa: E402
-from halo_notes.draw.scene import (Z_CONE_FILL, Z_CONE_OUTLINE, Z_EXTERNAL, Z_INTERNAL,  # noqa: E402
-                                   Z_VISIBLE_EDGE)
+from halo_notes.draw.scene import (Z_CONE_FILL, Z_CONE_OUTLINE, Z_EXTERNAL, Z_HIDDEN_LABEL,  # noqa: E402
+                                   Z_INTERNAL, Z_VISIBLE_EDGE, Z_VISIBLE_LABEL)
 
 
 def test_face_label_anchor_inside_projected_polygon():
@@ -29,6 +29,23 @@ def test_render_crystal_smoke():
     assert len(ax.lines) == 18  # 每条边一条线
     assert len(ax.patches) == 8  # 默认贴面编号是 PathPatch，不是 Text
     assert len(ax.texts) == 0
+    plt.close(fig)
+
+
+def test_face_number_zorder_matches_visibility():
+    """贴面编号（PathPatch）的 zorder 由 render_crystal 对返回 artist 统一
+    ``.set_zorder()``，与 draw_face_number 内部返回 Text 还是 PathPatch 无关；
+    这里直接核验该外部机制在默认（贴面）样式下确实生效（code-review round 1
+    Major 意见：切到 PathPatch 后未见对应回归测试）。"""
+    c = HexPrism(1, 0.8)
+    cam = Camera(azimuth=72, elevation=20)
+    fig, ax = new_figure(400, 300, dpi=50)
+    render_crystal(ax, c, camera=cam, preset=PRESETS["default"], face_numbers=True)
+    visible_numbers = {f.number for f in visible_faces(c, cam)}
+    assert len(ax.patches) == len(c.faces)  # 默认预设无面填充，全部是编号 patch
+    for f, patch in zip(c.faces, ax.patches):
+        expected = Z_VISIBLE_LABEL if f.number in visible_numbers else Z_HIDDEN_LABEL
+        assert patch.get_zorder() == expected
     plt.close(fig)
 
 

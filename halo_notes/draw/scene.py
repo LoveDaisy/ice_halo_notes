@@ -219,7 +219,8 @@ def draw_axes(ax, *, camera: Camera, preset: Preset,
         tip = o + d * L[k]
         start = o - d * L[k] if negative else o
         draw_segment(ax, start, tip - d * geom.cone_length * geom.axis_cone_scale,
-                     camera=camera, preset=preset, semantic="axis", occluded_semantic="axis_occluded", occluder=occluder,
+                     camera=camera, preset=preset,
+                     semantic="axis", occluded_semantic="axis_occluded", occluder=occluder,
                      z_visible=Z_EXTERNAL, z_hidden=Z_INTERNAL)
         # 轴箭头是标准箭头：锥尖在轴端、锥底朝原点（旧图 3.3 约定）；
         # 与光线端点「沿传播方向张开」的喇叭锥（Cone.along(apex, d)）方向相反
