@@ -1,0 +1,5 @@
+# Claude Code scratchpad (local task management)
+scratchpad/
+
+.claude/
+.DS_Store
