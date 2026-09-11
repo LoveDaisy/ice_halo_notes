@@ -12,6 +12,11 @@ from dataclasses import dataclass, replace
 from typing import Any
 
 
+# 含 CJK 字形的无衬线字体回退序列：macOS 自带的冬青黑体在前，缺时退回 matplotlib 默认
+# （列表里每个缺失的族 matplotlib 都会打一条 findfont 警告，所以不堆一长串候选）
+CJK_SANS = ("Hiragino Sans GB", "DejaVu Sans")
+
+
 @dataclass(frozen=True)
 class LineStyle:
     color: str            # 配色板颜色名
@@ -33,7 +38,7 @@ class TextStyle:
     alpha: float = 1.0
     weight: str = "normal"
     style: str = "normal"   # "normal" / "italic"
-    family: str | None = None
+    family: str | tuple[str, ...] | None = None   # 元组 = 按序回退的字体族列表
 
 
 @dataclass(frozen=True)
@@ -49,12 +54,17 @@ class SemanticStyleMap:
 
     edge_visible: LineStyle
     edge_hidden: LineStyle
+    edge_ghost: LineStyle                # 展开幽灵晶体的线框（透明线框：所有边都画，不分可见/不可见）
     face_fill: FillStyle | None          # None 表示不填充
     face_fill_hidden: FillStyle | None
+    face_highlight: FillStyle            # 高亮面（光走廊里的反射面 / 出入面）
+    face_highlight_hidden: FillStyle     # 高亮面背对观察者时
     ray_incident: LineStyle
     ray_internal: LineStyle              # 晶体内部段
     ray_exit: LineStyle
     ray_occluded: LineStyle              # 外部段被晶体挡住的部分
+    ray_unfolded: LineStyle              # 展开后的直线光路（穿过幽灵晶体串）
+    ray_folded: LineStyle                # 与展开直线同图时退居次要的真实折线光路
     ray_marker: MarkerStyle              # 光路端点 / 事件点
     ray_marker_hidden: MarkerStyle
     face_number: TextStyle
@@ -72,12 +82,17 @@ class SemanticStyleMap:
 DEFAULT_MAP = SemanticStyleMap(
     edge_visible=LineStyle("ink", linewidth=1.3),
     edge_hidden=LineStyle("ink_faint", linewidth=0.7),
+    edge_ghost=LineStyle("ink", linewidth=0.8, linestyle=":", alpha=0.5),  # 旧图幽灵晶体：灰色点线
     face_fill=None,
     face_fill_hidden=None,
+    face_highlight=FillStyle("highlight", alpha=0.9),
+    face_highlight_hidden=FillStyle("highlight", alpha=0.5),  # 与 *_hidden 惯例一致：同色减淡（线框透明，背面也要看得出是黄的）
     ray_incident=LineStyle("accent_warm", linewidth=1.6),
     ray_internal=LineStyle("accent_warm", linewidth=1.6, alpha=0.3),
     ray_exit=LineStyle("accent_cool", linewidth=1.6),
     ray_occluded=LineStyle("accent_warm", linewidth=1.6, alpha=0.3),
+    ray_unfolded=LineStyle("accent_cool", linewidth=1.6),                    # 2.5 旧图：实线蓝
+    ray_folded=LineStyle("accent_warm", linewidth=1.4, linestyle=":", alpha=0.9),  # 2.5 旧图：红点线
     ray_marker=MarkerStyle("accent_warm", size=5.0),
     ray_marker_hidden=MarkerStyle("accent_warm", size=5.0, alpha=0.3),
     face_number=TextStyle("slate", fontsize=26, weight="bold"),
@@ -85,5 +100,6 @@ DEFAULT_MAP = SemanticStyleMap(
     axis=LineStyle("accent_warm", linewidth=1.3),
     axis_occluded=LineStyle("accent_warm", linewidth=1.3, alpha=0.2),
     axis_label=TextStyle("ink", fontsize=22, style="italic"),
-    annotation=TextStyle("ink", fontsize=14),
+    # 注释文字是中文（2.2 / 2.3 / 2.8 / 3.2 的图注），默认字体族给一串含 CJK 的回退序列
+    annotation=TextStyle("ink", fontsize=18, family=CJK_SANS),
 )
