@@ -118,3 +118,17 @@ def test_render_crystal_flat_style_keeps_texts():
     render_crystal(ax, prism, camera=cam, preset=flat, face_numbers=True)
     assert len(ax.texts) == 8 and len(ax.patches) == 0
     plt.close(fig)
+
+
+def test_ice_filled_hidden_label_alpha_reaches_patch():
+    """ice_filled 预设把背面编号 alpha 调高（压在半透明填充下才看得见）：配置确实到达 patch。"""
+    prism = HexPrism(1, 0.8)
+    cam = Camera(azimuth=72, elevation=20)
+    preset = PRESETS["ice_filled"]
+    hidden_alpha = preset.style_map.face_number_hidden.alpha
+    assert hidden_alpha != PRESETS["default"].style_map.face_number_hidden.alpha
+    fig, ax = new_figure(400, 300, dpi=50)
+    render_crystal(ax, prism, camera=cam, preset=preset, face_numbers=True)
+    alphas = sorted({p.get_alpha() for p in ax.patches if isinstance(p, PathPatch)})
+    assert alphas == [hidden_alpha, 1.0]
+    plt.close(fig)
