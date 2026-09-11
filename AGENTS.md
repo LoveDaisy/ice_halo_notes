@@ -13,7 +13,8 @@
 
 ```bash
 git lfs ls-files          # 图片/psd 全部走 LFS（见 .gitattributes）
-obsidian rename ...       # 重命名 md 必须走 Obsidian CLI（自动改 wikilink），禁裸 mv；分流判据见 skill obsidian-route
+obsidian rename file=<旧名> name=<新名>.md   # 重命名 md 必须走 Obsidian CLI（自动改 wikilink），禁裸 mv；分流判据见 skill obsidian-route
+# ⚠ name= 必须带 .md，否则扩展名被吃掉；rename 后 Obsidian 会把 README 里的 markdown 链接改写成无目录的「最短路径」形式（GitHub 上会断），要改回显式相对路径
 ```
 
 新章 python 画图代码的环境：系列根 `pyproject.toml`（待建，见「架构与设计」）。
@@ -29,6 +30,7 @@ obsidian rename ...       # 重命名 md 必须走 Obsidian CLI（自动改 wiki
 ├── halo_notes/            # 系列级共享代码（晶体几何、光路渲染、调仿真器封装）
 ├── NN-kebab-slug/         # 一章一目录，两位零填充序号 + 英文 slug
 │   ├── <副标题>.md         # 章正文，中文副标题命名（不带「现代冰晕研究漫谈(N)：」前缀）
+│   ├── <笔记>.md           # 章内工作笔记（推导、归总），与正文同级，frontmatter `type: note`
 │   ├── code/              # 本章专用脚本；一图一脚本：fig_<name>.py → ../img/<name>.png
 │   │   └── legacy/        # 已被 python 重做的旧 matlab/mathematica 脚本（不删，作为已发表插图的出处）
 │   ├── img/
@@ -60,7 +62,7 @@ obsidian rename ...       # 重命名 md 必须走 Obsidian CLI（自动改 wiki
 
 - 新章画图/仿真代码一律 python；跨章复用的代码上提到 `halo_notes/`，章内 `code/` 只放章专属脚本
 - 一图一脚本，脚本名与图名对应
-- 每章 md 带 frontmatter：`type: directors-cut`、`status: outline | draft | published`、发表后补 `published: "[[公开版文件名]]"` 与 `url:`
+- 每章正文 md 带 frontmatter：`type: directors-cut`、`status: outline | draft | published`、发表后补 `published: "[[公开版文件名]]"` 与 `url:`；章内工作笔记只带 `type: note`，与正文同级放置（暂不设子目录，有需要再改）
 - 未写章的提纲直接写在该章 md 里（`status: outline`），不用单独的 guideline.txt
 - 图片/psd 等二进制走 LFS（`.gitattributes` 已配）
 - 使用 `scratchpad/` 目录管理任务（详见 `scratchpad/common.md`）
