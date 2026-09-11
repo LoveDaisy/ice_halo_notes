@@ -113,3 +113,37 @@ def test_convex_hull():
     pts = np.array([[0, 0], [1, 0], [1, 1], [0, 1], [0.5, 0.5], [0.2, 0.7]])
     hull = convex_hull_2d(pts)
     assert len(hull) == 4
+
+
+def test_parallel_origins_are_offset_perpendicular_to_direction():
+    from halo_notes.draw.raypath import parallel_origins
+    anchor, d = np.array([1.0, 2.0, 3.0]), np.array([1.0, 1.0, 0.2])
+    offs = [-0.4, 0.0, 0.4, 0.8]
+    pts = parallel_origins(anchor, d, offs)
+    assert pts.shape == (4, 3)
+    rel = pts - anchor
+    assert np.allclose(rel @ d, 0)                                   # 严格垂直于传播方向
+    assert np.allclose(np.linalg.norm(rel, axis=1), np.abs(offs))    # 偏移量即距离
+    assert np.allclose(pts[1], anchor)
+
+
+def test_parallel_origins_respects_explicit_perp():
+    from halo_notes.draw.raypath import parallel_origins
+    d = np.array([1.0, 0.0, 0.0])
+    auto = parallel_origins([0, 0, 0], d, [1.0])[0]
+    explicit = parallel_origins([0, 0, 0], d, [1.0], perp=[0.0, 0.0, 1.0])[0]
+    assert np.allclose(explicit, [0, 0, 1])
+    assert not np.allclose(auto, explicit)
+    # 非严格垂直的 perp 先被投影：沿 direction 的分量被剔除
+    skew = parallel_origins([0, 0, 0], d, [1.0], perp=[0.5, 0.0, 1.0])[0]
+    assert np.allclose(skew, [0, 0, 1])
+
+
+def test_perp_basis_is_orthonormal_right_handed():
+    from halo_notes.draw.geometry import perp_basis, unit
+    for v in ([1, 0, 0], [0, 0, 1], [0.3, -0.2, 0.9], [1, 1, 0]):
+        u, w = perp_basis(v)
+        a = unit(v)
+        assert np.isclose(u @ a, 0) and np.isclose(w @ a, 0) and np.isclose(u @ w, 0)
+        assert np.isclose(np.linalg.norm(u), 1) and np.isclose(np.linalg.norm(w), 1)
+        assert np.allclose(np.cross(u, w), a)

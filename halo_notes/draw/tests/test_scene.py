@@ -9,8 +9,9 @@ from halo_notes.draw import (PRESETS, Camera, HexPrism, draw_axes, finish, new_f
 from halo_notes.draw.labels import face_label_anchor, point_in_polygon  # noqa: E402
 from halo_notes.draw.projection import visible_faces  # noqa: E402
 from halo_notes.draw.raypath import SegmentKind  # noqa: E402
-from halo_notes.draw.scene import (Z_CONE_FILL, Z_CONE_OUTLINE, Z_EXTERNAL, Z_HIDDEN_LABEL,  # noqa: E402
-                                   Z_INTERNAL, Z_VISIBLE_EDGE, Z_VISIBLE_LABEL)
+from halo_notes.draw.scene import (Z_CONE_FILL, Z_CONE_OUTLINE, Z_EXTERNAL, Z_HIDDEN_FILL,  # noqa: E402
+                                   Z_HIDDEN_LABEL, Z_INTERNAL, Z_VISIBLE_EDGE, Z_VISIBLE_FILL,
+                                   Z_VISIBLE_LABEL)
 
 
 def test_face_label_anchor_inside_projected_polygon():
@@ -137,3 +138,97 @@ def test_axes_arrows_are_solid_and_scaled():
         sizes[scale] = max(np.ptp(pt.get_xy(), axis=0).max() for pt in ax.patches)
         plt.close(fig)
     assert sizes[0.3] < sizes[0.6]  # 配置确实接入：改 scale 箭头随之缩放
+
+
+# ---- 高亮 / 幽灵（光路展开） --------------------------------------------------
+
+def _fills(ax):
+    """面填充 patch（排除贴面编号 PathPatch）。"""
+    from matplotlib.patches import Polygon
+    return [p for p in ax.patches if isinstance(p, Polygon)]
+
+
+def test_render_crystal_highlight_face_uses_highlight_style():
+    from matplotlib.colors import to_rgba
+    c = HexPrism(1, 0.8)
+    cam = Camera(azimuth=72, elevation=20)  # 顶面 1 可见、底面 2 不可见
+    preset = PRESETS["default"]
+    fig, ax = new_figure(400, 300, dpi=50)
+    render_crystal(ax, c, camera=cam, preset=preset, highlight=(1, 2))
+    fills = _fills(ax)
+    assert len(fills) == 2  # 默认预设无面填充，只有两个高亮面
+    hi = preset.fill_kwargs("face_highlight")
+    hi_hidden = preset.fill_kwargs("face_highlight_hidden")
+    colors = sorted((p.get_facecolor(), p.get_zorder()) for p in fills)
+    assert (to_rgba(hi["facecolor"], hi["alpha"]), Z_VISIBLE_FILL) in colors
+    assert (to_rgba(hi_hidden["facecolor"], hi_hidden["alpha"]), Z_HIDDEN_FILL) in colors
+    plt.close(fig)
+
+
+def test_render_crystal_ghost_mode_forces_no_default_fill_and_uses_edge_ghost():
+    from matplotlib.colors import to_rgba
+    from halo_notes.draw.style import DEFAULT_GEOM, HiddenEdgeMode
+    c = HexPrism(1, 0.8)
+    cam = Camera(azimuth=72, elevation=20)
+    # ice_filled 本身有 face_fill；再把 hidden_edges 设成 HIDE——两者都应被 ghost 覆盖
+    preset = PRESETS["ice_filled"].replace(geom=DEFAULT_GEOM.replace(hidden_edges=HiddenEdgeMode.HIDE))
+    fig, ax = new_figure(400, 300, dpi=50)
+    render_crystal(ax, c, camera=cam, preset=preset, ghost=True)
+    assert _fills(ax) == []
+    assert len(ax.lines) == 18
+    kw = preset.line_kwargs("edge_ghost")
+    for ln in ax.lines:
+        assert to_rgba(ln.get_color(), ln.get_alpha()) == to_rgba(kw["color"], kw["alpha"])
+        assert ln.get_linewidth() == kw["linewidth"]
+    plt.close(fig)
+
+
+def test_render_crystal_highlight_and_ghost_together():
+    from matplotlib.colors import to_rgba
+    c = HexPrism(1, 0.8)
+    cam = Camera(azimuth=72, elevation=20)
+    preset = PRESETS["ice_filled"]
+    fig, ax = new_figure(400, 300, dpi=50)
+    render_crystal(ax, c, camera=cam, preset=preset, ghost=True, highlight=(3,))
+    fills = _fills(ax)
+    assert len(fills) == 1  # 只有高亮面被填充，ghost 的"不填充"不压过 highlight
+    vis = visible_faces(c, cam)
+    sem = "face_highlight" if c.face(3) in vis else "face_highlight_hidden"
+    kw = preset.fill_kwargs(sem)
+    assert fills[0].get_facecolor() == to_rgba(kw["facecolor"], kw["alpha"])
+    plt.close(fig)
+
+
+# ---- 文字注释 ----------------------------------------------------------------
+
+def test_annotate_places_text_at_projected_point_plus_offset():
+    from halo_notes.draw import annotate
+    from halo_notes.draw.scene import Z_TEXT
+    cam = Camera(azimuth=72, elevation=20)
+    preset = PRESETS["default"]
+    fig, ax = new_figure(400, 300, dpi=50)
+    anchor, off = [0.3, -0.2, 0.5], (0.7, -0.4)
+    t = annotate(ax, "全反射路径", anchor, off, camera=cam, preset=preset)
+    assert list(ax.texts) == [t]
+    assert np.allclose(t.get_position(), cam.project_xy(anchor)[0] + off)
+    assert t.get_zorder() == Z_TEXT and len(ax.lines) == 0
+    plt.close(fig)
+
+
+def test_annotate_uses_annotation_semantic_style_and_optional_arrow():
+    from matplotlib.colors import to_rgba
+    from halo_notes.draw import annotate
+    from halo_notes.draw.style import DEFAULT_MAP, TextStyle
+    cam = Camera(azimuth=72, elevation=20)
+    # 故意用与默认不同的注释样式，确认确实从 annotation 语义取值（不是用默认字体）
+    preset = PRESETS["default"].replace(
+        style_map=DEFAULT_MAP.replace(annotation=TextStyle("accent_cool", fontsize=9, alpha=0.6)))
+    fig, ax = new_figure(400, 300, dpi=50)
+    t = annotate(ax, "x", [0, 0, 0], (0.5, 0.5), camera=cam, preset=preset, arrow=True)
+    kw = preset.text_kwargs("annotation")
+    assert to_rgba(t.get_color()) == to_rgba(kw["color"]) and t.get_fontsize() == 9
+    assert t.get_alpha() == 0.6
+    assert len(ax.lines) == 1  # arrow=True：文字到锚点一条连线
+    xy = ax.lines[0].get_xydata()
+    assert np.allclose(xy[0], t.get_position()) and np.allclose(xy[1], cam.project_xy([0, 0, 0])[0])
+    plt.close(fig)
