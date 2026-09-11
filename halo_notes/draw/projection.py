@@ -77,6 +77,10 @@ class Camera:
         """透视相机的位置（正交投影下仅用于深度参考）。"""
         return self.view_dir * self.distance
 
+    def to_world(self, right: float, up: float, toward: float) -> np.ndarray:
+        """用画面坐标（右 / 上 / 朝观察者）合成一个世界向量，便于按画面观感摆姿态。"""
+        return right * self.right + up * self.cam_up + toward * self.view_dir
+
     # ---- 投影 ------------------------------------------------------------
     def project(self, points: Sequence[float] | np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """把 (N,3) 或 (3,) 的点投到画面。返回 ``(xy (N,2), depth (N,))``。

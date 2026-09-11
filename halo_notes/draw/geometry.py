@@ -194,6 +194,8 @@ class HexPrism(Polyhedron):
         return cls(a=a, h=ratio * a)
 
     def _copy_with(self, vertices: np.ndarray) -> "HexPrism":
+        # 手动搬运字段以绕开 __init__（它会按 a/h 重新生成顶点，覆盖掉变换后的 vertices）；
+        # HexPrism.__init__ 新增构造参数时必须同步在这里搬运，否则变换后的实例会悄悄丢字段。
         obj = HexPrism.__new__(HexPrism)
         obj.a, obj.h = self.a, self.h
         Polyhedron.__init__(obj, vertices, self.faces)
