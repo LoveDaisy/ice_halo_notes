@@ -41,7 +41,7 @@ from halo_notes.draw.raypath import EventKind, RayEvent, RayPath, face_sequence,
 
 ROOT = Path(__file__).resolve().parents[3]
 CH1, CH2, CH3 = "01-symmetry/code", "02-raypath-enumeration/code", "03-parallel-raypaths/code"
-CH4, CH6 = "04-render-equation/code", "06-monte-carlo-vs-integration/code"
+CH4, CH5, CH6 = "04-render-equation/code", "05-rotation-3d/code", "06-monte-carlo-vs-integration/code"
 
 # 图 → 脚本；每个脚本头部自己声明 ``PATHS = {名字: 面序列}``，测试从脚本命名空间读取，不另存一份映射
 #（没有光路的图声明空字典：测试断言它确实一条光路都没画）
@@ -63,6 +63,7 @@ FIGURES = {
     "3.5": f"{CH3}/fig_tricker_arc_plot.py",
     "3.6": f"{CH3}/fig_tricker_arc_cone_plot.py",
     "4.1": f"{CH4}/fig_ch4_raypath_all.py",
+    "5.1": f"{CH5}/fig_ch5_interp.py",
     "6.2": f"{CH6}/fig_trace.py",
 }
 
@@ -367,3 +368,34 @@ def test_3_6_tricker_arc_lies_on_the_cone(monkeypatch):
     # 延伸长度盖过交线：交线上各点离锥顶的距离 ≤ 各叶长度
     d = np.linalg.norm(rel, axis=1)
     assert d[cos_full := (rel @ [0, 0, 1]) > 0].max() <= kw["length_up"] and d[~cos_full].max() <= kw["length_down"]
+
+
+def test_5_1_three_interpolations_share_endpoints_and_differ_midway(monkeypatch):
+    """左栏中间帧不再正交（det / RᵀR 偏离 > 0.1）；右栏相邻帧旋转角相等且总角 = 起终相对旋转角；三栏首末帧相等；
+    静态三联取首 / 中 / 末三帧且与 gif 同一帧序列（同一 render_frame）；跑一遍不落盘真实 gif / png。"""
+    from halo_notes.draw.interp import relative_angle_deg
+    gif = ROOT / "05-rotation-3d/img/ch5_interp.gif"
+    png = ROOT / "05-rotation-3d/img/ch5_interp.png"
+    before = (gif.read_bytes() if gif.exists() else None, png.read_bytes() if png.exists() else None)
+    cap, ns = run_figure(FIGURES["5.1"], monkeypatch)
+    assert (gif.read_bytes() if gif.exists() else None, png.read_bytes() if png.exists() else None) == before
+    n, pose = ns["N_FRAMES"], ns["pose"]
+    R0, R1 = ns["R_START"], ns["R_END"]
+    total = relative_angle_deg(R0, R1)
+    assert 150.0 < total < 178.0                                   # 接近但不等于 180°
+    for m in range(3):
+        assert np.abs(pose(m, 0) - R0).max() < 1e-9 and np.abs(pose(m, n - 1) - R1).max() < 1e-9
+    M = pose(0, n // 2)
+    assert abs(np.linalg.det(M) - 1.0) > 0.1 and np.abs(M.T @ M - np.eye(3)).max() > 0.1
+    steps = [relative_angle_deg(pose(2, i), pose(2, i + 1)) for i in range(n - 1)]
+    assert np.ptp(steps) < 1e-6 and np.isclose(sum(steps), total, atol=1e-6)
+    E, S = pose(1, n // 2), pose(2, n // 2)
+    assert np.abs(E.T @ E - np.eye(3)).max() < 1e-9 and np.abs(E - S).max() > 0.1    # 欧拉角插值刚性但走另一条路
+    # 渲染次序：gif 每帧三栏（3n 个晶体），再静态三联 len(STATIC_FRAMES) 行 × 3 栏；静态各行 = gif 对应下标帧
+    static = ns["STATIC_FRAMES"]
+    assert tuple(static) == (0, n // 2, n - 1)
+    assert len(cap.bodies) == 3 * n + 3 * len(static)
+    for r, i in enumerate(static):
+        for m in range(3):
+            assert np.allclose(cap.bodies[3 * n + 3 * r + m].vertices, cap.bodies[3 * i + m].vertices)
+    assert all(c is cap.cameras[0] for c in cap.cameras)           # 帧间相机一致
