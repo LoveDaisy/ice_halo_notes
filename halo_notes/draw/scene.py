@@ -308,13 +308,13 @@ def draw_raypath(ax, path: RayPath, crystal: Polyhedron | None = None, *,
 
 def annotate(ax, text: str, anchor3d: Sequence[float], offset2d: Sequence[float] = (0.0, 0.0), *,
              camera: Camera, preset: Preset, ha: str = "left", va: str = "center",
-             arrow: bool = False):
+             arrow: bool = False, semantic: str = "annotation"):
     """在 3D 锚点的投影处加 2D 偏移（与投影同量纲，即晶体单位）写一段注释文字，
-    样式走 ``annotation`` 语义。``arrow=True`` 时从文字到锚点画一条同色细连线。
-    返回 ``Text`` 对象。"""
+    样式走 ``semantic`` 语义（默认 ``annotation``；LaTeX 角度记号可用 ``arc_label``）。
+    ``arrow=True`` 时从文字到锚点画一条同色细连线。返回 ``Text`` 对象。"""
     x, y = camera.project_xy(anchor3d)[0]
     tx, ty = x + offset2d[0], y + offset2d[1]
-    kw = preset.text_kwargs("annotation")
+    kw = preset.text_kwargs(semantic)
     if arrow:
         ax.plot([tx, x], [ty, y], zorder=Z_TEXT, linewidth=0.8, color=kw["color"],
                 alpha=kw["alpha"], solid_capstyle="round")

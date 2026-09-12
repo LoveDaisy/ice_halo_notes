@@ -59,6 +59,7 @@ FIGURES = {
     "2.9": f"{CH2}/fig_light_corridor_rp132_03.py",
     "3.1": f"{CH3}/fig_ch3_wedge_path.py",
     "3.2": f"{CH3}/fig_tricker_arc_raypath_expand.py",
+    "3.4": f"{CH3}/fig_rotation_steps.py",
     "4.1": f"{CH4}/fig_ch4_raypath_all.py",
     "6.2": f"{CH6}/fig_trace.py",
 }
@@ -74,6 +75,9 @@ class Capture:
         self.bodies: list[Polyhedron] = []
         self.paths: list[tuple[RayPath, str | None]] = []
         self.spheres: list[str] = []
+        self.cameras: list[object] = []                                   # 每次 render_crystal 传入的相机
+        self.arcs: list[tuple[object, np.ndarray, float, str]] = []      # (ax, 轴, 张角, 语义)
+        self.arrows: list[tuple[object, np.ndarray, np.ndarray]] = []    # (ax, 起点, 方向)
 
 
 def install_spies(cap: Capture, monkeypatch) -> None:
@@ -82,6 +86,7 @@ def install_spies(cap: Capture, monkeypatch) -> None:
 
     def spy_render(ax, crystal, raypaths=None, **kw):
         cap.bodies.append(crystal)
+        cap.cameras.append(kw.get("camera"))
         return real_render(ax, crystal, raypaths, **kw)
 
     def spy_draw(ax, path, crystal=None, **kw):
@@ -105,6 +110,19 @@ def install_spies(cap: Capture, monkeypatch) -> None:
     for mod in (scene2d, draw):
         monkeypatch.setattr(mod, "render_section", spy_render2d)
         monkeypatch.setattr(mod, "draw_raypath_2d", spy_draw2d)
+    real_arc, real_arrow = scene.draw_rotation_arc_3d, scene.draw_axis_arrow
+
+    def spy_arc(ax, axis, radius, start_dir, angle_deg, **kw):
+        cap.arcs.append((ax, unit(axis), float(angle_deg), kw["semantic"]))
+        return real_arc(ax, axis, radius, start_dir, angle_deg, **kw)
+
+    def spy_arrow(ax, origin, direction, length, **kw):
+        cap.arrows.append((ax, np.asarray(origin, float), unit(direction)))
+        return real_arrow(ax, origin, direction, length, **kw)
+
+    for mod in (scene, draw):
+        monkeypatch.setattr(mod, "draw_rotation_arc_3d", spy_arc)
+        monkeypatch.setattr(mod, "draw_axis_arrow", spy_arrow)
     for name in SPHERE_RENDERERS:
         real = getattr(sphere, name)
 
@@ -235,3 +253,52 @@ def test_every_drawn_raypath_is_the_declared_light_path(fig, monkeypatch):
                 problems.append(f"{tag}: endpoint event {ev.kind.value}@{ev.face_number} does not "
                                 f"continue a full traced path drawn in this figure")
     assert not problems, "\n".join(problems)
+
+
+# ---- 逐图语义单测（task-draw-rest：无光路的图，按 issue「机械核验」列另行断言） ----------------------
+
+def _same_direction(a, b, tol=1e-9) -> bool:
+    return np.linalg.norm(unit(a) - unit(b)) < tol
+
+
+def test_3_4_rotation_steps_follow_the_text(monkeypatch):
+    """R₁ = R_z(θ)、R₂ = R_y(90°)·R₁、R₃ = R_z(α)·R₂，且与正文第 75 行起的显式矩阵逐项一致；
+    三帧各画的弧：帧 1 绕 z 标 θ，帧 2 绕 y 标 90° + 绕 c 轴标 θ，帧 3 绕 z 标 α + 绕 c 轴标 θ；主轴箭头沿 R₃ 的 c 轴；
+    三帧共用同一相机实例。"""
+    cap, ns = run_figure(FIGURES["3.4"], monkeypatch)
+    R1, R2, R3 = ns["ROTATIONS"]
+    th, al = np.deg2rad(ns["THETA_DEG"]), np.deg2rad(ns["ALPHA_DEG"])
+    Rz = lambda a: draw.rotation((0, 0, 1), np.rad2deg(a))  # noqa: E731
+    assert np.abs(R1 - Rz(th)).max() < 1e-9
+    assert np.abs(R2 - draw.rotation((0, 1, 0), 90.0) @ R1).max() < 1e-9
+    assert np.abs(R3 - Rz(al) @ R2).max() < 1e-9
+    text_R = np.array([[-np.sin(al) * np.sin(th), -np.sin(al) * np.cos(th), np.cos(al)],
+                       [np.cos(al) * np.sin(th), np.cos(al) * np.cos(th), np.sin(al)],
+                       [-np.cos(th), np.sin(th), 0.0]])
+    assert np.abs(R3 - text_R).max() < 1e-9
+    # 三帧晶体 = 标准晶体经 R₁ / R₂ / R₃（按渲染顺序）
+    base = ns["CRYSTAL"]
+    assert len(cap.bodies) == 3
+    for body, R in zip(cap.bodies, (R1, R2, R3)):
+        assert np.allclose(body.vertices, base.vertices @ R.T)
+    # 弧按帧归组（同一 ax 上的弧属于同一帧）
+    frames = {}
+    for ax, axis, angle, sem in cap.arcs:
+        frames.setdefault(id(ax), []).append((axis, angle, sem))
+    assert len(frames) == 3
+    f1, f2, f3 = [frames[id(ax)] for ax in dict.fromkeys(ax for ax, *_ in cap.arcs)]
+    z, y = np.array([0, 0, 1.0]), np.array([0, 1.0, 0])
+
+    def has(frame, axis, angle, sem):
+        return any(_same_direction(a, axis) and np.isclose(g, angle) and s == sem for a, g, s in frame)
+
+    theta, alpha = ns["THETA_DEG"], ns["ALPHA_DEG"]
+    assert len(f1) == 1 and has(f1, z, theta, "arc_roll")
+    assert len(f2) == 2 and has(f2, y, 90.0, "arc_tilt") and has(f2, R2[:, 2], theta, "arc_roll")
+    assert len(f3) == 3 and has(f3, y, 90.0, "arc_tilt") and has(f3, z, alpha, "arc_azimuth") \
+        and has(f3, R3[:, 2], theta, "arc_roll")
+    assert _same_direction(R2[:, 2], [1, 0, 0])                      # 帧 2 的 c 轴横到 x
+    assert len(cap.arrows) == 1 and _same_direction(cap.arrows[0][2], R3[:, 2])
+    assert np.allclose(cap.arrows[0][1], 0)
+    assert ns["THETA_DEG"] > 0 and 0 < ns["ALPHA_DEG"] < 90
+    assert len(cap.cameras) == 3 and all(c is cap.cameras[0] for c in cap.cameras)   # 同一相机实例

@@ -60,8 +60,8 @@ class GeomStyle:
     axis_label_pad: float = 0.18   # 轴标签离箭头尖的距离
     axis_cone_scale: float = 0.5   # 轴箭头（实心）相对光线锥体的整体缩放（长度与半径同缩；旧图 3.3 目测约 0.35，取裁定区间 0.5–0.7 下限）
     # 主轴箭头（6.1 / 3.4 第三帧从晶体中心沿 c 轴伸出的粗箭头）与 3D 旋转弧（3.4）
-    main_axis_cone_scale: float = 1.0   # 主轴箭头的实心锥体相对光线锥体的缩放（比坐标轴箭头大一号）
-    arc_cone_scale: float = 0.7         # 旋转弧末端箭头的锥体缩放
+    main_axis_cone_scale: float = 0.8   # 主轴箭头的实心锥体相对光线锥体的缩放（比坐标轴箭头大一号）
+    arc_cone_scale: float = 0.5         # 旋转弧末端箭头的锥体缩放（与坐标轴箭头同号）
     arc_label_pad: float = 0.35         # 弧旁标签离弧中点的径向距离（世界单位）
     # 球面图元（sphere）
     sphere_grid_step_deg: float = 15.0  # 经纬网格间隔（6.1 旧图约 15°；3.5 / 3.6 旧 nb 用 10°，脚本自行覆盖）
