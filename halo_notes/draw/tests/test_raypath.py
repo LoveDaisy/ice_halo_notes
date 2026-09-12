@@ -210,3 +210,21 @@ def test_events_for_faces():
     assert events_for_faces([3, 1, 5, 7, 4]) == ["refract", "reflect", "reflect", "reflect", "refract"]
     with pytest.raises(ValueError):
         events_for_faces([])
+
+
+def test_verify_path_accepts_traced_and_rejects_bent_wrong():
+    from halo_notes.draw.raypath import verify_path
+    c = HexPrism(1.0, 1.0)
+    p = trace(c, [-5, 0.0, -2.0], [1, 0, 0.5], ["refract", "reflect", "refract"])  # 6-1-3
+    verify_path(p, lambda ev: c)  # 不抛
+    # 把内反射点之后的方向改掉（仍在晶体内）：反射定律被破坏
+    pts = p.points.copy()
+    pts[3] = pts[3] + np.array([0.0, 0.2, 0.0])
+    bad = RayPath(pts, p.kinds, p.events)
+    with pytest.raises(ValueError, match="reflection"):
+        verify_path(bad, lambda ev: c)
+    # 事件点不在面上
+    pts2 = p.points.copy()
+    pts2[1] = pts2[1] + np.array([0.1, 0, 0])
+    with pytest.raises(ValueError, match="off the face plane"):
+        verify_path(RayPath(pts2, p.kinds, p.events), lambda ev: c)
