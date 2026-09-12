@@ -91,6 +91,22 @@ class SemanticStyleMap:
     leader: LineStyle = LineStyle("ink", linewidth=0.8)                    # 注释引线
     caption: TextStyle = TextStyle("ink_soft", fontsize=26, weight="bold", family=CJK_SANS)  # 1.2 旧图的粗体图注
     symbol: TextStyle = TextStyle("ink", fontsize=84, family=("DejaVu Sans",))   # ⇓ / ⟺ 这类 Unicode 箭头符号
+    # ---- 3D 旋转弧 / 主轴箭头（3.4）与球面族图元（3.5 / 3.6 / 6.1）：只增不改 ----
+    arc_roll: LineStyle = LineStyle("arc_roll", linewidth=2.6)              # 绕晶体 c 轴的 θ 弧
+    arc_tilt: LineStyle = LineStyle("arc_tilt", linewidth=2.6)              # 绕 y 轴的 π/2 弧
+    arc_azimuth: LineStyle = LineStyle("arc_azimuth", linewidth=2.6)        # 绕 z 轴的 α 弧
+    arc_label: TextStyle = TextStyle("ink", fontsize=22, style="italic")    # 弧旁的 LaTeX 标签（与 axis_label 同款）
+    axis_main: LineStyle = LineStyle("ink", linewidth=3.0)                  # 主轴箭头：黑色粗线 + 实心锥
+    sphere_grid: LineStyle = LineStyle("grid", linewidth=0.5)               # 经纬网格朝向观察者的一半
+    sphere_grid_hidden: LineStyle = LineStyle("grid", linewidth=0.5, alpha=0.4)   # 背面网格：同色减淡
+    equator: LineStyle = LineStyle("slate", linewidth=1.3)                  # 6.1 赤道：前半实线
+    equator_hidden: LineStyle = LineStyle("slate", linewidth=1.3, linestyle="--")  # 后半虚线
+    sphere_curve: LineStyle = LineStyle("sphere_curve", linewidth=3.0)      # 球面上的参数曲线（3.5 旧图的粗蓝弧）
+    sphere_curve_hidden: LineStyle = LineStyle("sphere_curve", linewidth=3.0, alpha=0.3)
+    pose_cloud: MarkerStyle = MarkerStyle("cloud", size=0.9)                # 姿态点云（6.1 旧图的细小灰点）
+    pose_cloud_hidden: MarkerStyle = MarkerStyle("cloud", size=0.9, alpha=0.35)
+    cone_surface: FillStyle = FillStyle("cone", alpha=0.35)                 # 3.6 锥面淡填充
+    cone_edge: LineStyle = LineStyle("grid", linewidth=0.4)                 # 3.6 锥面网格线
     # 面号 → 配色板颜色名；给定时截面边编号按面号取色（字号 / 透明度仍取对应 face_number* 语义），
     # None = 全部用语义里的颜色。3D 贴面编号不读这个字段
     face_number_colors: Mapping[int, str] | None = None

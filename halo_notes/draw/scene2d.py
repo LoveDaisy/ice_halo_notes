@@ -258,10 +258,10 @@ def annotate_2d(ax, text: str, xy: Sequence[float], *, preset: Preset, ha: str =
 
 def multi_panel(rows: int, cols: int, width_px: int, height_px: int, dpi: int = 200, *,
                 preset: Preset = PRESETS["default"], titles: Sequence[str] | None = None,
-                title_frac: float = 0.14, pad: float = 0.01):
-    """``rows × cols`` 网格：每格一个 axes（等比例、无坐标框），下方留 ``title_frac`` 高的标题带。
-    ``titles`` 按行优先给每格的（LaTeX）标题，样式 ``panel_title``，数学字体 Computer Modern。
-    返回 ``(fig, axes)``，``axes`` 是 ``rows × cols`` 的嵌套列表。调用方对每个 ax 用同一组
+                title_frac: float = 0.14, pad: float = 0.01, title_pos: Literal["bottom", "top"] = "bottom"):
+    """``rows × cols`` 网格：每格一个 axes（等比例、无坐标框），下方（``title_pos="top"`` 时上方）留
+    ``title_frac`` 高的标题带。``titles`` 按行优先给每格的（LaTeX）标题，样式 ``panel_title``，数学字体
+    Computer Modern。返回 ``(fig, axes)``，``axes`` 是 ``rows × cols`` 的嵌套列表。调用方对每个 ax 用同一组
     ``xlim`` / ``ylim`` :func:`scene.finish`，即共用比例尺。"""
     fig = plt.figure(figsize=((width_px + 0.5) / dpi, (height_px + 0.5) / dpi), dpi=dpi)
     fig.patch.set_facecolor(preset.palette["background"])
@@ -271,11 +271,15 @@ def multi_panel(rows: int, cols: int, width_px: int, height_px: int, dpi: int = 
     for r in range(rows):
         row = []
         for c in range(cols):
-            x0, y0 = c * cell_w + pad, 1.0 - (r + 1) * cell_h + cell_h * title_frac
+            x0 = c * cell_w + pad
+            y0 = 1.0 - (r + 1) * cell_h + (cell_h * title_frac if title_pos == "bottom" else pad)
             ax = fig.add_axes([x0, y0, cell_w - 2 * pad, cell_h * (1 - title_frac) - pad])
             ax.set_axis_off()
             if titles is not None and k < len(titles):
-                ax.text(0.5, -title_frac / (1 - title_frac) / 2, titles[k], transform=ax.transAxes,
+                ty = -title_frac / (1 - title_frac) / 2
+                if title_pos == "top":
+                    ty = 1.0 - ty
+                ax.text(0.5, ty, titles[k], transform=ax.transAxes,
                         ha="center", va="center", math_fontfamily="cm",
                         **preset.text_kwargs("panel_title"))
             row.append(ax)

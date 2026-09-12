@@ -107,3 +107,23 @@ def test_new_2d_fields_have_defaults_and_do_not_touch_existing():
     assert DEFAULT_MAP.ray2d.color == "accent_warm"
     assert DEFAULT_MAP.ray_incident == LineStyle("accent_warm", linewidth=1.6)
     assert DEFAULT_GEOM.cone_length == 0.36
+
+
+def test_draw_rest_semantics_resolve_and_differ_from_neighbours():
+    """task-draw-rest 新增的弧 / 主轴 / 球面语义都能解析出色值；三条弧各不同色、可见与背面版本只差
+    透明度或线型（同色减淡惯例），主轴箭头比坐标轴粗。"""
+    p = PRESETS["default"]
+    arcs = [p.line_kwargs(s)["color"] for s in ("arc_roll", "arc_tilt", "arc_azimuth")]
+    assert len(set(arcs)) == 3 and p.line_kwargs("axis")["color"] not in arcs
+    assert p.line_kwargs("axis_main")["linewidth"] > p.line_kwargs("axis")["linewidth"]
+    for vis, hid in (("sphere_grid", "sphere_grid_hidden"), ("sphere_curve", "sphere_curve_hidden"),
+                     ("equator", "equator_hidden")):
+        a, b = p.line_kwargs(vis), p.line_kwargs(hid)
+        assert a["color"] == b["color"] and a != b
+    a, b = p.marker_kwargs("pose_cloud"), p.marker_kwargs("pose_cloud_hidden")
+    assert a["color"] == b["color"] and a["alpha"] > b["alpha"]
+    assert p.fill_kwargs("cone_surface")["alpha"] < 1.0
+    assert p.text_kwargs("arc_label")["fontsize"] == p.text_kwargs("axis_label")["fontsize"]
+    geom = p.geom
+    assert geom.main_axis_cone_scale > geom.axis_cone_scale
+    assert geom.sphere_grid_step_deg == 15.0 and geom.cone_extend > 1.0

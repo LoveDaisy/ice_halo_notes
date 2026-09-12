@@ -3,6 +3,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
+import pytest  # noqa: E402
 
 from halo_notes.draw import (PRESETS, Camera, HexPrism, draw_axes, finish, new_figure,  # noqa: E402
                              render_crystal, trace)
@@ -374,3 +375,77 @@ def test_frame_fits_points_with_aspect_and_margin():
     assert x0 <= xy[:, 0].min() and x1 >= xy[:, 0].max()                  # 包住所有点
     assert y0 <= xy[:, 1].min() and y1 >= xy[:, 1].max()
     assert np.isclose(y1 - y0, np.ptp(xy[:, 1]) * 1.2)                    # 竖向是瓶颈：留 10% 边
+
+
+# ---- 3D 旋转弧 / 主轴箭头（task-draw-rest Step 1） ----------------------------------------
+
+@pytest.mark.parametrize("axis,radius,start,angle", [
+    ((0, 0, 1), 0.6, (1, 0, 0), 60.0),
+    ((0, 1, 0), 1.3, (0, 0, 1), 90.0),
+    ((1, 1, 1), 0.4, (0, 0, 1), 200.0),
+    ((0, 0, 1), 0.5, (1, 2, 3), -45.0),   # 起始方向带沿轴分量、负角反向
+])
+def test_rotation_arc_points_lie_on_circle_about_axis(axis, radius, start, angle):
+    from halo_notes.draw.scene import rotation_arc_points
+    from halo_notes.draw.geometry import unit
+    center = np.array([0.2, -0.1, 0.3])
+    pts = rotation_arc_points(axis, center, radius, start, angle, samples=33)
+    k = unit(axis)
+    rel = pts - center
+    # 弧上每点到轴的距离恒为半径，且全部落在过 center 垂直于轴的平面内
+    assert np.allclose(np.linalg.norm(rel - (rel @ k)[:, None] * k, axis=1), radius, atol=1e-12)
+    assert np.allclose(rel @ k, 0.0, atol=1e-12)
+    # 张角 = angle_deg（用向量差范数而不是 arccos，避免小角度失真），转向符合右手（负角反向）
+    a, b = unit(rel[0]), unit(rel[-1])
+    expected = unit(np.cos(np.deg2rad(angle)) * a + np.sin(np.deg2rad(angle)) * np.cross(k, a))
+    assert np.linalg.norm(b - expected) < 1e-12
+    # 起点 = start 去掉沿轴分量后的方向
+    s = np.asarray(start, float)
+    assert np.linalg.norm(a - unit(s - (s @ k) * k)) < 1e-12
+
+
+def test_draw_rotation_arc_3d_arrow_points_along_rotation():
+    from halo_notes.draw import draw_rotation_arc_3d
+    from halo_notes.draw.geometry import unit
+    cam = Camera(azimuth=45, elevation=20)
+    preset = PRESETS["default"]
+    fig, ax = new_figure(400, 300, dpi=50)
+    pts, cone = draw_rotation_arc_3d(ax, (0, 0, 1), 0.6, (1, 0, 0), 120.0, camera=cam, preset=preset,
+                                     semantic="arc_roll", label=r"$\theta$")
+    tangent = unit(pts[-1] - pts[-2])
+    assert np.allclose(cone.apex, pts[-1])                 # 锥尖在弧末端
+    assert cone.axis @ tangent < -0.99                     # 锥体轴指向弧的来路 ⇒ 锥尖朝旋转方向
+    assert len(ax.patches) == 1 and len(ax.lines) == 1     # 实心锥 + 一段弧线
+    assert [t.get_text() for t in ax.texts] == [r"$\theta$"]
+    # 反向：负角的箭头掉头
+    pts2, cone2 = draw_rotation_arc_3d(ax, (0, 0, 1), 0.6, (1, 0, 0), -120.0, camera=cam, preset=preset,
+                                       semantic="arc_roll")
+    tangent2 = unit(pts2[-1] - pts2[-2])
+    assert cone2.axis @ tangent2 < -0.99 and np.cross(tangent2, [0, 0, 1])[2] == 0
+    assert (np.cross(pts2[-1], tangent2) @ [0, 0, 1]) < 0 < (np.cross(pts[-1], tangent) @ [0, 0, 1])  # 顺 / 逆时针
+    plt.close(fig)
+
+
+def test_axis_arrow_and_axes_share_one_arrow_implementation(monkeypatch):
+    """a56：主轴箭头与坐标轴箭头不能是两份实现——两者都必须经过 scene._draw_single_arrow。"""
+    import halo_notes.draw.scene as scene
+    from halo_notes.draw import draw_axis_arrow
+    calls = []
+    real = scene._draw_single_arrow
+
+    def spy(ax, origin, direction, length, **kw):
+        calls.append((np.asarray(direction, float), length, kw["semantic"], kw["cone_scale"], kw["negative"]))
+        return real(ax, origin, direction, length, **kw)
+
+    monkeypatch.setattr(scene, "_draw_single_arrow", spy)
+    cam = Camera(azimuth=45, elevation=20)
+    preset = PRESETS["default"]
+    fig, ax = new_figure(400, 300, dpi=50)
+    draw_axes(ax, camera=cam, preset=preset, length=1.5)
+    cone = draw_axis_arrow(ax, (0, 0, 0), (0, 0, 1), 2.0, camera=cam, preset=preset)
+    assert len(calls) == 4
+    assert [c[2] for c in calls] == ["axis"] * 3 + ["axis_main"]
+    assert [c[3] for c in calls] == [preset.geom.axis_cone_scale] * 3 + [preset.geom.main_axis_cone_scale]
+    assert [c[4] for c in calls] == [True] * 3 + [False]
+    assert np.allclose(cone.apex, [0, 0, 2.0]) and np.allclose(cone.axis, [0, 0, -1])
+    plt.close(fig)
