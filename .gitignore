@@ -7,3 +7,6 @@ __pycache__/
 
 # uv 虚拟环境（每个 checkout / worktree 各自 `uv sync`）
 .venv/
+
+# Lumice 二进制下载缓存（halo_notes.sim.fetch），不入 git
+.lumice/

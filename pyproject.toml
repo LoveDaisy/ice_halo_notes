@@ -15,3 +15,7 @@ dev = ["pytest"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["halo_notes"]
+
+[tool.pytest.ini_options]
+markers = ["slow: 真跑 Lumice CLI，默认不执行（uv run pytest -m slow 才跑）"]
+addopts = "-m 'not slow'"
