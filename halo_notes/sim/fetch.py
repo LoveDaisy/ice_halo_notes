@@ -43,7 +43,7 @@ def asset_url(version: str = LUMICE_VERSION, tag: str | None = None) -> str:
 def download(url: str, dest: Path) -> None:
     """下载到 ``dest``；网络 / HTTP 错误原样抛出（带 url 上下文），不静默回退。"""
     try:
-        with urllib.request.urlopen(url) as resp, dest.open("wb") as fh:
+        with urllib.request.urlopen(url, timeout=60) as resp, dest.open("wb") as fh:
             while chunk := resp.read(1 << 20):
                 fh.write(chunk)
     except Exception as exc:  # noqa: BLE001 —— 统一加 url 上下文再抛
