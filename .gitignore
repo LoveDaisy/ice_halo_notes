@@ -4,3 +4,6 @@ scratchpad/
 .claude/
 .DS_Store
 __pycache__/
+
+# uv 虚拟环境（每个 checkout / worktree 各自 `uv sync`）
+.venv/
