@@ -39,14 +39,6 @@ def test_paste_image_lands_in_box(tmp_path):
     assert img[25, 20].tolist() == [0, 0, 0]    # 框外仍是背景
 
 
-def test_compose_bands_width_is_sum(tmp_path):
-    bands = [_solid(tmp_path, f"b{i}.png", (25, 80), (i * 60, i * 60, i * 60)) for i in range(4)]
-    out = compose.compose_bands(bands, ["a", "b", "c", "d"], gap=6, title_height=20)
-    assert out.size == (25 * 4 + 6 * 3, 80 + 20)
-    with pytest.raises(ValueError):
-        compose.compose_bands(bands, ["a"])
-
-
 def test_crop_and_invert(tmp_path):
     p = _solid(tmp_path, "w.png", (40, 20), (255, 255, 255))
     assert compose.crop(p, (5, 5, 10, 8)).size == (10, 8)

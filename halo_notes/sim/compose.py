@@ -168,24 +168,3 @@ def invert(image: Path | str | Image.Image) -> Image.Image:
     """负片（6.5 左图：白底、晕呈深色）。"""
     img = image if isinstance(image, Image.Image) else Image.open(image)
     return ImageOps.invert(img.convert("RGB"))
-
-
-def compose_bands(band_images: Sequence[Path | str | Image.Image], titles: Sequence[str], *, gap: int = 60,
-                  title_height: int = 90, title_size_px: float = 44, title_color: str = "white",
-                  background: str = "black") -> Image.Image:
-    """把多张竖条带横向拼接并在下方加标题；输出宽 = Σ带宽 + gap×(n−1)，高 = max 带高 + title_height。"""
-    if len(band_images) != len(titles):
-        raise ValueError("band_images 与 titles 数量不一致")
-    imgs = [im if isinstance(im, Image.Image) else Image.open(im) for im in band_images]
-    widths = [im.width for im in imgs]
-    W = sum(widths) + gap * (len(imgs) - 1)
-    H = max(im.height for im in imgs) + title_height
-    fig, ax = pixel_canvas(W, H, background)
-    x = 0
-    for im, title in zip(imgs, titles):
-        paste_image(ax, im, (x, 0, im.width, im.height))
-        add_text(ax, (x + im.width / 2, im.height + title_height / 2), title, size_px=title_size_px, color=title_color)
-        x += im.width + gap
-    out = render_canvas(fig)
-    plt.close(fig)
-    return out
