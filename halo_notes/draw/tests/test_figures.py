@@ -60,6 +60,8 @@ FIGURES = {
     "3.1": f"{CH3}/fig_ch3_wedge_path.py",
     "3.2": f"{CH3}/fig_tricker_arc_raypath_expand.py",
     "3.4": f"{CH3}/fig_rotation_steps.py",
+    "3.5": f"{CH3}/fig_tricker_arc_plot.py",
+    "3.6": f"{CH3}/fig_tricker_arc_cone_plot.py",
     "4.1": f"{CH4}/fig_ch4_raypath_all.py",
     "6.2": f"{CH6}/fig_trace.py",
 }
@@ -75,6 +77,7 @@ class Capture:
         self.bodies: list[Polyhedron] = []
         self.paths: list[tuple[RayPath, str | None]] = []
         self.spheres: list[str] = []
+        self.sphere_calls: list[tuple[str, tuple, dict]] = []           # (函数名, 位置参数, 关键字参数)
         self.cameras: list[object] = []                                   # 每次 render_crystal 传入的相机
         self.arcs: list[tuple[object, np.ndarray, float, str]] = []      # (ax, 轴, 张角, 语义)
         self.arrows: list[tuple[object, np.ndarray, np.ndarray]] = []    # (ax, 起点, 方向)
@@ -128,6 +131,7 @@ def install_spies(cap: Capture, monkeypatch) -> None:
 
         def spy_sphere(*a, _name=name, _real=real, **kw):
             cap.spheres.append(_name)
+            cap.sphere_calls.append((_name, a, kw))
             return _real(*a, **kw)
 
         for mod in (sphere, draw):
@@ -149,7 +153,8 @@ def run_figure(script: str, monkeypatch) -> tuple[Capture, dict]:
     install_spies(cap, monkeypatch)
     path = ROOT / script
     monkeypatch.syspath_prepend(str(path.parent))
-    sys.modules.pop("_light_corridor_rp132", None)  # 共享 helper 每图重新导入，拿到本次的 spy
+    for helper in ("_light_corridor_rp132", "_tricker_arc"):   # 章内共享 helper 每图重新导入，拿到本次的 spy
+        sys.modules.pop(helper, None)
     with contextlib.redirect_stdout(io.StringIO()):
         ns = runpy.run_path(str(path), run_name="__main__")
     plt.close("all")
@@ -302,3 +307,63 @@ def test_3_4_rotation_steps_follow_the_text(monkeypatch):
     assert np.allclose(cap.arrows[0][1], 0)
     assert ns["THETA_DEG"] > 0 and 0 < ns["ALPHA_DEG"] < 90
     assert len(cap.cameras) == 3 and all(c is cap.cameras[0] for c in cap.cameras)   # 同一相机实例
+
+
+def _tricker_arc_from_text(alpha, sigma_deg):
+    """独立于脚本的复算：正文第 89 行起的整体变换矩阵 T(α) 作用在太阳方向 (cos Σ, 0, sin Σ) 上。"""
+    s = np.deg2rad(sigma_deg)
+    r = np.array([np.cos(s), 0.0, np.sin(s)])
+    out = []
+    for a in np.atleast_1d(alpha):
+        T = np.array([[-0.75 - 0.25 * np.cos(2 * a), -0.25 * np.sin(2 * a), -np.sqrt(3) / 2 * np.sin(a)],
+                      [-0.25 * np.sin(2 * a), -0.75 + 0.25 * np.cos(2 * a), np.sqrt(3) / 2 * np.cos(a)],
+                      [np.sqrt(3) / 2 * np.sin(a), -np.sqrt(3) / 2 * np.cos(a), -0.5]])
+        out.append(T @ r)
+    return np.array(out)
+
+
+def _check_tricker_curve(ns) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    alpha, curve, sigma = ns["ALPHA"], ns["CURVE"], ns["SUN_ELEVATION_DEG"]
+    assert curve.shape == (len(alpha), 3) and alpha[0] == 0 and np.isclose(alpha[-1], 2 * np.pi)
+    assert np.abs(np.linalg.norm(curve, axis=1) - 1.0).max() < 1e-12            # 落在单位球上
+    assert np.abs(curve - _tricker_arc_from_text(alpha, sigma)).max() < 1e-12   # 与正文公式逐点一致
+    assert np.abs(curve[0] - curve[-1]).max() < 1e-12                           # 闭合
+    s = np.deg2rad(sigma)
+    anthelic = np.array([-np.cos(s), 0.0, np.sin(s)])
+    assert np.allclose(ns["anthelic_point"](), anthelic)
+    # 反日点自交：解析地 A(α)=0 ⇔ sin α = √3 tan Σ 有两个根，两处都过该点
+    roots = [np.arcsin(np.sqrt(3) * np.tan(s)), np.pi - np.arcsin(np.sqrt(3) * np.tan(s))]
+    for a in roots:
+        assert np.linalg.norm(ns["tricker_arc"](a) - anthelic) < 1e-9
+    assert abs(roots[0] - roots[1]) > 0.1
+    assert np.linalg.norm(curve - anthelic, axis=1).min() < 5e-3                # 采样点也贴近该点
+    return curve, anthelic, alpha
+
+
+def test_3_5_tricker_arc_is_the_text_formula(monkeypatch):
+    cap, ns = run_figure(FIGURES["3.5"], monkeypatch)
+    _check_tricker_curve(ns)
+    assert cap.spheres.count("graticule") == 1 and cap.spheres.count("render_curve") == 1
+    name, args, kw = [c for c in cap.sphere_calls if c[0] == "render_curve"][0]
+    assert np.array_equal(args[2], ns["CURVE"]) and kw["split"] is False        # 整条弧一笔画（旧图不分前后）
+    assert "render_cone" not in cap.spheres
+
+
+def test_3_6_tricker_arc_lies_on_the_cone(monkeypatch):
+    cap, ns = run_figure(FIGURES["3.6"], monkeypatch)
+    curve, anthelic, _ = _check_tricker_curve(ns)
+    # 曲线上每点相对锥顶（反日点）的方向与竖直轴夹角恒为 30°（上叶）或 150°（下叶）：|cos| = √3/2
+    rel = curve - anthelic
+    keep = np.linalg.norm(rel, axis=1) > 1e-6
+    cos = rel[keep] @ [0, 0, 1] / np.linalg.norm(rel[keep], axis=1)
+    assert np.abs(np.abs(cos) - np.sqrt(3) / 2).max() < 1e-9
+    assert (cos > 0).any() and (cos < 0).any()                                  # 双叶都用到
+    # 画出的锥面正是这个锥：顶点 = 反日点、轴竖直、半顶角 30°、两叶都画、按球裁剪
+    cones = [c for c in cap.sphere_calls if c[0] == "render_cone"]
+    assert len(cones) == 1
+    _, args, kw = cones[0]
+    assert np.allclose(args[1], anthelic) and _same_direction(args[2], [0, 0, 1]) and args[3] == 30.0
+    assert kw["length_up"] > 0 and kw["length_down"] > 0 and kw["clip_inside"] is ns["SPHERE"]
+    # 延伸长度盖过交线：交线上各点离锥顶的距离 ≤ 各叶长度
+    d = np.linalg.norm(rel, axis=1)
+    assert d[cos_full := (rel @ [0, 0, 1]) > 0].max() <= kw["length_up"] and d[~cos_full].max() <= kw["length_down"]

@@ -24,7 +24,7 @@ from .style import Preset
 
 # 绘制层级：网格最底、锥面在网格之上、曲线 / 点云 / 大圆压在最上（与 scene 的层级常量并列）
 Z_GRID_HIDDEN, Z_GRID = Z_HIDDEN_EDGE, Z_VISIBLE_EDGE
-Z_CONE = Z_INTERNAL + 0.5
+Z_CONE = Z_VISIBLE_EDGE + 0.5
 Z_ON_SPHERE_HIDDEN, Z_ON_SPHERE = Z_INTERNAL, Z_EXTERNAL
 
 
@@ -169,10 +169,12 @@ def render_cone(ax, apex, axis, half_angle_deg: float, *, camera: Camera, preset
                 length_up: float, length_down: float = 0.0,
                 phi_range: Sequence[float] = (0.0, 360.0), phi_from: Sequence[float] | None = None,
                 n_phi: int = 48, n_r: int = 8, fill_semantic: str | None = "cone_surface",
-                edge_semantic: str = "cone_edge") -> list[np.ndarray]:
+                edge_semantic: str = "cone_edge", clip_inside: Sphere | None = None) -> list[np.ndarray]:
     """（双叶）圆锥面：顶点 ``apex``、轴 ``axis``、半顶角 ``half_angle_deg``，沿 ``+axis`` 一叶母线斜长
     ``length_up``、沿 ``-axis`` 一叶 ``length_down``（0 = 不画）。网格单元按深度从远到近逐格画成
     "淡填充 + 网格线"的四边形（painter 顺序），``phi_range`` 可只画一个扇区（3.6 旧图）。
+    ``clip_inside`` 给定时，中心落在该球内部的单元不画——把球当作不透明体，锥面只露出球外的部分
+    （3.6 旧图 Mathematica 的真实遮挡观感；2D 分层画不出真正的相互遮挡，这是显式的近似）。
     返回各叶的网格点数组列表（供核验：网格点相对顶点的方向与轴夹角恒为半顶角）。"""
     leaves: list[np.ndarray] = []
     fill = preset.fill_kwargs(fill_semantic)
@@ -188,8 +190,10 @@ def render_cone(ax, apex, axis, half_angle_deg: float, *, camera: Camera, preset
         for i in range(grid.shape[0] - 1):
             for j in range(grid.shape[1] - 1):
                 quad = np.stack([grid[i, j], grid[i, j + 1], grid[i + 1, j + 1], grid[i + 1, j]])
-                depth = camera.project(quad.mean(axis=0))[1][0]
-                cells.append((depth, quad))
+                c = quad.mean(axis=0)
+                if clip_inside is not None and np.linalg.norm(c - clip_inside.center) < clip_inside.radius:
+                    continue
+                cells.append((camera.project(c)[1][0], quad))
     cells.sort(key=lambda c: c[0])   # 深度小 = 远，先画
     for _, quad in cells:
         xy = camera.project_xy(quad)

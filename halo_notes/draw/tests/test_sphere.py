@@ -126,3 +126,23 @@ def test_sphere_module_reuses_scene_plot_runs_only():
     assert not re.search(r"mask\[\s*\w+\s*\+\s*1\s*\]", src)  # 没有逐点比较相邻掩码
     for fn in (graticule, render_great_circle, render_curve):
         assert "_plot_runs(" in inspect.getsource(fn)
+
+
+def test_render_cone_can_clip_cells_inside_a_sphere(ax):
+    cam = Camera(azimuth=-150, elevation=12)
+    apex = (-0.98, 0.0, 0.17)
+    kw = dict(camera=cam, preset=PRESET, length_up=0.8, length_down=1.4, n_phi=12, n_r=4)
+    render_cone(ax, apex, (0, 0, 1), 30.0, **kw)
+    n_all = len(ax.patches)
+    for p in list(ax.patches):
+        p.remove()
+    leaves = render_cone(ax, apex, (0, 0, 1), 30.0, clip_inside=Sphere(), **kw)
+    assert 0 < len(ax.patches) < n_all
+    # 留下的单元数 = 网格里中心在球外的单元数（投影后拿不回 3D 中心，从返回的网格直接复算）
+    kept = 0
+    for grid in leaves:
+        for i in range(grid.shape[0] - 1):
+            for j in range(grid.shape[1] - 1):
+                c = np.stack([grid[i, j], grid[i, j + 1], grid[i + 1, j + 1], grid[i + 1, j]]).mean(axis=0)
+                kept += np.linalg.norm(c) >= 1.0
+    assert kept == len(ax.patches)
