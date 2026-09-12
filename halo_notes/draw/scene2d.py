@@ -20,7 +20,7 @@ from .labels import draw_edge_number
 from .raypath import RayPath2D, SegmentKind
 from .schematic import (CLOSURE_FACES, ENTRY_FACE, EXIT_FACE, jagged_polyline, wavy_polyline,
                         wedge_angle, wedge_apex)
-from .style import PRESETS, LineStyle, MarkerStyle, Preset
+from .style import PRESETS, LineStyle, MarkerStyle, Preset, TextStyle
 
 # 绘制层级：从后往前
 Z_FILL, Z_REFERENCE, Z_EDGE, Z_RAY, Z_ARROW, Z_LABEL, Z_TEXT = 1, 2, 3, 4, 5, 6, 7
@@ -85,13 +85,13 @@ def draw_arrowhead(ax, tip: Sequence[float], direction: Sequence[float], *, leng
 
 
 def draw_raypath_2d(ax, path: RayPath2D, *, preset: Preset, semantic: str | LineStyle = "ray2d",
-                    internal: str | LineStyle | None = None,
+                    internal: str | LineStyle | None = None, exit: str | LineStyle | None = None,
                     arrows: Sequence[tuple[int, float]] | None = None,
                     markers: bool = False) -> None:
     """画一条截面光路：各段折线 + 实心小三角箭头（尖朝传播方向）。
 
-    - ``semantic``：线样式（语义名或 ``LineStyle``）；``internal`` 给定时晶体内部段改用它
-      （如 3.1 的淡红内部段），否则整条同色
+    - ``semantic``：线样式（语义名或 ``LineStyle``）；``internal`` / ``exit`` 给定时晶体内部段 /
+      出射段改用它（如 3.1 的淡红内部段、蓝点线出射段），否则整条同色
     - ``arrows``：``[(段下标, 尖在该段上的位置 0–1), …]``；None = 每段在 ``geom.arrow2d_at`` 处各一个
       （旧图 1.2）。三角尺寸 ``geom.arrow2d_length`` × ``geom.arrow2d_width``，颜色随所在段
     - ``markers``：在首尾与各事件点画小圆点（颜色 / 透明度随线，尺寸取 ``ray_marker``）
@@ -100,7 +100,11 @@ def draw_raypath_2d(ax, path: RayPath2D, *, preset: Preset, semantic: str | Line
     segments = list(path.segments())
     styles = []
     for p0, p1, kind in segments:
-        s = internal if (internal is not None and kind is SegmentKind.INTERNAL) else semantic
+        s = semantic
+        if internal is not None and kind is SegmentKind.INTERNAL:
+            s = internal
+        elif exit is not None and kind is SegmentKind.EXIT:
+            s = exit
         styles.append(preset.line_kwargs(s))
     for (p0, p1, _), kw in zip(segments, styles):
         ax.plot([p0[0], p1[0]], [p0[1], p1[1]], solid_capstyle="round", zorder=Z_RAY, **kw)
@@ -126,7 +130,7 @@ def draw_raypath_2d(ax, path: RayPath2D, *, preset: Preset, semantic: str | Line
 def draw_rotation_arc(ax, center: Sequence[float], radius: float, start_deg: float, end_deg: float, *,
                       preset: Preset, spokes: float | None = None, samples: int = 64) -> None:
     """旋转弧箭头：以 ``center`` 为心、从 ``start_deg`` 转到 ``end_deg``（逆时针为正）的圆弧，
-    末端带实心三角；``spokes`` 给定时在起止两个方向各画一条该长度的辐条。样式 ``symmetry_mark``。
+    末端带实心三角；``spokes`` 给定时在起止两个方向各画一条该长度的辐条（``symmetry_spoke``）。弧样式 ``symmetry_mark``。
     ``start_deg == end_deg``（$R^c_0$）时只画辐条。"""
     c = np.asarray(center, dtype=float)
     kw = preset.line_kwargs("symmetry_mark")
@@ -135,12 +139,12 @@ def draw_rotation_arc(ax, center: Sequence[float], radius: float, start_deg: flo
         for deg in {start_deg, end_deg}:
             d = np.array([np.cos(np.deg2rad(deg)), np.sin(np.deg2rad(deg))])
             ax.plot([c[0], c[0] + spokes * d[0]], [c[1], c[1] + spokes * d[1]],
-                    solid_capstyle="round", zorder=Z_REFERENCE, **kw)
+                    solid_capstyle="round", zorder=Z_REFERENCE, **preset.line_kwargs("symmetry_spoke"))
     if np.isclose(start_deg, end_deg):
         return
     th = np.deg2rad(np.linspace(start_deg, end_deg, samples))
     arc = c[None, :] + radius * np.stack([np.cos(th), np.sin(th)], axis=1)
-    L, W = geom.arrow2d_length * 1.5, geom.arrow2d_width * 1.5
+    L, W = geom.arrow2d_length * geom.mark_arrow_scale, geom.arrow2d_width * geom.mark_arrow_scale
     # 弧线在箭头底处止步（不从三角里穿出来）：按每个采样步的弧长算要去掉几个点
     step = radius * abs(th[1] - th[0])
     cut = min(int(np.ceil(L / step)), samples - 2)
@@ -166,7 +170,9 @@ def draw_flip_axis(ax, point: Sequence[float], direction: Sequence[float], half_
     geom = preset.geom
     m = p + d * arrow_at
     n = perp2d(d)
-    L, W = geom.arrow2d_length * 1.5, geom.arrow2d_width * 1.5
+    L, W = geom.arrow2d_length * 1.1, geom.arrow2d_width * 1.5   # 双向箭头的两个头：比光线箭头略大、要留出可见的杆
+    if arrow_half <= L:
+        raise ValueError(f"arrow_half={arrow_half} leaves no shaft for arrowheads of length {L:.3g}")
     inner = arrow_half - L
     ax.plot([m[0] - n[0] * inner, m[0] + n[0] * inner], [m[1] - n[1] * inner, m[1] + n[1] * inner],
             solid_capstyle="round", zorder=Z_REFERENCE, **kw)
@@ -203,9 +209,9 @@ def render_medium(ax, medium: Polygon2D, *, preset: Preset, closure: Literal["ja
 
 
 def draw_wedge_angle(ax, medium: Polygon2D, *, preset: Preset, radius: float, text: str = r"$\theta$",
-                     samples: int = 48) -> float:
-    """在楔角顶点处标注两界面的夹角：双向箭头弧 + 文字（样式 ``angle_mark`` / ``annotation``）。
-    弧张角就是 :func:`schematic.wedge_angle` 算出的几何值，返回该角（度）。"""
+                     label_offset: float = 0.3, samples: int = 48) -> float:
+    """在楔角顶点处标注两界面的夹角：双向箭头弧 + 文字（样式 ``angle_mark`` / ``annotation``；文字放在
+    弧中点再往外 ``label_offset``）。弧张角就是 :func:`schematic.wedge_angle` 算出的几何值，返回该角（度）。"""
     apex = wedge_apex(medium)
     theta = wedge_angle(medium)
     # 两条界面从顶点出发的方向：指向介质内部（各取该界面上离顶点较远的端点）
@@ -230,7 +236,7 @@ def draw_wedge_angle(ax, medium: Polygon2D, *, preset: Preset, radius: float, te
                          (arc[-1], np.array([-np.sin(th[-1]), np.cos(th[-1])]))):
         draw_arrowhead(ax, tip, tangent, length=L, width=W, color=kw["color"], z=Z_TEXT)
     mid = np.deg2rad((a0 + a1) / 2)
-    label_at = apex + radius * 1.0 * np.array([np.cos(mid), np.sin(mid)])
+    label_at = apex + (radius + label_offset) * np.array([np.cos(mid), np.sin(mid)])
     ax.text(label_at[0], label_at[1], text, ha="center", va="center", zorder=Z_TEXT,
             **preset.text_kwargs("annotation"))
     return theta
@@ -239,7 +245,7 @@ def draw_wedge_angle(ax, medium: Polygon2D, *, preset: Preset, radius: float, te
 # ---- 文字 / 版面 ----------------------------------------------------------------
 
 def annotate_2d(ax, text: str, xy: Sequence[float], *, preset: Preset, ha: str = "left",
-                va: str = "center", semantic: str = "annotation",
+                va: str = "center", semantic: str | TextStyle = "annotation",
                 leader_to: Sequence[Sequence[float]] | None = None, **text_kw):
     """在数据坐标 ``xy`` 写注释；``leader_to`` 给定时从文字位置向每个目标点画一条引线（``leader`` 样式）。"""
     x, y = xy

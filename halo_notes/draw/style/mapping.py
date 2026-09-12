@@ -79,8 +79,9 @@ class SemanticStyleMap:
     ray2d_discarded: LineStyle = LineStyle("ink_faint", linewidth=1.6, linestyle="--")  # 6.2 蒙特卡洛未选中的分支（灰虚线）
     edge_reference: LineStyle = LineStyle("reference", linewidth=1.3)      # 对称操作的参考幽灵（原位淡六边形，1.3 / 1.6）
     face_number_reference: TextStyle = TextStyle("slate", fontsize=26, weight="bold", alpha=0.22)  # 参考幽灵上的淡编号
-    symmetry_mark: LineStyle = LineStyle("reference", linewidth=2.2)       # 旋转弧箭头 / 翻转轴的双向箭头
-    flip_axis: LineStyle = LineStyle("slate", linewidth=1.0, linestyle=(0, (6, 3, 1, 3)), alpha=0.6)  # 翻转轴：点划线
+    symmetry_mark: LineStyle = LineStyle("reference", linewidth=3.2)       # 旋转弧箭头 / 翻转轴的双向箭头
+    symmetry_spoke: LineStyle = LineStyle("reference", linewidth=1.2)      # 旋转弧两端的辐条（参考方向 / 目标方向）
+    flip_axis: LineStyle = LineStyle("slate", linewidth=1.3, linestyle=(0, (6, 3, 1, 3)), alpha=0.9)  # 翻转轴：点划线
     plate_fill: FillStyle = FillStyle("plate", alpha=1.0)                  # 6.2 平板
     plate_edge: LineStyle = LineStyle("plate_edge", linewidth=3.0)
     medium_fill: FillStyle = FillStyle("medium", alpha=1.0)                # 3.1 楔形介质
@@ -88,6 +89,8 @@ class SemanticStyleMap:
     angle_mark: LineStyle = LineStyle("ink", linewidth=1.0)                # 3.1 楔角 θ 的弧标注
     panel_title: TextStyle = TextStyle("ink", fontsize=30)                 # 多面板下方的 LaTeX 标题
     leader: LineStyle = LineStyle("ink", linewidth=0.8)                    # 注释引线
+    caption: TextStyle = TextStyle("ink_soft", fontsize=26, weight="bold", family=CJK_SANS)  # 1.2 旧图的粗体图注
+    symbol: TextStyle = TextStyle("ink", fontsize=84, family=("DejaVu Sans",))   # ⇓ / ⟺ 这类 Unicode 箭头符号
     # 面号 → 配色板颜色名；给定时截面边编号按面号取色（字号 / 透明度仍取对应 face_number* 语义），
     # None = 全部用语义里的颜色。3D 贴面编号不读这个字段
     face_number_colors: Mapping[int, str] | None = None

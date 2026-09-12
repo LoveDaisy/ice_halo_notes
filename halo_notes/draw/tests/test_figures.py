@@ -1,4 +1,5 @@
-"""逐图语义单测：跑每个 fig 脚本，抓它实际画出的每条 ``RayPath``，白盒复核"画的是不是声明的那条光路"。
+"""逐图语义单测：跑每个 fig 脚本，抓它实际画出的每条 ``RayPath`` / ``RayPath2D``，白盒复核"画的是不是声明的那条光路"。
+3D 图与 2D 截面图走同一条判据（``verify_path`` / ``locate_body`` 与维数无关；2D 多边形实现了同一套面协议）。
 
 每条画出的光路必须二选一：
 - 面序列 ∈ 该图声明的 ``PATHS``，且每个事件点落在**本图已渲染的某个多面体**的该编号面内部、
@@ -30,14 +31,20 @@ import pytest  # noqa: E402
 
 import halo_notes.draw as draw  # noqa: E402
 import halo_notes.draw.scene as scene  # noqa: E402
+import halo_notes.draw.scene2d as scene2d  # noqa: E402
 from halo_notes.draw.geometry import Polyhedron, unit  # noqa: E402
 from halo_notes.draw.raypath import EventKind, RayEvent, RayPath, face_sequence, verify_path  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[3]
-CH2, CH3, CH4 = "02-raypath-enumeration/code", "03-parallel-raypaths/code", "04-render-equation/code"
+CH1, CH2, CH3 = "01-symmetry/code", "02-raypath-enumeration/code", "03-parallel-raypaths/code"
+CH4, CH6 = "04-render-equation/code", "06-monte-carlo-vs-integration/code"
 
 # 图 → 脚本；每个脚本头部自己声明 ``PATHS = {名字: 面序列}``，测试从脚本命名空间读取，不另存一份映射
+#（没有光路的图声明空字典：测试断言它确实一条光路都没画）
 FIGURES = {
+    "1.2": f"{CH1}/fig_raypath_symmetry.py",
+    "1.3": f"{CH1}/fig_c6.py",
+    "1.6": f"{CH1}/fig_d6_f.py",
     "2.2": f"{CH2}/fig_tricker_arc_raypath.py",
     "2.3": f"{CH2}/fig_geo_validation.py",
     "2.4": f"{CH2}/fig_expand_rp132.py",
@@ -46,8 +53,10 @@ FIGURES = {
     "2.7": f"{CH2}/fig_light_corridor_rp132_01.py",
     "2.8": f"{CH2}/fig_light_corridor_rp132_02_note.py",
     "2.9": f"{CH2}/fig_light_corridor_rp132_03.py",
+    "3.1": f"{CH3}/fig_ch3_wedge_path.py",
     "3.2": f"{CH3}/fig_tricker_arc_raypath_expand.py",
     "4.1": f"{CH4}/fig_ch4_raypath_all.py",
+    "6.2": f"{CH6}/fig_trace.py",
 }
 
 
@@ -71,9 +80,23 @@ def run_figure(script: str, monkeypatch) -> tuple[Capture, dict]:
         cap.paths.append((path, kw.get("semantic")))
         return real_draw(ax, path, crystal, **kw)
 
+    real_render2d, real_draw2d = scene2d.render_section, scene2d.draw_raypath_2d
+
+    def spy_render2d(ax, poly, raypaths=None, **kw):
+        cap.bodies.append(poly)
+        return real_render2d(ax, poly, raypaths, **kw)
+
+    def spy_draw2d(ax, path, **kw):
+        sem = kw.get("semantic")
+        cap.paths.append((path, sem if isinstance(sem, str) else None))
+        return real_draw2d(ax, path, **kw)
+
     for mod in (scene, draw):
         monkeypatch.setattr(mod, "render_crystal", spy_render)
         monkeypatch.setattr(mod, "draw_raypath", spy_draw)
+    for mod in (scene2d, draw):
+        monkeypatch.setattr(mod, "render_section", spy_render2d)
+        monkeypatch.setattr(mod, "draw_raypath_2d", spy_draw2d)
     monkeypatch.setattr(matplotlib.figure.Figure, "savefig", lambda *a, **k: None)
     path = ROOT / script
     monkeypatch.syspath_prepend(str(path.parent))
@@ -133,6 +156,10 @@ def test_every_drawn_raypath_is_the_declared_light_path(fig, monkeypatch):
     cap, ns = run_figure(script, monkeypatch)
     assert "PATHS" in ns, f"{fig}: script must declare PATHS = {{name: [faces…]}} at module level"
     expected = {k: list(v) for k, v in ns["PATHS"].items()}
+    if not expected:
+        assert not cap.paths, f"{fig}: PATHS is empty but {len(cap.paths)} RayPath(s) were drawn"
+        assert cap.bodies, f"{fig}: nothing rendered"
+        return
     assert cap.paths, f"{fig}: no RayPath drawn"
     all_paths = [p for p, _ in cap.paths]
     problems: list[str] = []
