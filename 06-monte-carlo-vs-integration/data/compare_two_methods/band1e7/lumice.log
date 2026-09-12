@@ -1,16 +1,16 @@
-$ /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/.lumice/v4.5.1/Lumice -f /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e7/config.json -o /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e7 --format png
+$ /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/.lumice/v4.5.1/Lumice -f /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/06-monte-carlo-vs-integration/data/compare_two_methods/band1e7/config.json -o /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/06-monte-carlo-vs-integration/data/compare_two_methods/band1e7 --format png
 --- stdout ---
-2026-09-12 20:13:39.651 [I] ServerImpl: gpu_route=false worker_count=10 (preferred_backend=0)
-2026-09-12 20:13:39.667 [I] CommitConfig: restart took 12.6ms (Stop 0.0ms + rebuild 12.6ms + Start 0.0ms)
-2026-09-12 20:13:39.667 [I] GenerateScene: first batch enqueued at 0.0ms after start
-2026-09-12 20:13:39.692 [I] ConsumeData: first batch consumed (896 ray segments)
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e7/img_01.png (251x801)
-Stats: sim_rays=4512640, crystals=1, orientations=4512640
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e7/img_01.png (251x801)
-Stats: sim_rays=8842496, crystals=1, orientations=8842496
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e7/img_01.png (251x801)
+2026-09-12 21:07:55.976 [I] ServerImpl: gpu_route=false worker_count=10 (preferred_backend=0)
+2026-09-12 21:07:55.984 [I] CommitConfig: restart took 6.8ms (Stop 0.0ms + rebuild 6.7ms + Start 0.0ms)
+2026-09-12 21:07:55.984 [I] GenerateScene: first batch enqueued at 0.0ms after start
+2026-09-12 21:07:55.988 [I] ConsumeData: first batch consumed (896 ray segments)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/06-monte-carlo-vs-integration/data/compare_two_methods/band1e7/img_01.png (251x801)
+Stats: sim_rays=4413568, crystals=1, orientations=4413568
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/06-monte-carlo-vs-integration/data/compare_two_methods/band1e7/img_01.png (251x801)
+Stats: sim_rays=8688896, crystals=1, orientations=8688896
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/06-monte-carlo-vs-integration/data/compare_two_methods/band1e7/img_01.png (251x801)
 Stats: sim_rays=10000000, crystals=1, orientations=10000000
-2026-09-12 20:13:41.984 [I] Consume profile: 78125 batches, avg 1.2us (proj 0.8us 71% + accum 0.3us 29%)
+2026-09-12 21:07:58.369 [I] Consume profile: 78125 batches, avg 1.2us (proj 0.8us 72% + accum 0.3us 28%)
 
 --- stderr ---
 

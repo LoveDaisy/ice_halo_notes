@@ -1,18 +1,18 @@
 {
   "lumice_version": "v4.5.1",
-  "lumice_bin": "/Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/.lumice/v4.5.1/Lumice",
+  "lumice_bin": "/Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/.lumice/v4.5.1/Lumice",
   "lumice_bin_sha256": "ebd04c8cba8258bf178dea24dd59b335eb6b6da3fb4b66d8d1f06ef06f791a6a",
-  "config_sha256": "ebafeffa32df14fb9582bb52bc0c42150406abc844774374c5c5b114409b5958",
-  "wall_clock_s": 21.41,
+  "config_sha256": "21c577b9a31b06e0e953b664a5585b52eb7b7e8964a7107eb07dd49fc148a9e1",
+  "wall_clock_s": 30.398,
   "platform": "Darwin 23.6.0 arm64",
   "workers": null,
   "backend": null,
   "format": "png",
   "cli_args": [
     "-f",
-    "/Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e8/config.json",
+    "/Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/06-monte-carlo-vs-integration/data/compare_two_methods/band1e8/config.json",
     "-o",
-    "/Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e8",
+    "/Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/06-monte-carlo-vs-integration/data/compare_two_methods/band1e8",
     "--format",
     "png"
   ],

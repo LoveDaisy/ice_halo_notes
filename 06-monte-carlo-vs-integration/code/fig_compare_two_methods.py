@@ -8,8 +8,12 @@
 #
 # 参数来源（旧图无源 config；旧数据名 column1.0_rp35_180+15 / all_sky_column1.0_sph 提供线索）：
 # - 晶体：柱晶 h/a = 1.0（"column1.0"），zenith σ=0.5°；全天图不加过滤器，条带只留 3-5 光路（"rp35"，symmetry PBD）
-# - 太阳高度 15°（"+15"，与旧图地平线位置一致）；D65 光谱（旧图灰度负片，色彩无关）；`sun(diameter=0)` 严格点光源
+# - 太阳高度 15°（"+15"，与旧图地平线位置一致）；`sun(diameter=0)` 严格点光源
 #   （旧图条带/globe 均有清晰切边，旧 template.json 也是 diameter 0.0；`config.py::sun()` 默认 0.5 会把切边晕开，2026-09-12 改回 0）
+# - 光谱：全天图 D65；**三条带单波长 550 nm**——旧条带顶部是 1 px 硬切边，D65 连续光谱下 22° 类光路红蓝最小偏向差 ≈0.5°
+#   会把这条边抹成 ≈10 px 渐变，点光源 / 晶体姿态 σ 都救不回来（2026-09-12 作者与 owner 逐档探针：σ 0 / 0.2 / 0.5 × 太阳 0 / 0.5°
+#   × D65 / 单色，见 scratchpad/probe-65-std/），只有单色出硬边；σ=0.5° 的条带宽度 / 颈位置与旧图最接近，保留。
+#   旧条带与直接积分条带都是灰度图，单波长与当年一致
 # - 天球外视图：观察者略高于地平线、偏太阳一侧 35°（猜：旧图太阳在球心右侧约 0.5R、地平线椭圆开口向下），见 GLOBE_VIEW
 # - 条带窗口：linear 短边视场 6°，视线指向 (az 0, el −15)，即下切弧顶点（太阳下 22° = −7°）下方 8°（猜，对齐旧直接积分条带）
 # - 标注锚点不手填：同一 config 里加一个"标记"render（同视角，黑底，只画纯色经纬线：0° 经线 + 15° / 37° / −7° 纬线），
@@ -39,7 +43,8 @@ BAND_W, BAND_H = 251, 801           # = column1.0_direct.jpg 的尺寸
 BAND_X0, BAND_PITCH, BAND_Y = 1952, 350, 405
 BAND_RAY_NUMS = {"1e7": 10_000_000, "1e8": 100_000_000, "1e9": 1_000_000_000}
 BAND_TITLES = {"1e7": "1000万光线", "1e8": "1亿光线", "1e9": "10亿光线", "direct": "直接积分"}
-BAND_EV_MODE, BAND_INTENSITY = "absolute", 16.0   # 16 = 让 1e9 条带峰值与 column1.0_direct.jpg 的峰值（≈240/255）齐平（1.0 时实测峰值 ≈65）
+BAND_SPECTRUM = [{"wavelength": 550, "weight": 1.0}]   # 单波长，见顶注
+BAND_EV_MODE, BAND_INTENSITY = "absolute", 4.0   # 单色 550 nm 下 4 = 帽顶均值 ≈170 / p99.9 ≈235，与 column1.0_direct.jpg（172 / 239）齐平（16 是 D65 时的值，单色下过曝）
 GLOBE_RAY_NUM = 200_000_000
 GLOBE_INTENSITY = 0.5   # relative 曝光下压半档：反相后底色接近纯白（1.0 时全球泛灰），弧仍清晰
 ORANGE, RED, INK = "#F26A1B", "#D42020", "#1A1A1A"
@@ -78,7 +83,7 @@ def build_globe() -> dict:
 
 def build_band(ray_num: int) -> dict:
     flt = C.raypath_filter(1, [3, 5], "PBD")
-    sc = C.scene(C.sun(SUN_ALTITUDE, diameter=0), ray_num, [C.entry(1, filter=1)], max_hits=3)
+    sc = C.scene(C.sun(SUN_ALTITUDE, diameter=0, spectrum=BAND_SPECTRUM), ray_num, [C.entry(1, filter=1)], max_hits=3)
     band = C.render_unit(1, C.lens("linear", fov=6), [BAND_W, BAND_H], view={"azimuth": 0, "elevation": -15},
                          visible="full", background=[0, 0, 0], ray_color=[1, 1, 1],
                          ev_mode=BAND_EV_MODE, intensity_factor=BAND_INTENSITY)

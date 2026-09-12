@@ -54,6 +54,17 @@ def test_compare_two_methods_uses_point_source():
     assert len(bands) >= 2
     for b in bands:
         assert json.loads(b.read_text())["scene"]["light_source"]["diameter"] == 0
+
+
+def test_compare_two_methods_bands_monochrome():
+    """条带单波长（硬切边靠它，D65 色散会抹掉）；全天 globe 图仍 D65。"""
+    bands = sorted((ROOT / CH6 / "data").glob("compare_two_methods.band*.lumice.json"))
+    assert len(bands) >= 2
+    for b in bands:
+        spec = json.loads(b.read_text())["scene"]["light_source"]["spectrum"]
+        assert isinstance(spec, list) and len(spec) == 1, f"{b.name}: 条带应为单波长，得到 {spec!r}"
+    globe = json.loads((ROOT / CH6 / "data" / "compare_two_methods.lumice.json").read_text())
+    assert globe["scene"]["light_source"]["spectrum"] == "D65"
     assert _cfg(f"{CH6}/data/compare_two_methods.lumice.json")["scene"]["light_source"]["diameter"] == 0
 
 

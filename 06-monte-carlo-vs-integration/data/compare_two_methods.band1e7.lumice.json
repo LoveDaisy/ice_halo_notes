@@ -33,7 +33,12 @@
       "altitude": 15.0,
       "azimuth": 0,
       "diameter": 0,
-      "spectrum": "D65"
+      "spectrum": [
+        {
+          "wavelength": 550,
+          "weight": 1.0
+        }
+      ]
     },
     "ray_num": 10000000,
     "max_hits": 3,
@@ -62,7 +67,7 @@
         801
       ],
       "visible": "full",
-      "intensity_factor": 16.0,
+      "intensity_factor": 4.0,
       "ev_mode": "absolute",
       "view": {
         "azimuth": 0,
