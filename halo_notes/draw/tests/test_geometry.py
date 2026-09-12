@@ -161,3 +161,14 @@ def test_intersect_ray_vectorised_matches_reference_cases():
     assert c.intersect_ray([-5, 0, 5], [1, 0, 0]) is None        # 与顶面平行且在外侧
     inside = c.intersect_ray([0, 0, 0], [0, 0, 1])
     assert inside is not None and inside[0] < 0 and inside[3].number == 1
+
+
+def test_rotation_from_frames_maps_both_directions():
+    from halo_notes.draw.geometry import rotation_from_frames, unit
+    R = rotation_from_frames([0, 0, 1], [1, 0, 0], [1, 1, 0], [0, 0, 1])
+    assert np.allclose(R @ R.T, np.eye(3)) and np.isclose(np.linalg.det(R), 1.0)
+    assert np.allclose(R @ [0, 0, 1], unit([1, 1, 0]))
+    assert np.allclose(R @ [1, 0, 0], [0, 0, 1])
+    # 第二个方向不垂直于第一个时，只有垂直分量参与定向
+    R2 = rotation_from_frames([0, 0, 1], [1, 0, 0.7], [1, 1, 0], [0.3, 0.3, 1])
+    assert np.allclose(R2, R)

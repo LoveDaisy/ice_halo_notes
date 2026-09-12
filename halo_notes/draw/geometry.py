@@ -70,6 +70,21 @@ def rotation_between(src: Sequence[float], dst: Sequence[float]) -> np.ndarray:
     return rotation(c, np.rad2deg(np.arctan2(s, a @ b)))
 
 
+def rotation_from_frames(src_a: Sequence[float], src_b: Sequence[float],
+                         dst_a: Sequence[float], dst_b: Sequence[float]) -> np.ndarray:
+    """把方向 ``src_a`` 转到 ``dst_a``、同时把 ``src_b``（去掉沿 ``src_a`` 的分量后）转到
+    ``dst_b``（同样去掉沿 ``dst_a`` 的分量）的旋转矩阵——用两对方向把姿态完全定死。
+    典型用法：让晶体 c 轴指向画面某方向、再让某个侧面法向指向画面另一方向。
+    """
+    def frame(a, b):
+        a = unit(a)
+        b = np.asarray(b, dtype=float)
+        b = unit(b - (b @ a) * a)
+        return np.stack([a, b, np.cross(a, b)], axis=1)  # 列向量
+
+    return frame(dst_a, dst_b) @ frame(src_a, src_b).T
+
+
 class Polyhedron:
     """凸多面体：顶点数组 + 带编号的面。所有几何查询均基于顶点即时计算，
     所以刚体变换只需变换顶点。"""
