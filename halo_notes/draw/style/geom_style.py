@@ -43,8 +43,9 @@ class GeomStyle:
     # 光路外部段
     incident_tail: float = 1.6   # 入射段在晶体外画多长
     exit_head: float = 1.6       # 出射段在晶体外画多长
-    incident_cone_at: float = 0.0  # 锥体顶点在入射段上的位置（0=尾端，1=入射点）
-    exit_cone_at: float = 0.55     # 锥体顶点在出射段上的位置（0=出射点，1=末端）
+    # 锥体箭头统一锥尖朝传播方向（旧 2.4 / 2.6 约定）；下面两个参数是**锥尖**在该段上的位置
+    incident_cone_at: float = 0.5  # 入射段：0=尾端（自由端），1=入射点；默认光线中段（旧 2.4）
+    exit_cone_at: float = 1.0      # 出射段：0=出射点，1=末端（自由端）；默认尖在末端（标准箭头）
     end_markers: bool = True       # 光路首尾画小圆点
     event_markers: bool = True     # 折射 / 反射点画小圆点
     # 坐标轴

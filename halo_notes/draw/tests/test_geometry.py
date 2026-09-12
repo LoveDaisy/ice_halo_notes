@@ -134,3 +134,41 @@ def test_mirror_face_intersect_ray_still_works(prism):
     assert f_in.number == 3 and f_out.number == 6  # 镜像后 3 在 -x 侧、6 在 +x 侧
     assert np.isclose(t_in, 5 + np.sqrt(3) / 2) and np.isclose(t_out, 5 + 3 * np.sqrt(3) / 2)
     assert m.contains([np.sqrt(3), 0, 0]) and not m.contains([0, 0, 0])
+
+
+def test_face_margin_and_distance():
+    c = HexPrism(1.0, 1.0)
+    top = c.face(1)
+    assert np.isclose(c.face_distance(top, [0, 0, 0.5]), 0.0)
+    assert np.isclose(c.face_distance(top, [0, 0, 0.7]), 0.2)
+    # 质心到最近棱边的距离 = 内切圆半径 √3/2
+    assert np.isclose(c.face_margin(top, [0, 0, 0.5]), np.sqrt(3) / 2)
+    assert np.isclose(c.face_margin(top, [np.sqrt(3) / 2, 0, 0.5]), 0.0)   # 恰在棱边上
+    assert c.face_margin(top, [1.2, 0, 0.5]) < 0                            # 面外
+    # 侧面 3（法向 +x）：上下棱边由 z 决定
+    side = c.face(3)
+    assert np.isclose(c.face_margin(side, [np.sqrt(3) / 2, 0, 0.0]), 0.5)
+    assert np.isclose(c.face_margin(side, [np.sqrt(3) / 2, 0, 0.4]), 0.1)
+
+
+def test_intersect_ray_vectorised_matches_reference_cases():
+    c = HexPrism(1.0, 1.0)
+    hit = c.intersect_ray([-5, 0, 0], [1, 0, 0])
+    assert hit is not None
+    t_in, f_in, t_out, f_out = hit
+    assert (f_in.number, f_out.number) == (6, 3)
+    assert np.isclose(t_in, 5 - np.sqrt(3) / 2) and np.isclose(t_out, 5 + np.sqrt(3) / 2)
+    assert c.intersect_ray([-5, 0, 5], [1, 0, 0]) is None        # 与顶面平行且在外侧
+    inside = c.intersect_ray([0, 0, 0], [0, 0, 1])
+    assert inside is not None and inside[0] < 0 and inside[3].number == 1
+
+
+def test_rotation_from_frames_maps_both_directions():
+    from halo_notes.draw.geometry import rotation_from_frames, unit
+    R = rotation_from_frames([0, 0, 1], [1, 0, 0], [1, 1, 0], [0, 0, 1])
+    assert np.allclose(R @ R.T, np.eye(3)) and np.isclose(np.linalg.det(R), 1.0)
+    assert np.allclose(R @ [0, 0, 1], unit([1, 1, 0]))
+    assert np.allclose(R @ [1, 0, 0], [0, 0, 1])
+    # 第二个方向不垂直于第一个时，只有垂直分量参与定向
+    R2 = rotation_from_frames([0, 0, 1], [1, 0, 0.7], [1, 1, 0], [0.3, 0.3, 1])
+    assert np.allclose(R2, R)

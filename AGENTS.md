@@ -9,15 +9,18 @@
 
 ## 常用命令
 
-本仓没有构建/测试概念。相关操作：
+本仓没有构建概念；python 环境由 `uv` 管理（系列根 `pyproject.toml` + `uv.lock` 入库，`.venv/` 忽略）：
 
 ```bash
+uv sync                                     # 建 .venv 并按 uv.lock 装依赖（含 dev 组 pytest；halo_notes 以可编辑方式装入）
+uv run python 02-raypath-enumeration/code/fig_expand_rp132.py   # 跑画图脚本（脚本用 __file__ 定位 ../img，可在任意 cwd 运行）
+uv run pytest                               # 全量单测；halo_notes/draw/tests/test_figures.py 逐图核验画出的光路语义
 git lfs ls-files          # 图片/psd 全部走 LFS（见 .gitattributes）
 obsidian rename file=<旧名> name=<新名>.md   # 重命名 md 必须走 Obsidian CLI（自动改 wikilink），禁裸 mv；分流判据见 skill obsidian-route
 # ⚠ name= 必须带 .md，否则扩展名被吃掉；rename 后 Obsidian 会把 README 里的 markdown 链接改写成无目录的「最短路径」形式（GitHub 上会断），要改回显式相对路径
 ```
 
-新章 python 画图代码的环境：系列根 `pyproject.toml`（待建，见「架构与设计」）。
+**每个 checkout（含 git worktree）各自 `uv sync`**，不用 `pip install -e` 装进共享的 conda 环境——editable install 只认一条源路径，多 worktree 并行时会互相踩（见 `scratchpad/learnings.md`）。
 
 ## 架构与设计
 
