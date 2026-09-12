@@ -32,7 +32,7 @@
       "type": "sun",
       "altitude": 15.0,
       "azimuth": 0,
-      "diameter": 0.5,
+      "diameter": 0,
       "spectrum": "D65"
     },
     "ray_num": 100000000,

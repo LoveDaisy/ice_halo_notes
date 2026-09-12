@@ -87,12 +87,22 @@ def test_lerp_matrix_collapses_in_the_middle():
 
 
 def test_euler_lerp_and_slerp_take_different_routes():
-    R0 = lon_lat_roll_to_matrix(20.0, -75.0, 30.0)
-    R1 = lon_lat_roll_to_matrix(200.0, 75.0, -20.0)
-    E, S = lerp_euler(R0, R1, 0.5), slerp_matrix(R0, R1, 0.5)
-    assert np.allclose(lerp_euler(R0, R1, 0.0), R0) and np.allclose(lerp_euler(R0, R1, 1.0), R1)
+    pose0, pose1 = (20.0, -75.0, 30.0), (200.0, 75.0, -20.0)
+    R0, R1 = lon_lat_roll_to_matrix(*pose0), lon_lat_roll_to_matrix(*pose1)
+    E, S = lerp_euler(pose0, pose1, 0.5), slerp_matrix(R0, R1, 0.5)
+    assert np.allclose(lerp_euler(pose0, pose1, 0.0), R0) and np.allclose(lerp_euler(pose0, pose1, 1.0), R1)
     assert np.abs(E - S).max() > 0.1                          # 中途姿态不同（用矩阵差范数，不用 arccos）
     assert relative_angle_deg(E, S) > 10.0
     # 欧拉角插值中间帧的 c 轴躺在赤道上（φ 线性经过 0），slerp 的不
     assert abs(matrix_to_lon_lat_roll(E)[1]) < 1e-9
     assert abs(matrix_to_lon_lat_roll(S)[1]) > 1.0
+
+
+def test_lerp_euler_uses_explicit_poses_at_the_poles():
+    """φ=±90° 处经度不定：:func:`lerp_euler` 不反解矩阵，调用方给定的三元组（含非零 λ/θ）必须原样
+    参与插值，而不是被 :func:`matrix_to_lon_lat_roll` 的 λ=0 默认解吃掉。"""
+    pose0, pose1 = (180.0, -90.0, 0.0), (0.0, 90.0, 0.0)
+    R0, R1 = lon_lat_roll_to_matrix(*pose0), lon_lat_roll_to_matrix(*pose1)
+    assert np.allclose(lerp_euler(pose0, pose1, 0.0), R0) and np.allclose(lerp_euler(pose0, pose1, 1.0), R1)
+    # matrix_to_lon_lat_roll 在两极会给出 λ=0，与我们显式给的 λ=180° 不同——证明真用了三元组而非反解
+    assert matrix_to_lon_lat_roll(R0)[0] == 0.0 and pose0[0] != 0.0

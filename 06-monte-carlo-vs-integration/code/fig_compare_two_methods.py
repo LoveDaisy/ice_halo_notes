@@ -8,7 +8,8 @@
 #
 # 参数来源（旧图无源 config；旧数据名 column1.0_rp35_180+15 / all_sky_column1.0_sph 提供线索）：
 # - 晶体：柱晶 h/a = 1.0（"column1.0"），zenith σ=0.5°；全天图不加过滤器，条带只留 3-5 光路（"rp35"，symmetry PBD）
-# - 太阳高度 15°（"+15"，与旧图地平线位置一致）；D65 光谱（旧图灰度负片，色彩无关）
+# - 太阳高度 15°（"+15"，与旧图地平线位置一致）；D65 光谱（旧图灰度负片，色彩无关）；`sun(diameter=0)` 严格点光源
+#   （旧图条带/globe 均有清晰切边，旧 template.json 也是 diameter 0.0；`config.py::sun()` 默认 0.5 会把切边晕开，2026-09-12 改回 0）
 # - 天球外视图：观察者略高于地平线、偏太阳一侧 35°（猜：旧图太阳在球心右侧约 0.5R、地平线椭圆开口向下），见 GLOBE_VIEW
 # - 条带窗口：linear 短边视场 6°，视线指向 (az 0, el −15)，即下切弧顶点（太阳下 22° = −7°）下方 8°（猜，对齐旧直接积分条带）
 # - 标注锚点不手填：同一 config 里加一个"标记"render（同视角，黑底，只画纯色经纬线：0° 经线 + 15° / 37° / −7° 纬线），
@@ -71,13 +72,13 @@ def build_globe() -> dict:
                                         elevation=[C.grid_line(SUN_ALTITUDE, color=MARK_SUN_EL),
                                                    C.grid_line(SUN_ALTITUDE + 22, color=MARK_UTA_EL),
                                                    C.grid_line(SUN_ALTITUDE - 22, color=MARK_LTA_EL)]))
-    sc = C.scene(C.sun(SUN_ALTITUDE), GLOBE_RAY_NUM, [C.entry(1)], max_hits=7)
+    sc = C.scene(C.sun(SUN_ALTITUDE, diameter=0), GLOBE_RAY_NUM, [C.entry(1)], max_hits=7)
     return C.build_config([column()], [], sc, [picture, markers])
 
 
 def build_band(ray_num: int) -> dict:
     flt = C.raypath_filter(1, [3, 5], "PBD")
-    sc = C.scene(C.sun(SUN_ALTITUDE), ray_num, [C.entry(1, filter=1)], max_hits=3)
+    sc = C.scene(C.sun(SUN_ALTITUDE, diameter=0), ray_num, [C.entry(1, filter=1)], max_hits=3)
     band = C.render_unit(1, C.lens("linear", fov=6), [BAND_W, BAND_H], view={"azimuth": 0, "elevation": -15},
                          visible="full", background=[0, 0, 0], ray_color=[1, 1, 1],
                          ev_mode=BAND_EV_MODE, intensity_factor=BAND_INTENSITY)

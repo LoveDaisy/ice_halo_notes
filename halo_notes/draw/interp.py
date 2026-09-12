@@ -54,10 +54,13 @@ def matrix_to_lon_lat_roll(R: np.ndarray) -> tuple[float, float, float]:
     return float(lon), float(lat), float(roll)
 
 
-def lerp_euler(R0: np.ndarray, R1: np.ndarray, t: float) -> np.ndarray:
-    """对 (λ, φ, θ) 三个标量各自线性插值再转回矩阵。角度按给定数值直接插（不取模 360°），
-    所以经度差超过 180° 时会"绕远"——正文说的欧拉角插值路径问题。"""
-    a, b = np.array(matrix_to_lon_lat_roll(R0)), np.array(matrix_to_lon_lat_roll(R1))
+def lerp_euler(pose0: tuple[float, float, float], pose1: tuple[float, float, float], t: float) -> np.ndarray:
+    """对显式给定的起终 ``(λ, φ, θ)`` 三元组各自线性插值再转回矩阵。**不从矩阵反解**——φ=±90° 处
+    （c 轴在两极）经度不定，:func:`matrix_to_lon_lat_roll` 会固定取 λ=0，抹掉本该由调用方选择的
+    「多余旋转」自由度；三元组由调用方给定并保证精确表示所需的姿态矩阵（自行用
+    :func:`lon_lat_roll_to_matrix` 核验）。角度按给定数值直接插（不取模 360°），所以经度差超过
+    180° 时会"绕远"——正文说的欧拉角插值路径问题。"""
+    a, b = np.array(pose0, float), np.array(pose1, float)
     return lon_lat_roll_to_matrix(*((1.0 - t) * a + t * b))
 
 
