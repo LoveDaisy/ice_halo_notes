@@ -7,12 +7,16 @@ import matplotlib
 matplotlib.use("Agg")
 import numpy as np
 
-from halo_notes.draw import (PRESETS, Camera, HexPrism, aim, draw_raypath, finish, new_figure,
-                             render_crystal, straighten, trace, unfold, unfolded_tail)
+from halo_notes.draw import (PRESETS, Camera, Corridor, HexPrism, draw_raypath, finish, new_figure,
+                             render_crystal, solve_raypath, unfolded_tail)
 from halo_notes.draw.style import DEFAULT_MAP, LineStyle
 
 OUT = Path(__file__).resolve().parent.parent / "img" / "expand_rp132_fn_00.png"
 WIDTH, HEIGHT, DPI = 2400, 1350, 200  # = 旧图分辨率
+
+# 读者要看出：实体与关于面 3 镜像的幽灵是一对镜像（编号字形与位置都镜像）；红折线在面 3 反射、
+# 蓝点线在展开空间里是直线，二者是同一条光线（同一入射点、同一入射段）
+PATHS = {"1-3-2": [1, 3, 2]}
 
 CAMERA = Camera(azimuth=-95, elevation=25)  # 从 -y 侧看：反射面 3 在右侧近乎侧对，幽灵晶体展开到右边
 
@@ -26,19 +30,19 @@ def main() -> None:
     fig, ax = new_figure(WIDTH, HEIGHT, DPI, preset)
     crystal = HexPrism(1.0, 0.8).transformed(translation=CAMERA.to_world(-1.3, 0, 0))
 
-    # 1-3-2：从顶面 1 靠面 3 一侧斜射入，在面 3 反射后从底面 2 出射
+    # 1-3-2：从顶面 1 靠面 3 一侧斜射入，在面 3 反射后从底面 2 出射（偏好沿用首版手调值）
     el, az = np.deg2rad(-25), np.deg2rad(-40)
     d = np.array([np.cos(el) * np.cos(az), np.cos(el) * np.sin(az), np.sin(el)])
-    path = trace(crystal, aim(crystal, 1, d, offset=(0.5, 0.3, 0)), d, ["refract", "reflect", "refract"],
-                 tail=geom.incident_tail, head=geom.exit_head)
-    assert [e.face_number for e in path.events] == [1, 3, 2]
-    ghosts = unfold(crystal, path)
-    assert len(ghosts) == 1
+    path = solve_raypath(crystal, PATHS["1-3-2"], prefer_direction=d,
+                         prefer_point=crystal.centroid(crystal.face(1)) + np.array([0.5, 0.3, 0]),
+                         tail=geom.incident_tail, head=geom.exit_head)
+    corridor = Corridor(crystal, path)   # 构造时已断言直线穿过 1 / 3 / 幽灵 2 三个面的内部
+    ghost, = corridor.ghosts
 
     render_crystal(ax, crystal, [path], camera=CAMERA, preset=preset, face_numbers=True)
-    render_crystal(ax, ghosts[0], camera=CAMERA, preset=preset, face_numbers=True, ghost=True)
-    # 展开直线：入射段已随真实光路画过，只画从入射点起的直线与穿出幽灵晶体的出射段
-    draw_raypath(ax, unfolded_tail(straighten(path)), ghosts[0], camera=CAMERA,
+    render_crystal(ax, ghost, camera=CAMERA, preset=preset, face_numbers=True, ghost=True)
+    # 展开直线：入射段已随真实光路画过，只画从入射点起的直线（穿过面 3 处有蓝点）与穿出幽灵的出射段
+    draw_raypath(ax, unfolded_tail(corridor.straight), ghost, camera=CAMERA,
                  preset=unfolded_preset, semantic="ray_unfolded")
 
     finish(ax, (-4.2, 4.2), (-2.36, 2.36))
