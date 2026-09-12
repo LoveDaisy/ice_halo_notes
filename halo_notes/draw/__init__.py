@@ -12,18 +12,20 @@ from .scene import (annotate, draw_axes, draw_axis_arrow, draw_raypath, draw_rot
 from .scene2d import (annotate_2d, draw_flip_axis, draw_raypath_2d, draw_rotation_arc, draw_wedge_angle,
                       multi_panel, render_medium, render_section)
 from .schematic import SplitTree, split_tree, two_face_medium, wedge_angle, wedge_apex
+from .sphere import (Sphere, graticule, render_cone, render_curve, render_great_circle,
+                     render_point_cloud)
 from .style import FACE_COLORS, PRESETS, Preset
 from .symmetry import FlipAxis, face_permutation, flip, rotate
 from .unfold import Corridor, corridor_faces, straighten, unfold, unfolded_tail
 
 __all__ = [
     "Camera", "Cone", "Corridor", "CrossSection", "FACE_COLORS", "Face", "FlipAxis", "HexPrism",
-    "PRESETS", "Polygon2D", "Polyhedron", "Preset", "RayPath", "RayPath2D", "SegmentKind", "SplitTree",
+    "PRESETS", "Polygon2D", "Polyhedron", "Preset", "RayPath", "RayPath2D", "SegmentKind", "SplitTree", "Sphere",
     "aim", "annotate", "annotate_2d", "corridor_faces", "draw_axes", "draw_axis_arrow", "draw_flip_axis",
     "draw_raypath", "draw_raypath_2d", "draw_rotation_arc", "draw_rotation_arc_3d", "draw_wedge_angle", "face_permutation", "face_sequence",
-    "face_toward", "face_visible", "finish", "flip", "frame", "multi_panel", "new_figure",
-    "parallel_origins", "reflection2d", "render_corridor", "render_crystal", "render_medium",
-    "render_section", "rotate", "rotation", "rotation2d", "rotation_between", "rotation_from_frames",
+    "face_toward", "face_visible", "finish", "flip", "frame", "graticule", "multi_panel", "new_figure",
+    "parallel_origins", "reflection2d", "render_cone", "render_corridor", "render_crystal", "render_curve",
+    "render_great_circle", "render_medium", "render_point_cloud", "render_section", "rotate", "rotation", "rotation2d", "rotation_between", "rotation_from_frames",
     "solve_camera_distance", "solve_raypath", "solve_raypath_2d", "split_tree", "straighten", "trace",
     "two_face_medium", "unfold", "unfold_2d", "unfolded_tail", "verify_path", "visible_faces",
     "wedge_angle", "wedge_apex",
