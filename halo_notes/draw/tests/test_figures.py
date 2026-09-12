@@ -36,18 +36,18 @@ from halo_notes.draw.raypath import EventKind, RayEvent, RayPath, face_sequence,
 ROOT = Path(__file__).resolve().parents[3]
 CH2, CH3, CH4 = "02-raypath-enumeration/code", "03-parallel-raypaths/code", "04-render-equation/code"
 
-# 图 → (脚本, 期望面序列)。第一版写死在这里出红灯基线；Step 5 逐图补 PATHS 后改为从脚本读取
+# 图 → 脚本；每个脚本头部自己声明 ``PATHS = {名字: 面序列}``，测试从脚本命名空间读取，不另存一份映射
 FIGURES = {
-    "2.2": (f"{CH2}/fig_tricker_arc_raypath.py", {"3-1-5-7-4": [3, 1, 5, 7, 4], "1-2-3-5-1": [1, 2, 3, 5, 1]}),
-    "2.3": (f"{CH2}/fig_geo_validation.py", {"1-3-2": [1, 3, 2]}),
-    "2.4": (f"{CH2}/fig_expand_rp132.py", {"1-3-2": [1, 3, 2]}),
-    "2.5": (f"{CH2}/fig_light_corridor_rp132_00.py", {"1-3-2": [1, 3, 2]}),
-    "2.6": (f"{CH2}/fig_light_corridor_rp31574.py", {"3-1-5-7-4": [3, 1, 5, 7, 4]}),
-    "2.7": (f"{CH2}/fig_light_corridor_rp132_01.py", {"1-3-2": [1, 3, 2]}),
-    "2.8": (f"{CH2}/fig_light_corridor_rp132_02_note.py", {"1-3-2": [1, 3, 2], "refract-in": [1]}),
-    "2.9": (f"{CH2}/fig_light_corridor_rp132_03.py", {"1-3-2": [1, 3, 2]}),
-    "3.2": (f"{CH3}/fig_tricker_arc_raypath_expand.py", {"3-1-5-7-4": [3, 1, 5, 7, 4], "1-2-3-5-1": [1, 2, 3, 5, 1]}),
-    "4.1": (f"{CH4}/fig_ch4_raypath_all.py", {"1": [1], "4-1": [4, 1], "3-1-5": [3, 1, 5]}),
+    "2.2": f"{CH2}/fig_tricker_arc_raypath.py",
+    "2.3": f"{CH2}/fig_geo_validation.py",
+    "2.4": f"{CH2}/fig_expand_rp132.py",
+    "2.5": f"{CH2}/fig_light_corridor_rp132_00.py",
+    "2.6": f"{CH2}/fig_light_corridor_rp31574.py",
+    "2.7": f"{CH2}/fig_light_corridor_rp132_01.py",
+    "2.8": f"{CH2}/fig_light_corridor_rp132_02_note.py",
+    "2.9": f"{CH2}/fig_light_corridor_rp132_03.py",
+    "3.2": f"{CH3}/fig_tricker_arc_raypath_expand.py",
+    "4.1": f"{CH4}/fig_ch4_raypath_all.py",
 }
 
 
@@ -129,8 +129,10 @@ def continues_a_full_path(path: RayPath, ev: RayEvent, others: list[RayPath]) ->
 
 @pytest.mark.parametrize("fig", sorted(FIGURES))
 def test_every_drawn_raypath_is_the_declared_light_path(fig, monkeypatch):
-    script, expected = FIGURES[fig]
-    cap, _ = run_figure(script, monkeypatch)
+    script = FIGURES[fig]
+    cap, ns = run_figure(script, monkeypatch)
+    assert "PATHS" in ns, f"{fig}: script must declare PATHS = {{name: [faces…]}} at module level"
+    expected = {k: list(v) for k, v in ns["PATHS"].items()}
     assert cap.paths, f"{fig}: no RayPath drawn"
     all_paths = [p for p, _ in cap.paths]
     problems: list[str] = []
