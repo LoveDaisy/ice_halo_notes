@@ -173,8 +173,9 @@ def _occluded_mask(points: np.ndarray, occluder: Polyhedron | None, camera: Came
 
 
 def _plot_runs(ax, pts3d: np.ndarray, mask: np.ndarray, camera: Camera,
-               kw_true: dict, kw_false: dict, z_true: int, z_false: int) -> None:
-    """按掩码把折线切成连续段，两种样式分别画。"""
+               kw_true: dict, kw_false: dict | None, z_true: int, z_false: int) -> None:
+    """按掩码把折线切成连续段，两种样式分别画；``kw_false=None`` 时掩码为假的段干脆不画
+    （球面网格"只画可见半球"模式）。"""
     xy = camera.project_xy(pts3d)
     n = len(pts3d)
     i = 0
@@ -184,7 +185,8 @@ def _plot_runs(ax, pts3d: np.ndarray, mask: np.ndarray, camera: Camera,
             j += 1
         seg = xy[i:j + 1] if j > i else xy[i:i + 2]
         kw, z = (kw_true, z_true) if mask[i] else (kw_false, z_false)
-        ax.plot(seg[:, 0], seg[:, 1], zorder=z, solid_capstyle="round", **kw)
+        if kw is not None:
+            ax.plot(seg[:, 0], seg[:, 1], zorder=z, solid_capstyle="round", **kw)
         i = max(j, i + 1)
 
 
@@ -319,7 +321,34 @@ def annotate(ax, text: str, anchor3d: Sequence[float], offset2d: Sequence[float]
     return ax.text(tx, ty, text, ha=ha, va=va, zorder=Z_TEXT, **kw)
 
 
-# ---- 坐标轴 ------------------------------------------------------------------
+# ---- 坐标轴 / 主轴箭头 / 旋转弧 ----------------------------------------------
+
+def _draw_single_arrow(ax, origin, direction, length: float, *, camera: Camera, preset: Preset,
+                       semantic: str, occluded_semantic: str, occluder: Polyhedron | None,
+                       negative: bool, cone_scale: float, label: str | None = None) -> Cone:
+    """一根带实心锥体箭头的轴：从 ``origin`` 沿 ``direction`` 伸 ``length``（``negative=True`` 时
+    负向也画一段，无箭头），穿过 ``occluder`` 内部的部分换 ``occluded_semantic`` 样式；锥尖在轴端、
+    锥底朝原点（旧图 3.3 约定），尺寸是光线锥体的 ``cone_scale`` 倍；``label`` 给定时在锥尖外
+    ``axis_label_pad`` 处写标签（``axis_label`` 样式）。:func:`draw_axes` 与 :func:`draw_axis_arrow`
+    共用这一份实现。返回锥体。"""
+    geom = preset.geom
+    o, d = np.asarray(origin, float), unit(direction)
+    tip = o + d * length
+    start = o - d * length if negative else o
+    draw_segment(ax, start, tip - d * geom.cone_length * cone_scale,
+                 camera=camera, preset=preset,
+                 semantic=semantic, occluded_semantic=occluded_semantic, occluder=occluder,
+                 z_visible=Z_EXTERNAL, z_hidden=Z_INTERNAL)
+    cone = Cone.along(tip, -d, length=geom.cone_length * cone_scale,
+                      radius=geom.cone_radius * cone_scale, samples=geom.cone_samples)
+    draw_cone(ax, cone, camera=camera, line_kwargs=preset.line_kwargs(semantic), z=Z_EXTERNAL,
+              fill_mode="solid")
+    if label is not None:
+        x, y = camera.project_xy(tip + d * geom.axis_label_pad)[0]
+        ax.text(x, y, label, ha="center", va="center", zorder=Z_TEXT,
+                **preset.text_kwargs("axis_label"))
+    return cone
+
 
 def draw_axes(ax, *, camera: Camera, preset: Preset,
               length: float | Sequence[float] | None = None,
@@ -332,22 +361,69 @@ def draw_axes(ax, *, camera: Camera, preset: Preset,
     """
     geom = preset.geom
     L = np.broadcast_to(np.asarray(geom.axis_length if length is None else length, float), (3,))
-    o = np.asarray(origin, float)
-    kw = preset.line_kwargs("axis")
     for k, lab in enumerate(labels):
         d = np.zeros(3)
         d[k] = 1.0
-        tip = o + d * L[k]
-        start = o - d * L[k] if negative else o
-        draw_segment(ax, start, tip - d * geom.cone_length * geom.axis_cone_scale,
-                     camera=camera, preset=preset,
-                     semantic="axis", occluded_semantic="axis_occluded", occluder=occluder,
-                     z_visible=Z_EXTERNAL, z_hidden=Z_INTERNAL)
-        # 轴箭头是标准箭头：锥尖在轴端、锥底朝原点（旧图 3.3 约定），与光线锥体同向
-        k_scale = geom.axis_cone_scale
-        cone = Cone.along(tip, -d, length=geom.cone_length * k_scale,
-                          radius=geom.cone_radius * k_scale, samples=geom.cone_samples)
-        draw_cone(ax, cone, camera=camera, line_kwargs=kw, z=Z_EXTERNAL, fill_mode="solid")
-        x, y = camera.project_xy(tip + d * geom.axis_label_pad)[0]
-        ax.text(x, y, f"${lab}$", ha="center", va="center", zorder=Z_TEXT,
-                **preset.text_kwargs("axis_label"))
+        _draw_single_arrow(ax, origin, d, L[k], camera=camera, preset=preset, semantic="axis",
+                           occluded_semantic="axis_occluded", occluder=occluder, negative=negative,
+                           cone_scale=geom.axis_cone_scale, label=f"${lab}$")
+
+
+def draw_axis_arrow(ax, origin, direction, length: float, *, camera: Camera, preset: Preset,
+                    semantic: str = "axis_main", occluder: Polyhedron | None = None,
+                    cone_scale: float | None = None, label: str | None = None) -> Cone:
+    """主轴箭头：从 ``origin``（通常是晶体中心）沿 ``direction``（c 轴）伸出 ``length`` 的粗箭头
+    （6.1 的红色主轴、3.4 第三帧的黑色主轴），只画正向。与坐标轴共用 :func:`_draw_single_arrow`，
+    只是样式换 ``semantic``、锥体按 ``main_axis_cone_scale`` 放大；``occluder`` 给定时被晶体挡住的
+    一段换 ``axis_occluded`` 样式。返回锥体。"""
+    geom = preset.geom
+    return _draw_single_arrow(ax, origin, direction, length, camera=camera, preset=preset,
+                              semantic=semantic, occluded_semantic="axis_occluded", occluder=occluder,
+                              negative=False,
+                              cone_scale=geom.main_axis_cone_scale if cone_scale is None else cone_scale,
+                              label=label)
+
+
+def rotation_arc_points(axis, center, radius: float, start_dir, angle_deg: float,
+                        samples: int = 64) -> np.ndarray:
+    """绕过 ``center`` 的 ``axis``、从 ``start_dir``（去掉沿轴分量后归一）右手转过 ``angle_deg``
+    的空间圆弧采样点 (samples, 3)。纯几何，供 :func:`draw_rotation_arc_3d` 与单测共用。"""
+    k = unit(axis)
+    c = np.asarray(center, float)
+    s = np.asarray(start_dir, float)
+    u = unit(s - (s @ k) * k)
+    w = np.cross(k, u)
+    t = np.deg2rad(np.linspace(0.0, angle_deg, samples))
+    return c[None, :] + radius * (np.cos(t)[:, None] * u[None, :] + np.sin(t)[:, None] * w[None, :])
+
+
+def draw_rotation_arc_3d(ax, axis, radius: float, start_dir, angle_deg: float, *, camera: Camera,
+                         preset: Preset, semantic: str, center: Sequence[float] = (0.0, 0.0, 0.0),
+                         label: str | None = None, label_pad: float | None = None,
+                         samples: int = 64) -> tuple[np.ndarray, Cone]:
+    """3D 旋转弧 + 箭头（3.4 的 θ / π/2 / α 标注）：弧是绕 ``axis``（过 ``center``）、从
+    ``start_dir`` 右手转 ``angle_deg`` 的空间圆弧经相机投影——不是画面上手画的 2D 弧；末端一枚实心锥体
+    箭头，锥尖朝旋转方向，尺寸是光线锥体的 ``arc_cone_scale`` 倍；弧线在锥底处止步。``label`` 给定时
+    写在弧中点再向外（背离轴）``label_pad``（默认 ``arc_label_pad``）处，``arc_label`` 样式。
+    ``angle_deg`` 为负时反向转。返回 ``(弧采样点 (samples,3), 锥体)``。"""
+    geom = preset.geom
+    pts = rotation_arc_points(axis, center, radius, start_dir, angle_deg, samples)
+    kw = preset.line_kwargs(semantic)
+    L = geom.cone_length * geom.arc_cone_scale
+    # 弧线在箭头底处止步：按每个采样步的弧长算要去掉几个点（同 scene2d.draw_rotation_arc）
+    step = radius * abs(np.deg2rad(angle_deg)) / (samples - 1)
+    cut = min(int(np.ceil(L / step)), samples - 2)
+    xy = camera.project_xy(pts[:samples - cut])
+    ax.plot(xy[:, 0], xy[:, 1], zorder=Z_EXTERNAL, solid_capstyle="round", **kw)
+    tangent = unit(pts[-1] - pts[-2])   # 末端切向 = 旋转方向
+    cone = Cone.along(pts[-1], -tangent, length=L, radius=geom.cone_radius * geom.arc_cone_scale,
+                      samples=geom.cone_samples)
+    draw_cone(ax, cone, camera=camera, line_kwargs=kw, z=Z_EXTERNAL, fill_mode="solid")
+    if label is not None:
+        k = unit(axis)
+        mid = pts[(samples - 1) // 2]
+        radial = unit(mid - np.asarray(center, float) - ((mid - np.asarray(center, float)) @ k) * k)
+        pad = geom.arc_label_pad if label_pad is None else label_pad
+        x, y = camera.project_xy(mid + radial * pad)[0]
+        ax.text(x, y, label, ha="center", va="center", zorder=Z_TEXT, **preset.text_kwargs("arc_label"))
+    return pts, cone

@@ -56,6 +56,16 @@ DEFAULT_LIGHT = Palette("default_light", {
     "plate_edge": "#5B6FB0",   # 6.2 平板界面线
     "medium": "#D3D3D3",       # 3.1 楔形介质填充（旧图灰）
     "ink_soft": "#455775",     # 1.2 旧图的图注深蓝灰
+    # 3.4 旧图三步旋转的三条弧（采样）：绕 c 轴的 θ 蓝、绕 y 轴的 π/2 绿、绕 z 轴的 α 橙
+    "arc_roll": "#4E78BE",
+    "arc_tilt": "#8CB43C",
+    "arc_azimuth": "#E6AA32",
+    # 球面图元（3.5 / 3.6 / 6.1）：经纬网格灰、6.1 旧图的姿态点云深灰、3.5 旧图的特里克尔弧蓝、3.6 锥面灰
+    "grid": "#9A9A9A",
+    "cloud": "#555555",
+    "sphere_curve": "#5E81B5",
+    "cone": "#BFBFBF",
+    # TODO 深色主题：以上新增颜色暂与浅色同值，待深色主题立项时另配
 })
 
 # 面号 → 颜色名：挂到 ``SemanticStyleMap.face_number_colors`` 上即启用"按面号取色"

@@ -7,8 +7,8 @@ from .projection import Camera, face_visible, solve_camera_distance, visible_fac
 from .raypath import (Cone, RayPath, RayPath2D, SegmentKind, aim, face_sequence, face_toward,
                       parallel_origins, solve_raypath, trace, verify_path)
 from .raypath2d import solve_raypath_2d, unfold_2d
-from .scene import (annotate, draw_axes, draw_raypath, finish, frame, new_figure, render_corridor,
-                    render_crystal)
+from .scene import (annotate, draw_axes, draw_axis_arrow, draw_raypath, draw_rotation_arc_3d, finish,
+                    frame, new_figure, render_corridor, render_crystal)
 from .scene2d import (annotate_2d, draw_flip_axis, draw_raypath_2d, draw_rotation_arc, draw_wedge_angle,
                       multi_panel, render_medium, render_section)
 from .schematic import SplitTree, split_tree, two_face_medium, wedge_angle, wedge_apex
@@ -19,8 +19,8 @@ from .unfold import Corridor, corridor_faces, straighten, unfold, unfolded_tail
 __all__ = [
     "Camera", "Cone", "Corridor", "CrossSection", "FACE_COLORS", "Face", "FlipAxis", "HexPrism",
     "PRESETS", "Polygon2D", "Polyhedron", "Preset", "RayPath", "RayPath2D", "SegmentKind", "SplitTree",
-    "aim", "annotate", "annotate_2d", "corridor_faces", "draw_axes", "draw_flip_axis", "draw_raypath",
-    "draw_raypath_2d", "draw_rotation_arc", "draw_wedge_angle", "face_permutation", "face_sequence",
+    "aim", "annotate", "annotate_2d", "corridor_faces", "draw_axes", "draw_axis_arrow", "draw_flip_axis",
+    "draw_raypath", "draw_raypath_2d", "draw_rotation_arc", "draw_rotation_arc_3d", "draw_wedge_angle", "face_permutation", "face_sequence",
     "face_toward", "face_visible", "finish", "flip", "frame", "multi_panel", "new_figure",
     "parallel_origins", "reflection2d", "render_corridor", "render_crystal", "render_medium",
     "render_section", "rotate", "rotation", "rotation2d", "rotation_between", "rotation_from_frames",
