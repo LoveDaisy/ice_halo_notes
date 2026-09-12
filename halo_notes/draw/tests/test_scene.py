@@ -8,7 +8,7 @@ from halo_notes.draw import (PRESETS, Camera, HexPrism, draw_axes, finish, new_f
                              render_crystal, trace)
 from halo_notes.draw.labels import face_label_anchor, point_in_polygon  # noqa: E402
 from halo_notes.draw.projection import visible_faces  # noqa: E402
-from halo_notes.draw.raypath import SegmentKind  # noqa: E402
+from halo_notes.draw.raypath import RayPath, SegmentKind  # noqa: E402
 from halo_notes.draw.scene import (Z_CONE_FILL, Z_CONE_OUTLINE, Z_EXTERNAL, Z_HIDDEN_FILL,  # noqa: E402
                                    Z_HIDDEN_LABEL, Z_INTERNAL, Z_VISIBLE_EDGE, Z_VISIBLE_FILL,
                                    Z_VISIBLE_LABEL)
@@ -259,19 +259,80 @@ def test_draw_raypath_mono_semantic_colours_everything_alike():
     plt.close(fig2)
 
 
-def test_ghost_face_numbers_all_use_hidden_style():
-    """幽灵晶体的面编号全部用 face_number_hidden（淡）样式，可见面也不例外。"""
-    from matplotlib.colors import to_rgba
+def test_ghost_face_numbers_use_two_levels_by_visibility():
+    """幽灵晶体的面编号两级：朝向观察者的面用 face_number_ghost（中等灰），背面用
+    face_number_hidden（更淡）；两级都比实体的 face_number 淡。"""
+    from halo_notes.draw.style import DEFAULT_MAP, TextStyle
     c = HexPrism(1, 0.8)
     cam = Camera(azimuth=72, elevation=20)
-    preset = PRESETS["default"]
+    # 故意把三级 alpha 设成互不相同、且与默认值不同的数，确认确实按语义取值而非碰巧
+    preset = PRESETS["default"].replace(style_map=DEFAULT_MAP.replace(
+        face_number=TextStyle("slate", alpha=0.9), face_number_ghost=TextStyle("slate", alpha=0.6),
+        face_number_hidden=TextStyle("slate", alpha=0.3)))
     fig, ax = new_figure(400, 300, dpi=50)
     render_crystal(ax, c, camera=cam, preset=preset, face_numbers=True, ghost=True)
-    hidden_alpha = preset.text_kwargs("face_number_hidden")["alpha"]
-    labels = [p for p in ax.patches]  # 默认贴面编号是 PathPatch，且 ghost 无面填充
+    labels = list(ax.patches)  # 默认贴面编号是 PathPatch，且 ghost 无面填充
     assert len(labels) == 8
-    assert all(p.get_alpha() == hidden_alpha for p in labels)
+    vis = {f.number for f in visible_faces(c, cam)}
+    for f, patch in zip(c.faces, labels):
+        assert patch.get_alpha() == (0.6 if f.number in vis else 0.3)
+    assert DEFAULT_MAP.face_number_hidden.alpha < DEFAULT_MAP.face_number_ghost.alpha < DEFAULT_MAP.face_number.alpha
     plt.close(fig)
+
+
+# ---- 锥体箭头：锥尖朝传播方向、光线穿入锥底 ----------------------------------------
+
+def test_ray_cones_point_along_propagation():
+    """每条外部段的锥体：锥尖在下游、锥底在上游——锥体轴向（顶点→底面）与传播方向点积 < 0，
+    等价于 issue 原句"锥尖朝传播方向"。"""
+    from halo_notes.draw.scene import segment_cone
+    from halo_notes.draw.style import DEFAULT_GEOM
+    c = HexPrism(1, 1.0)
+    p = trace(c, [-5, 0.0, -2.0], [1, 0, 0.5], ["refract", "reflect", "refract"])
+    for p0, p1, kind in p.segments():
+        if kind is SegmentKind.INTERNAL:
+            continue
+        cone = segment_cone(p0, p1, kind, DEFAULT_GEOM)
+        d = (p1 - p0) / np.linalg.norm(p1 - p0)
+        assert cone.axis @ d < 0                       # 轴指向底面 = 逆传播方向 ⇒ 尖朝传播方向
+        assert (cone.apex - cone.base_center) @ d > 0  # 尖在底面的下游
+        at = DEFAULT_GEOM.incident_cone_at if kind is SegmentKind.INCIDENT else DEFAULT_GEOM.exit_cone_at
+        assert np.allclose(cone.apex, p0 + (p1 - p0) * at)  # cone_at 参数定位的是锥尖
+
+
+def test_ray_line_enters_cone_base_to_its_centre():
+    """锥底朝观察者时，光线画到锥底中心为止（压在锥体衬底之上），而不是在轮廓处被截断；
+    锥尖之后再继续。"""
+    from matplotlib.colors import to_rgba
+    from halo_notes.draw import draw_raypath
+    from halo_notes.draw.scene import Z_CONE_ENTRY, segment_cone
+    from halo_notes.draw.style import DEFAULT_GEOM
+    preset = PRESETS["default"]
+    d = np.array([1.0, 0.0, 0.0])
+    p = RayPath(np.array([[-3.0, 0, 0], [-1.0, 0, 0]]), (SegmentKind.INCIDENT,))
+    cam = Camera(azimuth=150, elevation=10)   # 观察者在光线上游一侧偏后：锥底朝向观察者
+    cone = segment_cone(p.points[0], p.points[1], SegmentKind.INCIDENT, DEFAULT_GEOM)
+    assert cone.axis @ cam.view_vector(cone.base_center)[0] > 0
+    fig, ax = new_figure(400, 300, dpi=50)
+    draw_raypath(ax, p, camera=cam, preset=preset)
+    color = to_rgba(preset.line_kwargs("ray_incident")["color"])
+    entry = [ln for ln in ax.lines if ln.get_zorder() == Z_CONE_ENTRY and len(ln.get_xydata()) > 2]
+    assert len(entry) == 1
+    ends = entry[0].get_xydata()[[0, -1]]
+    assert np.allclose(ends[0], cam.project_xy(p.points[0])[0])
+    assert np.allclose(ends[1], cam.project_xy(cone.base_center)[0])  # 终点 = 锥底中心
+    assert Z_CONE_ENTRY > Z_CONE_FILL
+    tail = [ln for ln in ax.lines if ln.get_zorder() == Z_EXTERNAL and len(ln.get_xydata()) > 2]
+    assert len(tail) == 1 and np.allclose(tail[0].get_xydata()[0], cam.project_xy(cone.apex)[0])
+    assert all(to_rgba(ln.get_color()) == color for ln in entry + tail)
+    # 锥底背对观察者：没有 Z_CONE_ENTRY 的线，上游一截按 Z_EXTERNAL（被锥体衬底在轮廓处遮住）
+    cam2 = Camera(azimuth=-30, elevation=10)
+    assert cone.axis @ cam2.view_vector(cone.base_center)[0] < 0
+    fig2, ax2 = new_figure(400, 300, dpi=50)
+    draw_raypath(ax2, p, camera=cam2, preset=preset)
+    assert not [ln for ln in ax2.lines if ln.get_zorder() == Z_CONE_ENTRY]
+    plt.close(fig)
+    plt.close(fig2)
 
 
 def test_render_corridor_highlights_corridor_faces_on_the_right_bodies():
