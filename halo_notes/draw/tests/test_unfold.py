@@ -3,7 +3,7 @@ import pytest
 
 from halo_notes.draw.geometry import HexPrism, unit
 from halo_notes.draw.raypath import EventKind, RayEvent, RayPath, SegmentKind, aim, trace
-from halo_notes.draw.unfold import straighten, unfold
+from halo_notes.draw.unfold import corridor_faces, straighten, unfold
 
 
 def _synthetic_path(reflect_faces):
@@ -132,3 +132,75 @@ def test_corridor_faces_assigns_faces_to_crystal_and_ghosts(two_reflection_path)
         b = {tuple(np.round(v, 9)) for v in ghost.face_vertices(ghost.face(number))}
         assert a == b
     assert corridor_faces(_synthetic_path([])) == [(0, 6), (0, 3)]
+
+
+# ---- Corridor ---------------------------------------------------------------
+
+@pytest.mark.parametrize("ratio, faces", [(0.8, [1, 3, 2]), (2.0, [3, 1, 5, 7, 4]), (2.0, [1, 2, 3, 5, 1])])
+def test_corridor_straight_threads_every_corridor_face_interior(ratio, faces):
+    from halo_notes.draw.raypath import EventKind, face_sequence, solve_raypath
+    from halo_notes.draw.unfold import Corridor
+    c = HexPrism(1.0, ratio)
+    path = solve_raypath(c, faces)
+    co = Corridor(c, path)
+    s = co.straight
+    assert len(co.chain) == len(faces) - 1 and co.faces == corridor_faces(path)
+    assert face_sequence(s) == faces
+    # 入射段与折线的真实入射段完全一致（含折射折点）
+    assert np.allclose(s.points[:2], path.points[:2])
+    # 直线段共线：入射点之后、出射点之前的所有点都在同一条直线上
+    d = unit(s.points[2] - s.points[1])
+    for q in s.points[2:-1]:
+        assert np.allclose(np.cross(q - s.points[1], d), 0, atol=1e-9)
+    # 每个事件点落在其所属多面体的该编号面上，且在面内部（不擦边）
+    for ev in s.events:
+        body = co.polyhedron_for_event(ev, s)
+        f = body.face(ev.face_number)
+        q = s.points[ev.point_index]
+        assert abs(body.face_distance(f, q)) < 1e-6
+        assert body.face_margin(f, q) > 1e-3
+    kinds = [ev.kind for ev in s.events]
+    assert kinds[0] is EventKind.REFRACT_IN and kinds[-1] is EventKind.REFRACT_OUT
+    assert all(k is EventKind.PASS_THROUGH for k in kinds[1:-1])
+    # 与 straighten() 的独立结果一致：终点、出射段
+    st = straighten(path)
+    assert np.allclose(s.points[-2:], st.points[-2:])
+
+
+def test_corridor_polyhedron_for_event_indexes_chain_by_corridor_faces():
+    from halo_notes.draw.raypath import solve_raypath
+    from halo_notes.draw.unfold import Corridor
+    c = HexPrism(1.0, 2.0)
+    co = Corridor(c, solve_raypath(c, [3, 1, 5, 7, 4]))
+    bodies = [co.polyhedron_for_event(ev, co.straight) for ev in co.straight.events]
+    assert [co.chain.index(b) for b in bodies] == [0, 1, 2, 3, 3]
+    # 折线的事件全部在真实晶体上
+    assert all(co.polyhedron_for_event(ev, co.path) is c for ev in co.path.events)
+    with pytest.raises(ValueError):
+        co.polyhedron_for_event(co.straight.events[0], straighten(co.path))
+
+
+def test_corridor_rejects_centroid_line_masquerading_as_ray():
+    """三面质心连线（旧 2.7 / 2.8 的画法）声称走 1-3-2：几何上它确实依次穿过三个面的内部，
+    但在面 1 没有折射折点（入射方向 = 内部方向，违反 Snell）——Corridor 构造必须报错而不是画出来。"""
+    from halo_notes.draw.unfold import Corridor
+    c = HexPrism(1.0, 0.8)
+    ghost = c.mirrored(c.face(3))
+    pts = np.array([c.centroid(c.face(1)), c.centroid(c.face(3)), ghost.centroid(ghost.face(2))])
+    d = unit(pts[1] - pts[0])
+    fake = RayPath(np.vstack([pts[0] - d, pts, pts[2] + d]),
+                   (SegmentKind.INCIDENT, SegmentKind.INTERNAL, SegmentKind.INTERNAL, SegmentKind.EXIT),
+                   (RayEvent(1, 1, EventKind.REFRACT_IN), RayEvent(2, 3, EventKind.REFLECT_INTERNAL),
+                    RayEvent(3, 2, EventKind.REFRACT_OUT)))
+    with pytest.raises(ValueError, match="refraction"):
+        Corridor(c, fake)
+
+
+def test_raypath_sketch_flag_survives_transform_and_straighten():
+    c = HexPrism(1.0, 0.8)
+    from halo_notes.draw.raypath import solve_raypath
+    p = solve_raypath(c, [1, 3, 2])
+    assert p.sketch is False
+    q = RayPath(p.points, p.kinds, p.events, sketch=True)
+    assert q.transformed(translation=(1, 0, 0)).sketch is True
+    assert straighten(q).sketch is True

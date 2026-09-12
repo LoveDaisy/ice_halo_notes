@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Iterator, Sequence
+from typing import Callable, Iterator, Sequence
 
 import numpy as np
 
@@ -34,6 +34,7 @@ class EventKind(str, Enum):
     REFLECT_INTERNAL = "reflect_internal"
     REFRACT_OUT = "refract_out"
     REFLECT_EXTERNAL = "reflect_external"
+    PASS_THROUGH = "pass_through"     # 展开直线穿过幽灵晶体的面（方向不变，只是记录"穿过了这个面"）
 
 
 @dataclass(frozen=True)
@@ -48,6 +49,9 @@ class RayPath:
     points: np.ndarray                 # (N, 3)
     kinds: tuple[SegmentKind, ...]     # N-1 段
     events: tuple[RayEvent, ...] = ()
+    # 示意线：手画的、不是 trace / solve_raypath / Corridor 追迹出来的折线（如 2.3 右"1-3-1 不成立"）。
+    # 画图脚本必须显式声明；test_figures 只放行带此标记的非追迹光路，未标记的一律判失败
+    sketch: bool = False
 
     def __post_init__(self) -> None:
         pts = np.asarray(self.points, dtype=float).reshape(-1, 3)
@@ -74,7 +78,7 @@ class RayPath:
             p = p @ np.asarray(rotation, dtype=float).T
         if translation is not None:
             p = p + np.asarray(translation, dtype=float)
-        return RayPath(p, self.kinds, self.events)
+        return RayPath(p, self.kinds, self.events, self.sketch)
 
 
 # ---- 几何光学 --------------------------------------------------------------
@@ -152,6 +156,52 @@ def trace(crystal: Polyhedron, origin: Sequence[float], direction: Sequence[floa
         else:
             raise ValueError(f"unknown event {e!r}")
     raise ValueError("event sequence ended while the ray is still inside the crystal")
+
+
+def verify_path(path: RayPath, body_of: Callable[[RayEvent], Polyhedron], *,
+                n_ice: float = N_ICE, tol: float = 1e-9, min_margin: float = 0.0) -> None:
+    """白盒复核一条光路的物理与几何：每个事件点落在 ``body_of(event)`` 的该编号面上、在面
+    内部（到棱边距离 > ``min_margin``），且方向变化满足对应定律——折入 / 折出用 Snell、
+    内 / 外反射用镜面反射、``PASS_THROUGH`` 方向不变；偏差（单位方向向量之差的模，
+    小角度下 ≈ 弧度）超过 ``tol`` 抛 ``ValueError``。
+    端点上的事件（没有前一段或后一段）只查落点不查定律。
+    """
+    pts = path.points
+    for ev in path.events:
+        body = body_of(ev)
+        face = body.face(ev.face_number)
+        q = pts[ev.point_index]
+        dist = body.face_distance(face, q)
+        if abs(dist) > 1e-6:
+            raise ValueError(f"event on face {ev.face_number} is {dist:.2e} off the face plane")
+        margin = body.face_margin(face, q)
+        if margin <= min_margin:
+            raise ValueError(f"event on face {ev.face_number} is not inside the face "
+                             f"(margin {margin:.2e})")
+        i = ev.point_index
+        if i == 0 or i == len(pts) - 1:
+            continue
+        d_in, d_out = unit(pts[i] - pts[i - 1]), unit(pts[i + 1] - pts[i])
+        n = body.normal(face)
+        if ev.kind is EventKind.REFRACT_IN:
+            expected = refract(d_in, n, 1.0, n_ice)
+        elif ev.kind is EventKind.REFRACT_OUT:
+            expected = refract(d_in, -n, n_ice, 1.0)
+        elif ev.kind is EventKind.REFLECT_INTERNAL:
+            expected = reflect(d_in, -n)
+        elif ev.kind is EventKind.REFLECT_EXTERNAL:
+            expected = reflect(d_in, n)
+        elif ev.kind is EventKind.PASS_THROUGH:
+            expected = d_in
+        else:  # pragma: no cover
+            raise ValueError(f"unknown event kind {ev.kind!r}")
+        # 用方向向量之差的模而不是 arccos 量偏差：arccos 在 1 附近的浮点分辨率只有 ~1e-6°，
+        # 会把正确光路（差值 ~1e-16）误判
+        dev = float(np.linalg.norm(expected - d_out))
+        if dev > tol:
+            law = "refraction" if "refract" in ev.kind.value else "reflection"
+            raise ValueError(f"{ev.kind.value} on face {ev.face_number} deviates {dev:.3g} "
+                             f"(|Δdirection|, ≈{np.degrees(dev):.3g}°) from the law of {law}")
 
 
 def events_for_faces(faces: Sequence[int]) -> list[str]:
