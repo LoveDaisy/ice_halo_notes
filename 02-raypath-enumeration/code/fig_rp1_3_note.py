@@ -65,11 +65,10 @@ def compose_note(sky_image: Path, out: Path) -> Path:
     X.add_text(ax, (2383, 334), f"片晶光路 {RAYPATH[0]}-{RAYPATH[1]} 全天鱼眼视图", size_px=58, color="#DDDDDD")
     X.add_text(ax, (2383, 400), f"太阳高度 {SUN_ALTITUDE:g}°", size_px=58, color="#DDDDDD")
     X.add_text(ax, (2376, 1022), f"光路 {RAYPATH[0]}-{RAYPATH[1]}", size_px=58, color="#DDDDDD")
-    path = X.add_crystal_inset(fig, (2010, 1090, 780, 720), (WIDTH, HEIGHT), raypath=RAYPATH, height_ratio=PLATE_HEIGHT,
-                               camera=Camera(azimuth=-40, elevation=24, distance=9),
-                               prefer_point=(0.4, 0.0, PLATE_HEIGHT / 2),          # 旧图：从顶面偏出射侧进（片晶太薄，从正中进到不了面 3）
-                               prefer_direction=(0.55, 0.2, -0.8))                  # 斜向右前下方，从面 3（法向 +x，相机 az −40 时在右前）出
-    compose_note.last_path = path  # 供单测核验面序列
+    X.add_crystal_inset(fig, (2010, 1090, 780, 720), (WIDTH, HEIGHT), raypath=RAYPATH, height_ratio=PLATE_HEIGHT,
+                         camera=Camera(azimuth=-40, elevation=24, distance=9),
+                         prefer_point=(0.4, 0.0, PLATE_HEIGHT / 2),          # 旧图：从顶面偏出射侧进（片晶太薄，从正中进到不了面 3）
+                         prefer_direction=(0.55, 0.2, -0.8))                  # 斜向右前下方，从面 3（法向 +x，相机 az −40 时在右前）出
     return X.save_canvas(fig, out)
 
 

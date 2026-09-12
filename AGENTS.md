@@ -14,9 +14,7 @@
 ```bash
 uv sync                                     # 建 .venv 并按 uv.lock 装依赖（含 dev 组 pytest；halo_notes 以可编辑方式装入）
 uv run python 02-raypath-enumeration/code/fig_expand_rp132.py   # 跑画图脚本（脚本用 __file__ 定位 ../img，可在任意 cwd 运行）
-uv run pytest                               # 全量单测；halo_notes/draw/tests/test_figures.py 逐图核验画出的光路语义；默认跳过 slow
-uv run pytest -m slow                       # 真跑 Lumice CLI 的慢测试（需能拉到 / 已缓存 .lumice/ 二进制）
-uv run python -m halo_notes.sim.fetch       # 拉钉住版本的 Lumice 二进制到 .lumice/（不入 git）
+uv run pytest                               # 全量单测；halo_notes/draw/tests/test_figures.py 逐图核验画出的光路语义
 git lfs ls-files          # 图片/psd 全部走 LFS（见 .gitattributes）
 obsidian rename file=<旧名> name=<新名>.md   # 重命名 md 必须走 Obsidian CLI（自动改 wikilink），禁裸 mv；分流判据见 skill obsidian-route
 # ⚠ name= 必须带 .md，否则扩展名被吃掉；rename 后 Obsidian 会把 README 里的 markdown 链接改写成无目录的「最短路径」形式（GitHub 上会断），要改回显式相对路径
@@ -49,7 +47,7 @@ obsidian rename file=<旧名> name=<新名>.md   # 重命名 md 必须走 Obsidi
 
 ### 外部依赖
 
-- 仿真器：Lumice（`~/Codes/Ice Halo Simulation`，GitHub `LoveDaisy/ice_halo_sim`）。本仓只放调仿真器 + 画图的胶水代码和参数（`halo_notes/sim/`），**不放仿真器本身**：版本钉在 `halo_notes/sim/fetch.py` 的 `LUMICE_VERSION`，`uv run python -m halo_notes.sim.fetch` 按该版本从 GitHub release 拉 CLI 二进制到 `.lumice/`（gitignore）；`LUMICE_BIN` 环境变量可指向本地 build 做对照，正式出图一律用 release 版。每张仿真图的 config 落 `data/<name>.lumice.json`，原始输出 + `provenance.json` 落 `data/<name>/`。旧脚本 `render_raypaths.py` 依赖的 `IceHaloEndless` 二进制已被仿真器项目删除，该脚本已失效，归 `legacy/`。
+- 仿真器：Lumice（`~/Codes/Ice Halo Simulation`，GitHub `LoveDaisy/ice_halo_sim`）。本仓只放调仿真器 + 画图的胶水代码和参数（`halo_notes/sim/`），**不放仿真器本身**：版本钉在 `halo_notes/sim/fetch.py` 的 `LUMICE_VERSION`，`uv run python -m halo_notes.sim.fetch` 按该版本从 GitHub release 拉 CLI 二进制到 `.lumice/`（gitignore）；`LUMICE_BIN` 环境变量可指向本地 build 做对照，正式出图一律用 release 版。每张仿真图的 config 落 `data/<name>.lumice.json`，原始输出 + `provenance.json` 落 `data/<name>/`。真跑 Lumice CLI 的慢测试标了 `@pytest.mark.slow`，`uv run pytest` 默认跳过，需要真跑时用 `uv run pytest -m slow`（要求能拉到 / 已缓存 `.lumice/` 二进制）。旧脚本 `render_raypaths.py` 依赖的 `IceHaloEndless` 二进制已被仿真器项目删除，该脚本已失效，归 `legacy/`。
 - 主 vault：`~/Virtual-Jiajie/Jiajie-Knowledge/Obsidian-Vault/`。公开上映版快照在 `Writing/articles/现代冰晕研究漫谈(N)： *.md`，系列 MOC 在 `Writing/series/现代冰晕研究漫谈.md`。
 
 ## 重要约束
