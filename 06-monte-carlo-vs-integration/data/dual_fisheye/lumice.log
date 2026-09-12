@@ -1,0 +1,66 @@
+$ /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/.lumice/v4.5.1/Lumice -f /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/dual_fisheye/config.json -o /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/dual_fisheye --format png
+--- stdout ---
+2026-09-12 16:37:42.383 [I] ServerImpl: gpu_route=false worker_count=10 (preferred_backend=0)
+2026-09-12 16:37:42.402 [I] CommitConfig: restart took 18.9ms (Stop 0.0ms + rebuild 18.8ms + Start 0.0ms)
+2026-09-12 16:37:42.403 [I] GenerateScene: first batch enqueued at 0.0ms after start
+2026-09-12 16:37:42.405 [I] ConsumeData: first batch consumed (1920 ray segments)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/dual_fisheye/img_01.png (2048x1024)
+Stats: sim_rays=6561280, crystals=3, orientations=6561280
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/dual_fisheye/img_01.png (2048x1024)
+Stats: sim_rays=13646720, crystals=3, orientations=13646720
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/dual_fisheye/img_01.png (2048x1024)
+Stats: sim_rays=20724608, crystals=3, orientations=20724608
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/dual_fisheye/img_01.png (2048x1024)
+Stats: sim_rays=28070912, crystals=3, orientations=28070912
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/dual_fisheye/img_01.png (2048x1024)
+Stats: sim_rays=35409664, crystals=3, orientations=35409664
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/dual_fisheye/img_01.png (2048x1024)
+Stats: sim_rays=42702720, crystals=3, orientations=42702720
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/dual_fisheye/img_01.png (2048x1024)
+Stats: sim_rays=50073600, crystals=3, orientations=50073600
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/dual_fisheye/img_01.png (2048x1024)
+Stats: sim_rays=57311360, crystals=3, orientations=57311360
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/dual_fisheye/img_01.png (2048x1024)
+Stats: sim_rays=64645632, crystals=3, orientations=64645632
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/dual_fisheye/img_01.png (2048x1024)
+Stats: sim_rays=71938176, crystals=3, orientations=71938176
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/dual_fisheye/img_01.png (2048x1024)
+Stats: sim_rays=79204864, crystals=3, orientations=79204864
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/dual_fisheye/img_01.png (2048x1024)
+Stats: sim_rays=86514560, crystals=3, orientations=86514560
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/dual_fisheye/img_01.png (2048x1024)
+Stats: sim_rays=93753344, crystals=3, orientations=93753344
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/dual_fisheye/img_01.png (2048x1024)
+Stats: sim_rays=100909952, crystals=3, orientations=100909952
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/dual_fisheye/img_01.png (2048x1024)
+Stats: sim_rays=108019328, crystals=3, orientations=108019328
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/dual_fisheye/img_01.png (2048x1024)
+Stats: sim_rays=115189632, crystals=3, orientations=115189632
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/dual_fisheye/img_01.png (2048x1024)
+Stats: sim_rays=122521216, crystals=3, orientations=122521216
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/dual_fisheye/img_01.png (2048x1024)
+Stats: sim_rays=129803392, crystals=3, orientations=129803392
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/dual_fisheye/img_01.png (2048x1024)
+Stats: sim_rays=137066240, crystals=3, orientations=137066240
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/dual_fisheye/img_01.png (2048x1024)
+Stats: sim_rays=144356992, crystals=3, orientations=144356992
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/dual_fisheye/img_01.png (2048x1024)
+Stats: sim_rays=151729664, crystals=3, orientations=151729664
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/dual_fisheye/img_01.png (2048x1024)
+Stats: sim_rays=158996480, crystals=3, orientations=158996480
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/dual_fisheye/img_01.png (2048x1024)
+Stats: sim_rays=166123904, crystals=3, orientations=166123904
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/dual_fisheye/img_01.png (2048x1024)
+Stats: sim_rays=173392000, crystals=3, orientations=173392000
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/dual_fisheye/img_01.png (2048x1024)
+Stats: sim_rays=180653440, crystals=3, orientations=180653440
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/dual_fisheye/img_01.png (2048x1024)
+Stats: sim_rays=187860864, crystals=3, orientations=187860864
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/dual_fisheye/img_01.png (2048x1024)
+Stats: sim_rays=195139968, crystals=3, orientations=195139968
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/dual_fisheye/img_01.png (2048x1024)
+Stats: sim_rays=200000004, crystals=3, orientations=200000004
+2026-09-12 16:38:23.858 [I] Consume profile: 1562502 batches, avg 10.7us (proj 6.3us 59% + accum 4.4us 41%)
+
+--- stderr ---
+

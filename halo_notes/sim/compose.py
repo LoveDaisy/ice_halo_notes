@@ -132,7 +132,8 @@ def add_circle(ax, center: Sequence[float], radius_px: float, *, color: str = "w
 
 def add_crystal_inset(fig, box: Box, canvas_size: tuple[int, int], *, raypath: Sequence[int], height_ratio: float = 0.5,
                       camera: Camera | None = None, preset: Preset = DARK_INSET, tail: float = 1.4, head: float = 1.4,
-                      face_numbers: bool = False) -> RayPath:
+                      face_numbers: bool = False, prefer_point: Sequence[float] | None = None,
+                      prefer_direction: Sequence[float] | None = None) -> RayPath:
     """在画布像素框 ``box`` 里画一个六方片晶 + 指定面序列的光路（Snell 真实反解，锥体箭头）。
 
     只 import ``halo_notes.draw`` 的 ``HexPrism`` / ``solve_raypath`` / ``render_crystal``，返回反解出的光路供单测核验面序列。
@@ -144,7 +145,8 @@ def add_crystal_inset(fig, box: Box, canvas_size: tuple[int, int], *, raypath: S
     ax.patch.set_alpha(0)
     crystal = HexPrism(1.0, height_ratio)
     camera = camera or Camera(azimuth=35, elevation=22, distance=9)
-    path = solve_raypath(crystal, list(raypath), tail=tail, head=head)
+    path = solve_raypath(crystal, list(raypath), tail=tail, head=head, prefer_point=prefer_point,
+                         prefer_direction=prefer_direction)
     render_crystal(ax, crystal, [path], camera=camera, preset=preset, face_numbers=face_numbers)
     xlim, ylim = frame(camera, [crystal.vertices, path.points], int(w), int(h), margin=0.06)
     ax.set_xlim(*xlim)

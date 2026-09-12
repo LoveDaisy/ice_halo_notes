@@ -1,0 +1,28 @@
+$ /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/.lumice/v4.5.1/Lumice -f /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/02-raypath-enumeration/data/rp1-3_plt0.5_s25_i2_note/config.json -o /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/02-raypath-enumeration/data/rp1-3_plt0.5_s25_i2_note --format png
+--- stdout ---
+2026-09-12 16:46:05.287 [I] ServerImpl: gpu_route=false worker_count=10 (preferred_backend=0)
+2026-09-12 16:46:05.328 [I] GenerateScene: first batch enqueued at 0.0ms after start
+2026-09-12 16:46:05.328 [I] CommitConfig: restart took 39.1ms (Stop 0.0ms + rebuild 38.9ms + Start 0.0ms)
+2026-09-12 16:46:05.329 [I] ConsumeData: first batch consumed (896 ray segments)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/02-raypath-enumeration/data/rp1-3_plt0.5_s25_i2_note/img_01.png (1800x1800)
+Stats: sim_rays=12027904, crystals=1, orientations=12027904
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/02-raypath-enumeration/data/rp1-3_plt0.5_s25_i2_note/img_01.png (1800x1800)
+Stats: sim_rays=24464768, crystals=1, orientations=24464768
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/02-raypath-enumeration/data/rp1-3_plt0.5_s25_i2_note/img_01.png (1800x1800)
+Stats: sim_rays=37172864, crystals=1, orientations=37172864
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/02-raypath-enumeration/data/rp1-3_plt0.5_s25_i2_note/img_01.png (1800x1800)
+Stats: sim_rays=47748352, crystals=1, orientations=47748352
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/02-raypath-enumeration/data/rp1-3_plt0.5_s25_i2_note/img_01.png (1800x1800)
+Stats: sim_rays=59619840, crystals=1, orientations=59619840
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/02-raypath-enumeration/data/rp1-3_plt0.5_s25_i2_note/img_01.png (1800x1800)
+Stats: sim_rays=71230848, crystals=1, orientations=71230848
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/02-raypath-enumeration/data/rp1-3_plt0.5_s25_i2_note/img_01.png (1800x1800)
+Stats: sim_rays=82345216, crystals=1, orientations=82345216
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/02-raypath-enumeration/data/rp1-3_plt0.5_s25_i2_note/img_01.png (1800x1800)
+Stats: sim_rays=93644544, crystals=1, orientations=93644544
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/02-raypath-enumeration/data/rp1-3_plt0.5_s25_i2_note/img_01.png (1800x1800)
+Stats: sim_rays=100000002, crystals=1, orientations=100000002
+2026-09-12 16:46:16.324 [I] Consume profile: 781254 batches, avg 0.3us (proj 0.2us 55% + accum 0.1us 45%)
+
+--- stderr ---
+

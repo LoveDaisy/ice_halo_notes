@@ -63,6 +63,16 @@ def test_render_writes_config_log_provenance(tmp_path):
     assert res.wall_clock_s >= 0 and res.provenance == prov
 
 
+def test_rerun_into_same_dir_clears_stale_images(tmp_path):
+    binary = _script(tmp_path, FAKE_OK)
+    out = tmp_path / "out"
+    out.mkdir()
+    (out / "img_07.png").write_bytes(b"stale")
+    res = run.render(_cfg(), out, bin=binary)
+    assert [p.name for p in res.images] == ["img_01.png"]
+    assert not (out / "img_07.png").exists()
+
+
 def test_render_failure_raises_with_log_tail(tmp_path):
     binary = _script(tmp_path, FAKE_FAIL)
     with pytest.raises(run.LumiceError, match="bad config line 3"):

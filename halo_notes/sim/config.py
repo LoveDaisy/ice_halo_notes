@@ -162,7 +162,10 @@ LENS_TYPES = (
 
 def lens(type: str, *, fov: Number | None = None, f: Number | None = None) -> dict[str, Any]:
     """镜头。v4.5.1 CLI 解析器要求 ``fov`` / ``f`` 二者必有其一（doc 写的"默认 90°"在 CLI 里实测报 MISSING_FIELD，
-    2026-09-12 探针确认）；``dual_*`` / ``rectangular`` 忽略 fov（全天），这里自动补 180，``globe`` 补 doc 默认 30。"""
+    2026-09-12 探针确认）；``dual_*`` / ``rectangular`` 忽略 fov（全天），这里自动补 180，``globe`` 补 doc 默认 30。
+
+    ``fov`` 的实测语义是**短边**全视场（doc 写"对角"，但 ``render_config.cpp`` 的 f→fov 换算用的是 35mm 片幅半短边 12mm，
+    1.5 图按 22° 晕半径反推也与短边口径一致），换算焦距时按短边算。"""
     if type not in LENS_TYPES:
         raise ValueError(f"未知镜头 {type!r}，可选 {LENS_TYPES}")
     out: dict[str, Any] = {"type": type}

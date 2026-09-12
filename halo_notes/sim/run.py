@@ -60,7 +60,10 @@ def render(
     cfg_path = out_dir / "config.json"
     cfg_path.write_text(json.dumps(config, indent=2, ensure_ascii=False) + "\n")
 
-    before = {p for p in out_dir.iterdir() if p.suffix.lower() in IMAGE_SUFFIXES}
+    # out_dir 归本次渲染独占：先清掉上次的图，免得旧图（尤其上次 render 段更长时多出来的）混进结果
+    for stale in out_dir.iterdir():
+        if stale.suffix.lower() in IMAGE_SUFFIXES:
+            stale.unlink()
     cmd = [str(binary), "-f", str(cfg_path), "-o", str(out_dir), "--format", fmt]
     if workers is not None:
         cmd += ["--workers", str(workers)]
@@ -78,7 +81,7 @@ def render(
         tail = "\n".join(log_path.read_text().splitlines()[-30:])
         raise LumiceError(f"Lumice 退出码 {proc.returncode}（命令 {' '.join(cmd)}）；log 尾部：\n{tail}")
 
-    images = sorted(p for p in out_dir.iterdir() if p.suffix.lower() in IMAGE_SUFFIXES and p not in before)
+    images = sorted(p for p in out_dir.iterdir() if p.suffix.lower() in IMAGE_SUFFIXES)
     if not images:
         raise LumiceError(f"Lumice 退出码 0 但 {out_dir} 下没有新图片；log：{log_path}")
 
