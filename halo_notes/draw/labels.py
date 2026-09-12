@@ -74,21 +74,26 @@ def face_text_transform(ax, poly: Polyhedron, face: Face, camera: Camera, *,
             + ax.transData)
 
 
+def glyph_path(text: str, style) -> tuple:
+    """``TextStyle`` 字体下的字形路径（以 (0,0) 为中心）与参考字高（数字「0」的高，同一预设下各
+    编号等高："1" 比 "8" 窄但一样高）。贴面 / 贴边编号共用。"""
+    if style.family:
+        prop = FontProperties(weight=style.weight, style=style.style, family=style.family)
+    else:
+        prop = FontProperties(weight=style.weight, style=style.style)
+    path = TextPath((0, 0), text, size=style.fontsize, prop=prop)
+    bb = path.get_extents()
+    centered = Affine2D().translate(-(bb.x0 + bb.x1) / 2, -(bb.y0 + bb.y1) / 2).transform_path(path)
+    ref_h = TextPath((0, 0), "0", size=style.fontsize, prop=prop).get_extents().height
+    return centered, ref_h
+
+
 def draw_face_number_warped(ax, poly: Polyhedron, face: Face, camera: Camera, preset: Preset,
                             visible: bool | None = None, text: str | None = None,
                             semantic: str | None = None):
     """面编号贴面：``TextPath`` 字形经面内仿射铺到面上，随视角倾斜 / 缩放。"""
     style = preset.style(_text_semantic(poly, face, camera, visible, semantic))
-    if style.family:
-        prop = FontProperties(weight=style.weight, style=style.style, family=style.family)
-    else:
-        prop = FontProperties(weight=style.weight, style=style.style)
-    path = TextPath((0, 0), text if text is not None else str(face.number),
-                    size=style.fontsize, prop=prop)
-    bb = path.get_extents()
-    centered = Affine2D().translate(-(bb.x0 + bb.x1) / 2, -(bb.y0 + bb.y1) / 2).transform_path(path)
-    # 以数字「0」的字高为基准，同一预设下各编号等高（"1" 比 "8" 窄但一样高）
-    ref_h = TextPath((0, 0), "0", size=style.fontsize, prop=prop).get_extents().height
+    centered, ref_h = glyph_path(text if text is not None else str(face.number), style)
     tf = face_text_transform(ax, poly, face, camera, glyph_height=ref_h,
                              world_height=preset.geom.face_number_height)
     patch = PathPatch(centered, transform=tf,
@@ -106,3 +111,32 @@ def draw_face_number(ax, poly: Polyhedron, face: Face, camera: Camera, preset: P
     fn = (draw_face_number_warped if preset.geom.face_number_style is FaceNumberStyle.WARPED
           else draw_face_number_flat)
     return fn(ax, poly, face, camera, preset, visible=visible, text=text, semantic=semantic)
+
+
+# ---- 2D 截面的边编号 ---------------------------------------------------------
+
+def edge_label_anchor(poly, edge: Face, preset: Preset) -> np.ndarray:
+    """边编号的中心：边中点沿内法向退 ``geom.edge_number_inset``。"""
+    return poly.midpoint(edge) - poly.normal(edge) * preset.geom.edge_number_inset
+
+
+def draw_edge_number(ax, poly, edge: Face, preset: Preset, *, semantic: str = "face_number",
+                     text: str | None = None):
+    """截面边编号：字形按多边形自身的 ``frame``（编号朝向基）铺放——晶体转了字形跟着转，翻转 /
+    镜像后字形镜像，与 3D 贴面文字同一套"贴纸"语义。字高 ``geom.edge_number_height``（世界单位）。
+    颜色：``style_map.face_number_colors`` 里有该边号时按面号取色，否则用 ``semantic`` 的颜色；
+    字号 / 透明度始终取 ``semantic``。"""
+    style = preset.style(semantic)
+    centered, ref_h = glyph_path(text if text is not None else str(edge.number), style)
+    k = preset.geom.edge_number_height / ref_h
+    F = poly.frame
+    x, y = edge_label_anchor(poly, edge, preset)
+    tf = Affine2D(np.array([[F[0, 0] * k, F[0, 1] * k, x],
+                            [F[1, 0] * k, F[1, 1] * k, y],
+                            [0.0, 0.0, 1.0]])) + ax.transData
+    colors = preset.style_map.face_number_colors
+    color_name = colors[edge.number] if colors and edge.number in colors else style.color
+    patch = PathPatch(centered, transform=tf, facecolor=preset.palette[color_name],
+                      alpha=style.alpha, edgecolor="none", linewidth=0)
+    ax.add_patch(patch)
+    return patch

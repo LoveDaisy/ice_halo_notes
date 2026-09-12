@@ -1,5 +1,8 @@
 """光路展开：每次内反射把晶体关于反射面镜像成一个"幽灵晶体"，反射折线随之拉直。
 
+全部函数与维数无关：``crystal`` 可以是 3D 多面体，也可以是 2D 截面（:class:`geometry2d.Polygon2D`，
+配 :class:`raypath.RayPath2D`）——镜像、拉直、走廊面归属只用点积与镜像公式。
+
 - :func:`unfold`：按光路里的内反射事件级联镜像，返回幽灵晶体序列
   （第 k 个幽灵是对第 k-1 个幽灵——而非原晶体——做镜像，面编号跟着晶体走）
 - :func:`straighten`：把同一条光路的内部折线收缩成一条直线段，直线段的
@@ -73,13 +76,13 @@ def straighten(raypath: RayPath) -> RayPath:
     kinds = (SegmentKind.INCIDENT, SegmentKind.INTERNAL, SegmentKind.EXIT)
     events = (RayEvent(1, ev_in.face_number, EventKind.REFRACT_IN),
               RayEvent(2, ev_out.face_number, EventKind.REFRACT_OUT))
-    return RayPath(points, kinds, events, raypath.sketch)
+    return type(raypath)(points, kinds, events, raypath.sketch)
 
 
 def unfolded_tail(straight: RayPath) -> RayPath:
     """去掉 :func:`straighten` 结果的入射段：从入射点起的直线 + 出射段（事件下标同步前移）。"""
     events = tuple(RayEvent(ev.point_index - 1, ev.face_number, ev.kind) for ev in straight.events)
-    return RayPath(straight.points[1:], straight.kinds[1:], events, straight.sketch)
+    return type(straight)(straight.points[1:], straight.kinds[1:], events, straight.sketch)
 
 
 def corridor_faces(raypath: RayPath) -> list[tuple[int, int]]:
@@ -164,7 +167,7 @@ class Corridor:
         events = ([RayEvent(1, numbers[0], EventKind.REFRACT_IN)]
                   + [RayEvent(2 + i, numbers[1 + i], EventKind.PASS_THROUGH) for i in range(n_pass)]
                   + [RayEvent(2 + n_pass, numbers[-1], EventKind.REFRACT_OUT)])
-        straight = RayPath(pts, kinds, tuple(events), sketch=self.path.sketch)
+        straight = type(self.path)(pts, kinds, tuple(events), sketch=self.path.sketch)
         assert face_sequence(straight) == face_sequence(self.path)
         return straight
 

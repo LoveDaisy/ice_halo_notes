@@ -3,11 +3,11 @@
 from .geom_style import DEFAULT_GEOM, FaceNumberStyle, GeomStyle, HiddenEdgeMode
 from .mapping import (DEFAULT_MAP, FillStyle, LineStyle, MarkerStyle,
                       SemanticStyleMap, TextStyle)
-from .palette import DEFAULT_LIGHT, Palette
+from .palette import DEFAULT_LIGHT, FACE_COLORS, Palette
 from .presets import DEFAULT, ICE_FILLED, PRESETS, Preset
 
 __all__ = [
-    "DEFAULT", "DEFAULT_GEOM", "DEFAULT_LIGHT", "DEFAULT_MAP", "FaceNumberStyle", "FillStyle",
+    "DEFAULT", "DEFAULT_GEOM", "DEFAULT_LIGHT", "DEFAULT_MAP", "FACE_COLORS", "FaceNumberStyle", "FillStyle",
     "GeomStyle", "HiddenEdgeMode", "ICE_FILLED", "LineStyle", "MarkerStyle",
     "PRESETS", "Palette", "Preset", "SemanticStyleMap", "TextStyle",
 ]

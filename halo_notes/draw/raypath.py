@@ -46,15 +46,17 @@ class RayEvent:
 
 @dataclass(frozen=True)
 class RayPath:
-    points: np.ndarray                 # (N, 3)
+    points: np.ndarray                 # (N, DIM)
     kinds: tuple[SegmentKind, ...]     # N-1 段
     events: tuple[RayEvent, ...] = ()
     # 示意线：手画的、不是 trace / solve_raypath / Corridor 追迹出来的折线（如 2.3 右"1-3-1 不成立"）。
     # 画图脚本必须显式声明；test_figures 只放行带此标记的非追迹光路，未标记的一律判失败
     sketch: bool = False
 
+    DIM = 3   # 点的维数；2D 截面光路见 :class:`RayPath2D`
+
     def __post_init__(self) -> None:
-        pts = np.asarray(self.points, dtype=float).reshape(-1, 3)
+        pts = np.asarray(self.points, dtype=float).reshape(-1, self.DIM)
         object.__setattr__(self, "points", pts)
         if len(self.kinds) != len(pts) - 1:
             raise ValueError("kinds must have len(points)-1 entries")
@@ -78,7 +80,19 @@ class RayPath:
             p = p @ np.asarray(rotation, dtype=float).T
         if translation is not None:
             p = p + np.asarray(translation, dtype=float)
-        return RayPath(p, self.kinds, self.events, self.sketch)
+        return type(self)(p, self.kinds, self.events, self.sketch)
+
+
+@dataclass(frozen=True)
+class RayPath2D(RayPath):
+    """截面（2D）光路：points 为 (N, 2)，其余字段、事件与 ``sketch`` 语义与 :class:`RayPath` 相同。
+    :func:`trace` 在 2D 多边形上追迹时返回本类。"""
+
+    DIM = 2
+
+
+def _path_class(body: Polyhedron) -> type[RayPath]:
+    return RayPath2D if body.DIM == 2 else RayPath
 
 
 # ---- 几何光学 --------------------------------------------------------------
@@ -102,6 +116,8 @@ def trace(crystal: Polyhedron, origin: Sequence[float], direction: Sequence[floa
           events: Sequence[str], *, n_ice: float = N_ICE,
           tail: float = 1.6, head: float = 1.6) -> RayPath:
     """从晶体外一点沿 ``direction`` 追迹，逐次表面相遇按 ``events`` 决定折射还是反射。
+    ``crystal`` 可以是 3D 多面体或 2D 多边形（:class:`geometry2d.Polygon2D`），维数由它决定，
+    返回对应的 :class:`RayPath` / :class:`RayPath2D`。
 
     ``events`` 每项取 ``"refract"`` 或 ``"reflect"``：第一次相遇发生在外表面
     （``reflect`` = 外反射，路径就此结束；``refract`` = 进入晶体），之后的相遇
@@ -128,7 +144,7 @@ def trace(crystal: Polyhedron, origin: Sequence[float], direction: Sequence[floa
         ev.append(RayEvent(1, f_in.number, EventKind.REFLECT_EXTERNAL))
         points.append(p + d * head)
         kinds.append(SegmentKind.EXIT)
-        return RayPath(np.array(points), tuple(kinds), tuple(ev))
+        return _path_class(crystal)(np.array(points), tuple(kinds), tuple(ev))
     if first != "refract":
         raise ValueError(f"unknown event {first!r}")
     d = refract(d, n, 1.0, n_ice)
@@ -152,7 +168,7 @@ def trace(crystal: Polyhedron, origin: Sequence[float], direction: Sequence[floa
             ev.append(RayEvent(idx, f_out.number, EventKind.REFRACT_OUT))
             points.append(p + d * head)
             kinds.append(SegmentKind.EXIT)
-            return RayPath(np.array(points), tuple(kinds), tuple(ev))
+            return _path_class(crystal)(np.array(points), tuple(kinds), tuple(ev))
         else:
             raise ValueError(f"unknown event {e!r}")
     raise ValueError("event sequence ended while the ray is still inside the crystal")
@@ -255,7 +271,25 @@ def solve_raypath(crystal: Polyhedron, faces: Sequence[int], *, n_ice: float = N
     - 没给偏好时取"最不擦边"的一条：各事件点到所在面棱边的最小距离最大
 
     找不到解抛 ``ValueError``，报文带面序列与采样规模。
+    2D 多边形请用 :func:`raypath2d.solve_raypath_2d`（入射方向只有一个自由度）。
     """
+    faces = [int(f) for f in faces]
+    entry = crystal.face(faces[0])
+    n = crystal.normal(entry)
+    thetas = np.arange(angle_range[0], angle_range[1] + 1e-9, theta_step)
+    phis = np.arange(0.0, 360.0, phi_step)
+    dirs = _incident_directions(n, thetas, phis)
+    return search_raypath(crystal, faces, dirs, n_ice=n_ice, prefer_point=prefer_point,
+                          prefer_direction=prefer_direction, n_ring=n_ring, tail=tail, head=head)
+
+
+def search_raypath(crystal: Polyhedron, faces: Sequence[int], dirs: np.ndarray, *,
+                   n_ice: float = N_ICE, prefer_point: Sequence[float] | None = None,
+                   prefer_direction: Sequence[float] | None = None, n_ring: int = 3,
+                   tail: float = 1.6, head: float = 1.6) -> RayPath:
+    """:func:`solve_raypath` 的搜索主体（与维数无关）：在入射面采样点 × 给定入射方向集合 ``dirs``
+    （(N, DIM)）里找面序列恰好等于 ``faces`` 的光路，偏好 / 择优规则见 :func:`solve_raypath`。
+    3D 与 2D 只差入射方向怎么采样，共用这一份搜索与择优。"""
     faces = [int(f) for f in faces]
     events = events_for_faces(faces)
     entry = crystal.face(faces[0])
@@ -278,9 +312,6 @@ def solve_raypath(crystal: Polyhedron, faces: Sequence[int], *, n_ice: float = N
             return hit
 
     # 2) 网格搜索
-    thetas = np.arange(angle_range[0], angle_range[1] + 1e-9, theta_step)
-    phis = np.arange(0.0, 360.0, phi_step)
-    dirs = _incident_directions(n, thetas, phis)
     points = _face_points(crystal, entry, n_ring)
     candidates: list[RayPath] = []
     for p in points:

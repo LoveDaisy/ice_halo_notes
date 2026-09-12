@@ -108,3 +108,28 @@ def test_projection_mode_flips_visibility_of_grazing_face():
     assert face_visible(prism, prism.face(1), ortho)
     assert not face_visible(prism, prism.face(1), persp)
     assert face_visible(prism, prism.face(1), ortho) != face_visible(prism, prism.face(1), persp)
+
+
+def test_solve_camera_distance_hits_target_fov():
+    """给定点集与目标视场，求得的 distance 使实际水平视场落在目标 ±1° 内。"""
+    from halo_notes.draw.projection import horizontal_fov, solve_camera_distance
+    pts = [HexPrism(1.0, 1.9).vertices + [4.3, 0, 0], HexPrism(1.0, 3.2).vertices,
+           HexPrism(1.0, 1.7).vertices - [4.3, 0, 0]]
+    for target in (28.0, 15.0, 45.0):
+        d = solve_camera_distance(pts, azimuth=60, elevation=24, target_fov_deg=target)
+        cam = Camera(azimuth=60, elevation=24, distance=d)
+        assert abs(horizontal_fov(cam, np.vstack(pts)) - target) < 1.0
+        assert not any(cam.project(np.vstack(pts))[1] >= d)   # 没有点跑到相机后方
+    # 4.1 的教训：默认 8 是广角，28 是中长焦；求出的 distance 单调随目标视场变小而变大
+    d28 = solve_camera_distance(pts, azimuth=60, elevation=24, target_fov_deg=28)
+    d15 = solve_camera_distance(pts, azimuth=60, elevation=24, target_fov_deg=15)
+    assert d15 > d28 > 8
+
+
+def test_solve_camera_distance_reports_unreachable_fov_clearly():
+    from halo_notes.draw.projection import horizontal_fov, solve_camera_distance
+    pts = [HexPrism(1.0, 1.0).vertices]
+    with pytest.raises(ValueError, match="no solution"):
+        solve_camera_distance(pts, azimuth=30, elevation=20, target_fov_deg=170)
+    with pytest.raises(ValueError):
+        horizontal_fov(Camera(projection="orthographic"), pts[0])

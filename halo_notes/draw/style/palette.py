@@ -44,4 +44,19 @@ DEFAULT_LIGHT = Palette("default_light", {
     "accent_warm": "#FC5D53",  # 入射光 / 坐标轴（4.1 / 3.3 旧图的珊瑚红）
     "accent_cool": "#3C7DD9",  # 出射光
     "highlight": "#F8E66F",    # 高亮面（2.5 旧图光走廊的黄色填充）
+    # 侧面 3–8 的固定配色（1.3 / 1.6 旧图采样：读者靠颜色追踪同一个面）
+    "face_3": "#E95536",       # 红
+    "face_4": "#5E81B5",       # 蓝
+    "face_5": "#E19C24",       # 橙
+    "face_6": "#8FB032",       # 绿
+    "face_7": "#EB6235",       # 橙红
+    "face_8": "#8778B3",       # 紫
+    "reference": "#D6DCE6",    # 对称操作的参考幽灵线框 / 弧箭头 / 翻转轴（1.3 / 1.6 旧图的淡灰蓝）
+    "plate": "#DCE4F5",        # 6.2 平板填充（旧图采样）
+    "plate_edge": "#5B6FB0",   # 6.2 平板界面线
+    "medium": "#D3D3D3",       # 3.1 楔形介质填充（旧图灰）
+    "ink_soft": "#455775",     # 1.2 旧图的图注深蓝灰
 })
+
+# 面号 → 颜色名：挂到 ``SemanticStyleMap.face_number_colors`` 上即启用"按面号取色"
+FACE_COLORS: dict[int, str] = {k: f"face_{k}" for k in range(3, 9)}

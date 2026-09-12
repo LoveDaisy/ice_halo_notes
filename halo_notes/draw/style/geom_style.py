@@ -48,6 +48,13 @@ class GeomStyle:
     exit_cone_at: float = 1.0      # 出射段：0=出射点，1=末端（自由端）；默认尖在末端（标准箭头）
     end_markers: bool = True       # 光路首尾画小圆点
     event_markers: bool = True     # 折射 / 反射点画小圆点
+    # 2D 截面图（geometry2d / scene2d）
+    arrow2d_length: float = 0.16   # 光线上的实心小三角箭头：长（沿传播方向）与底宽，单位与截面同（a=1）；旧图 1.2 比例
+    arrow2d_width: float = 0.11
+    arrow2d_at: float = 0.5        # 每段上箭头尖的默认位置（0=段起点，1=段终点）
+    mark_arrow_scale: float = 1.8  # 对称操作标注（旋转弧、翻转轴双向箭头）的三角相对光线箭头的放大倍数（旧图 1.2 / 1.3 的大灰箭头）
+    edge_number_height: float = 0.19   # 截面边编号的字高（世界单位；旧图 1.2 / 1.3 约 0.15–0.2 a）
+    edge_number_inset: float = 0.25    # 编号中心从边中点向内退的距离
     # 坐标轴
     axis_length: float = 2.4
     axis_label_pad: float = 0.18   # 轴标签离箭头尖的距离
