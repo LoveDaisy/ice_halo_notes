@@ -1,6 +1,7 @@
 """halo_notes.draw — 冰晶示意图绘图库（六方柱几何 / 投影可见性 / 光路 / 面编号 / 风格四层 /
 2D 截面与对称操作）。"""
 
+from .animation import animate, export_frames_png
 from .geometry import Face, HexPrism, Polyhedron, rotation, rotation_between, rotation_from_frames
 from .geometry2d import CrossSection, Polygon2D, reflection2d, rotation2d
 from .interp import lerp_euler, lerp_matrix, lon_lat_roll_to_matrix, matrix_to_lon_lat_roll, slerp_matrix
@@ -22,8 +23,9 @@ from .unfold import Corridor, corridor_faces, straighten, unfold, unfolded_tail
 __all__ = [
     "Camera", "Cone", "Corridor", "CrossSection", "FACE_COLORS", "Face", "FlipAxis", "HexPrism",
     "PRESETS", "Polygon2D", "Polyhedron", "Preset", "RayPath", "RayPath2D", "SegmentKind", "SplitTree", "Sphere",
-    "aim", "annotate", "annotate_2d", "corridor_faces", "draw_axes", "draw_axis_arrow", "draw_flip_axis",
-    "draw_raypath", "draw_raypath_2d", "draw_rotation_arc", "draw_rotation_arc_3d", "draw_wedge_angle", "face_permutation", "face_sequence",
+    "aim", "animate", "annotate", "annotate_2d", "corridor_faces", "draw_axes", "draw_axis_arrow", "draw_flip_axis",
+    "draw_raypath", "draw_raypath_2d", "draw_rotation_arc", "draw_rotation_arc_3d", "draw_wedge_angle",
+    "export_frames_png", "face_permutation", "face_sequence",
     "face_toward", "face_visible", "finish", "flip", "frame", "graticule", "lerp_euler", "lerp_matrix",
     "lon_lat_roll_to_matrix", "matrix_to_lon_lat_roll", "multi_panel", "new_figure", "parallel_origins",
     "reflection2d", "render_cone", "render_corridor", "render_crystal", "render_curve",
