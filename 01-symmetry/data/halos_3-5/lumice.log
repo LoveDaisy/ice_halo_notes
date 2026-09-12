@@ -1,0 +1,32 @@
+$ /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/.lumice/v4.5.1/Lumice -f /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/01-symmetry/data/halos_3-5/config.json -o /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/01-symmetry/data/halos_3-5 --format png
+--- stdout ---
+2026-09-12 16:42:40.710 [I] ServerImpl: gpu_route=false worker_count=10 (preferred_backend=0)
+2026-09-12 16:42:40.825 [I] CommitConfig: restart took 114.2ms (Stop 0.0ms + rebuild 114.2ms + Start 0.0ms)
+2026-09-12 16:42:40.825 [I] GenerateScene: first batch enqueued at 0.0ms after start
+2026-09-12 16:42:40.827 [I] ConsumeData: first batch consumed (896 ray segments)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/01-symmetry/data/halos_3-5/img_01.png (3600x2400)
+Stats: sim_rays=15178240, crystals=4, orientations=15178240
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/01-symmetry/data/halos_3-5/img_01.png (3600x2400)
+Stats: sim_rays=33013760, crystals=4, orientations=33013760
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/01-symmetry/data/halos_3-5/img_01.png (3600x2400)
+Stats: sim_rays=51515264, crystals=4, orientations=51515264
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/01-symmetry/data/halos_3-5/img_01.png (3600x2400)
+Stats: sim_rays=70435584, crystals=4, orientations=70435584
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/01-symmetry/data/halos_3-5/img_01.png (3600x2400)
+Stats: sim_rays=90113792, crystals=4, orientations=90113792
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/01-symmetry/data/halos_3-5/img_01.png (3600x2400)
+Stats: sim_rays=110095232, crystals=4, orientations=110095232
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/01-symmetry/data/halos_3-5/img_01.png (3600x2400)
+Stats: sim_rays=130462208, crystals=4, orientations=130462208
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/01-symmetry/data/halos_3-5/img_01.png (3600x2400)
+Stats: sim_rays=150598656, crystals=4, orientations=150598656
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/01-symmetry/data/halos_3-5/img_01.png (3600x2400)
+Stats: sim_rays=171267584, crystals=4, orientations=171267584
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/01-symmetry/data/halos_3-5/img_01.png (3600x2400)
+Stats: sim_rays=191034240, crystals=4, orientations=191034240
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/01-symmetry/data/halos_3-5/img_01.png (3600x2400)
+Stats: sim_rays=200000004, crystals=4, orientations=200000004
+2026-09-12 16:43:04.194 [I] Consume profile: 1562502 batches, avg 0.8us (proj 0.4us 47% + accum 0.4us 53%)
+
+--- stderr ---
+

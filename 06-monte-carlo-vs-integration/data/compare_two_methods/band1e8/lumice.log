@@ -1,0 +1,32 @@
+$ /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/.lumice/v4.5.1/Lumice -f /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e8/config.json -o /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e8 --format png
+--- stdout ---
+2026-09-12 17:04:46.388 [I] ServerImpl: gpu_route=false worker_count=10 (preferred_backend=0)
+2026-09-12 17:04:46.392 [I] CommitConfig: restart took 3.8ms (Stop 0.0ms + rebuild 3.7ms + Start 0.0ms)
+2026-09-12 17:04:46.392 [I] GenerateScene: first batch enqueued at 0.0ms after start
+2026-09-12 17:04:46.417 [I] ConsumeData: first batch consumed (896 ray segments)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e8/img_01.png (251x801)
+Stats: sim_rays=9547776, crystals=1, orientations=9547776
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e8/img_01.png (251x801)
+Stats: sim_rays=19395328, crystals=1, orientations=19395328
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e8/img_01.png (251x801)
+Stats: sim_rays=28645248, crystals=1, orientations=28645248
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e8/img_01.png (251x801)
+Stats: sim_rays=38280960, crystals=1, orientations=38280960
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e8/img_01.png (251x801)
+Stats: sim_rays=47446656, crystals=1, orientations=47446656
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e8/img_01.png (251x801)
+Stats: sim_rays=56868480, crystals=1, orientations=56868480
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e8/img_01.png (251x801)
+Stats: sim_rays=66406912, crystals=1, orientations=66406912
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e8/img_01.png (251x801)
+Stats: sim_rays=76075648, crystals=1, orientations=76075648
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e8/img_01.png (251x801)
+Stats: sim_rays=85215104, crystals=1, orientations=85215104
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e8/img_01.png (251x801)
+Stats: sim_rays=94508160, crystals=1, orientations=94508160
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e8/img_01.png (251x801)
+Stats: sim_rays=100000000, crystals=1, orientations=100000000
+2026-09-12 17:04:57.339 [I] Consume profile: 781250 batches, avg 1.0us (proj 0.8us 76% + accum 0.2us 24%)
+
+--- stderr ---
+

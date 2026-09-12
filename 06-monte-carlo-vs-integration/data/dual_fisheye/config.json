@@ -1,0 +1,128 @@
+{
+  "crystal": [
+    {
+      "id": 1,
+      "type": "prism",
+      "shape": {
+        "height": 0.3
+      },
+      "axis": {
+        "zenith": {
+          "type": "gauss",
+          "mean": 0,
+          "std": 1.0
+        }
+      }
+    },
+    {
+      "id": 2,
+      "type": "prism",
+      "shape": {
+        "height": 2.0
+      },
+      "axis": {
+        "zenith": {
+          "type": "gauss",
+          "mean": 90,
+          "std": 0.3
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": "prism",
+      "shape": {
+        "height": 2.0
+      },
+      "axis": {
+        "zenith": {
+          "type": "gauss",
+          "mean": 90,
+          "std": 0.3
+        },
+        "roll": {
+          "type": "gauss",
+          "mean": 0,
+          "std": 1.0
+        }
+      }
+    }
+  ],
+  "filter": [],
+  "scene": {
+    "light_source": {
+      "type": "sun",
+      "altitude": 20.0,
+      "azimuth": 0,
+      "diameter": 0.5,
+      "spectrum": [
+        {
+          "wavelength": 420.0,
+          "weight": 1.0
+        },
+        {
+          "wavelength": 460.0,
+          "weight": 1.0
+        },
+        {
+          "wavelength": 500.0,
+          "weight": 1.0
+        },
+        {
+          "wavelength": 540.0,
+          "weight": 1.0
+        },
+        {
+          "wavelength": 580.0,
+          "weight": 1.0
+        },
+        {
+          "wavelength": 620.0,
+          "weight": 1.0
+        }
+      ]
+    },
+    "ray_num": 200000000,
+    "max_hits": 7,
+    "scattering": [
+      {
+        "prob": 0,
+        "entries": [
+          {
+            "crystal": 1,
+            "proportion": 100
+          },
+          {
+            "crystal": 2,
+            "proportion": 50
+          },
+          {
+            "crystal": 3,
+            "proportion": 15
+          }
+        ]
+      }
+    ]
+  },
+  "render": [
+    {
+      "id": 1,
+      "lens": {
+        "type": "dual_fisheye_equal_area",
+        "fov": 180
+      },
+      "resolution": [
+        2048,
+        1024
+      ],
+      "visible": "full",
+      "intensity_factor": 1.0,
+      "ev_mode": "relative",
+      "background": [
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

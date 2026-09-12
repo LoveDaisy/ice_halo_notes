@@ -47,7 +47,7 @@ obsidian rename file=<旧名> name=<新名>.md   # 重命名 md 必须走 Obsidi
 
 ### 外部依赖
 
-- 仿真器：`~/Codes/Ice Halo Simulation`。本仓只放调仿真器 + 画图的胶水代码和参数，**不放仿真器本身**。旧脚本 `render_raypaths.py` 依赖的 `IceHaloEndless` 二进制已被仿真器项目删除，该脚本已失效，归 `legacy/`。
+- 仿真器：Lumice（`~/Codes/Ice Halo Simulation`，GitHub `LoveDaisy/ice_halo_sim`）。本仓只放调仿真器 + 画图的胶水代码和参数（`halo_notes/sim/`），**不放仿真器本身**：版本钉在 `halo_notes/sim/fetch.py` 的 `LUMICE_VERSION`，`uv run python -m halo_notes.sim.fetch` 按该版本从 GitHub release 拉 CLI 二进制到 `.lumice/`（gitignore）；`LUMICE_BIN` 环境变量可指向本地 build 做对照，正式出图一律用 release 版。每张仿真图的 config 落 `data/<name>.lumice.json`，原始输出 + `provenance.json` 落 `data/<name>/`。真跑 Lumice CLI 的慢测试标了 `@pytest.mark.slow`，`uv run pytest` 默认跳过，需要真跑时用 `uv run pytest -m slow`（要求能拉到 / 已缓存 `.lumice/` 二进制）。旧脚本 `render_raypaths.py` 依赖的 `IceHaloEndless` 二进制已被仿真器项目删除，该脚本已失效，归 `legacy/`。
 - 主 vault：`~/Virtual-Jiajie/Jiajie-Knowledge/Obsidian-Vault/`。公开上映版快照在 `Writing/articles/现代冰晕研究漫谈(N)： *.md`，系列 MOC 在 `Writing/series/现代冰晕研究漫谈.md`。
 
 ## 重要约束

@@ -1,0 +1,466 @@
+{
+  "crystal": [
+    {
+      "id": 1,
+      "type": "prism",
+      "shape": {
+        "height": 1.0
+      },
+      "axis": {
+        "zenith": {
+          "type": "gauss",
+          "mean": 90,
+          "std": 0.5
+        }
+      }
+    }
+  ],
+  "filter": [],
+  "scene": {
+    "light_source": {
+      "type": "sun",
+      "altitude": 15.0,
+      "azimuth": 0,
+      "diameter": 0.5,
+      "spectrum": "D65"
+    },
+    "ray_num": 200000000,
+    "max_hits": 7,
+    "scattering": [
+      {
+        "prob": 0,
+        "entries": [
+          {
+            "crystal": 1,
+            "proportion": 100
+          }
+        ]
+      }
+    ]
+  },
+  "render": [
+    {
+      "id": 1,
+      "lens": {
+        "type": "globe",
+        "fov": 30
+      },
+      "resolution": [
+        1500,
+        1500
+      ],
+      "visible": "full",
+      "intensity_factor": 0.5,
+      "ev_mode": "relative",
+      "view": {
+        "azimuth": 215,
+        "elevation": -22
+      },
+      "background": [
+        0,
+        0,
+        0
+      ],
+      "ray_color": [
+        1,
+        1,
+        1
+      ],
+      "grid": {
+        "angular_dist": [],
+        "elevation": [
+          {
+            "value": -75,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": -60,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": -45,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": -30,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": -15,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": 15,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": 30,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": 45,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": 60,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": 75,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": 0,
+            "opacity": 1.0,
+            "color": [
+              0.17,
+              0.87,
+              0.87
+            ]
+          }
+        ],
+        "longitude": [
+          {
+            "value": -165,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": -150,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": -135,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": -120,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": -105,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": -90,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": -75,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": -60,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": -45,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": -30,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": -15,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": 0,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": 15,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": 30,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": 45,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": 60,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": 75,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": 90,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": 105,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": 120,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": 135,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": 150,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": 165,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "value": 180,
+            "opacity": 0.9,
+            "color": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          }
+        ],
+        "horizon": false
+      }
+    },
+    {
+      "id": 2,
+      "lens": {
+        "type": "globe",
+        "fov": 30
+      },
+      "resolution": [
+        1500,
+        1500
+      ],
+      "visible": "full",
+      "intensity_factor": 1.0,
+      "ev_mode": "relative",
+      "view": {
+        "azimuth": 215,
+        "elevation": -22
+      },
+      "background": [
+        0,
+        0,
+        0
+      ],
+      "ray_color": [
+        0,
+        0,
+        0
+      ],
+      "grid": {
+        "angular_dist": [],
+        "elevation": [
+          {
+            "value": 15.0,
+            "opacity": 1.0,
+            "color": [
+              0,
+              1,
+              0
+            ]
+          },
+          {
+            "value": 37.0,
+            "opacity": 1.0,
+            "color": [
+              1,
+              0,
+              0
+            ]
+          },
+          {
+            "value": -7.0,
+            "opacity": 1.0,
+            "color": [
+              1,
+              0,
+              1
+            ]
+          }
+        ],
+        "longitude": [
+          {
+            "value": 0,
+            "opacity": 1.0,
+            "color": [
+              0,
+              0,
+              1
+            ]
+          }
+        ],
+        "horizon": false
+      }
+    }
+  ]
+}
