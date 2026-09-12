@@ -16,7 +16,7 @@ WIDTH, HEIGHT, DPI = 3616, 1148, 200  # 不低于旧图分辨率
 # 三种典型光路的面序列（单个面 = 外反射）；读者要看出：外反射弹开 / 折射穿透 / 内反射一次再出射
 PATHS = {"external": [1], "through": [4, 1], "internal": [3, 1, 5]}
 
-CAMERA = Camera(azimuth=60, elevation=24)
+CAMERA = Camera(azimuth=60, elevation=24, distance=28)  # 三个晶体横向铺开 ±4.3，默认 8 是广角（~76°）；28 → ~25° 中长焦，与其他图一致
 
 
 def posed(prism: HexPrism, c_axis: np.ndarray, spin_deg: float, offset_right: float) -> HexPrism:
