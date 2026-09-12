@@ -69,3 +69,41 @@ def test_unfold_semantics_resolve_and_differ_from_neighbours():
 def test_face_highlight_hidden_is_fainter_than_visible():
     assert DEFAULT_MAP.face_highlight_hidden.alpha < DEFAULT_MAP.face_highlight.alpha
     assert DEFAULT_MAP.face_highlight_hidden.color == DEFAULT_MAP.face_highlight.color
+
+
+def test_face_colors_are_six_distinct_named_colors():
+    from halo_notes.draw.style import FACE_COLORS
+    assert sorted(FACE_COLORS) == [3, 4, 5, 6, 7, 8]
+    values = [DEFAULT_LIGHT[name] for name in FACE_COLORS.values()]
+    assert len(set(values)) == 6
+    # 不与既有语义色撞色
+    for name in ("accent_warm", "accent_cool", "highlight", "slate", "ice"):
+        assert DEFAULT_LIGHT[name] not in values
+
+
+def test_face_number_colors_switch_is_off_by_default_and_changes_output():
+    """开关默认关；打开后编号确实按面号取色（不是摆设）。"""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from halo_notes.draw.geometry2d import CrossSection
+    from halo_notes.draw.labels import draw_edge_number
+    from halo_notes.draw.style import FACE_COLORS
+    assert DEFAULT_MAP.face_number_colors is None
+    section = CrossSection(1.0)
+    plain = PRESETS["default"]
+    colored = plain.replace(style_map=DEFAULT_MAP.replace(face_number_colors=FACE_COLORS))
+    fig, ax = plt.subplots()
+    p_plain = draw_edge_number(ax, section, section.face(3), plain)
+    p_colored = draw_edge_number(ax, section, section.face(3), colored)
+    plt.close(fig)
+    assert p_plain.get_facecolor() != p_colored.get_facecolor()
+    assert matplotlib.colors.to_hex(p_colored.get_facecolor()).upper() == DEFAULT_LIGHT["face_3"]
+    assert matplotlib.colors.to_hex(p_plain.get_facecolor()).upper() == DEFAULT_LIGHT["slate"]
+
+
+def test_new_2d_fields_have_defaults_and_do_not_touch_existing():
+    assert DEFAULT_GEOM.arrow2d_length > 0 and DEFAULT_GEOM.edge_number_height > 0
+    assert DEFAULT_MAP.ray2d.color == "accent_warm"
+    assert DEFAULT_MAP.ray_incident == LineStyle("accent_warm", linewidth=1.6)
+    assert DEFAULT_GEOM.cone_length == 0.36

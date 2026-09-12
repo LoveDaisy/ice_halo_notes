@@ -9,7 +9,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-from typing import Any
+from typing import Any, Mapping
 
 
 # 含 CJK 字形的无衬线字体回退序列：macOS 自带的冬青黑体在前，缺时退回 matplotlib 默认
@@ -74,6 +74,23 @@ class SemanticStyleMap:
     axis_occluded: LineStyle
     axis_label: TextStyle
     annotation: TextStyle
+    # ---- 2D 截面图（scene2d）：以下全部带默认值，只增不改 ----
+    ray2d: LineStyle = LineStyle("accent_warm", linewidth=1.6)            # 截面光路默认单色（1.2 / 3.1 的红线）
+    ray2d_discarded: LineStyle = LineStyle("ink_faint", linewidth=1.6, linestyle="--")  # 6.2 蒙特卡洛未选中的分支（灰虚线）
+    edge_reference: LineStyle = LineStyle("reference", linewidth=1.3)      # 对称操作的参考幽灵（原位淡六边形，1.3 / 1.6）
+    face_number_reference: TextStyle = TextStyle("slate", fontsize=26, weight="bold", alpha=0.22)  # 参考幽灵上的淡编号
+    symmetry_mark: LineStyle = LineStyle("reference", linewidth=2.2)       # 旋转弧箭头 / 翻转轴的双向箭头
+    flip_axis: LineStyle = LineStyle("slate", linewidth=1.0, linestyle=(0, (6, 3, 1, 3)), alpha=0.6)  # 翻转轴：点划线
+    plate_fill: FillStyle = FillStyle("plate", alpha=1.0)                  # 6.2 平板
+    plate_edge: LineStyle = LineStyle("plate_edge", linewidth=3.0)
+    medium_fill: FillStyle = FillStyle("medium", alpha=1.0)                # 3.1 楔形介质
+    medium_edge: LineStyle = LineStyle("ink", linewidth=1.6)
+    angle_mark: LineStyle = LineStyle("ink", linewidth=1.0)                # 3.1 楔角 θ 的弧标注
+    panel_title: TextStyle = TextStyle("ink", fontsize=30)                 # 多面板下方的 LaTeX 标题
+    leader: LineStyle = LineStyle("ink", linewidth=0.8)                    # 注释引线
+    # 面号 → 配色板颜色名；给定时截面边编号按面号取色（字号 / 透明度仍取对应 face_number* 语义），
+    # None = 全部用语义里的颜色。3D 贴面编号不读这个字段
+    face_number_colors: Mapping[int, str] | None = None
 
     def replace(self, **changes: Any) -> "SemanticStyleMap":
         return replace(self, **changes)

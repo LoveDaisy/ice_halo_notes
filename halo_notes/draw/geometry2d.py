@@ -92,9 +92,20 @@ class Polygon2D(Polyhedron):
     # ---- 变换（同步 frame） -------------------------------------------------
     def transformed(self, rotation: np.ndarray | None = None,
                     translation: Sequence[float] | None = None) -> "Polygon2D":
-        out = super().transformed(rotation, translation)
+        """仿射变换后的副本：``rotation`` 可以是旋转，也可以是镜像（行列式 −1，如 :func:`symmetry.flip`）
+        ——镜像会把逆时针顶点环翻成顺时针，各边的顶点顺序同步反转以保住外法向；``frame`` 同步变换。"""
+        v = self.vertices
+        faces = self.faces
         if rotation is not None:
-            out.frame = np.asarray(rotation, dtype=float) @ self.frame
+            r = np.asarray(rotation, dtype=float)
+            v = v @ r.T
+            if np.linalg.det(r) < 0:
+                faces = tuple(Face(f.number, tuple(reversed(f.vertex_ids))) for f in self.faces)
+        if translation is not None:
+            v = v + np.asarray(translation, dtype=float)
+        out = self._copy_with(v, faces)
+        if rotation is not None:
+            out.frame = r @ self.frame
         return out
 
     def rotated(self, angle_deg: float) -> "Polygon2D":

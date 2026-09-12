@@ -119,3 +119,13 @@ def test_reflection2d_is_involution_with_negative_det():
     assert np.isclose(np.linalg.det(m), -1.0)
     assert np.allclose(m @ m, np.eye(2))
     assert np.allclose(m @ [1, 0], [0, 1])
+
+
+def test_transformed_with_reflection_keeps_outward_normals(section):
+    """行列式 −1 的变换会把顶点环翻成顺时针：各边顶点顺序须同步反转，否则六个外法向整体朝内。"""
+    m = reflection2d([1, 0])
+    flipped = section.transformed(m)
+    for f in flipped.faces:
+        assert flipped.normal(f) @ (flipped.midpoint(f) - flipped.centroid()) > 0
+    assert np.allclose(flipped.normal(flipped.face(4)), section.normal(section.face(8)))
+    assert np.isclose(np.linalg.det(flipped.frame), -1.0)

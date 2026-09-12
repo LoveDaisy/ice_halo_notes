@@ -114,6 +114,54 @@ class Camera:
         return v / np.linalg.norm(v, axis=1, keepdims=True)
 
 
+def horizontal_fov(camera: Camera, points: np.ndarray) -> float:
+    """一组 3D 点投影后的水平视场（度）：像平面在原点处、尺度与正交投影一致，所以画面横向
+    半宽 ``w`` 对相机张角 ``atan(w / distance)``；正交投影没有视场概念，抛 ``ValueError``。"""
+    if camera.projection != "perspective":
+        raise ValueError("field of view is only defined for a perspective camera")
+    xy = camera.project_xy(points)
+    half = (xy[:, 0].max() - xy[:, 0].min()) / 2
+    return float(2 * np.degrees(np.arctan2(half, camera.distance)))
+
+
+def solve_camera_distance(points: Sequence[np.ndarray] | np.ndarray, *, azimuth: float,
+                          elevation: float, target_fov_deg: float = 28.0,
+                          up: Sequence[float] = (0.0, 0.0, 1.0), roll: float = 0.0,
+                          tol_deg: float = 0.01, max_iter: int = 200) -> float:
+    """给定场景点集与目标水平视场，求透视相机的 ``distance``——4.1 曾因手调 ``distance=8``
+    出现广角失真，这里按场景跨度自动取。
+
+    视场随 ``distance`` 单调递减，用二分（不是解析式：透视下不同深度的点按不同比例缩放，
+    没有闭式解）。下界取"场景点到原点最大距离 × 1.05"——再近就有点跑到相机后方
+    （``Camera.project`` 抛错），这不是数值故障而是几何上无解，报文分开说明。
+    """
+    pts = np.vstack([np.asarray(p, float).reshape(-1, 3) for p in points])
+    lo = float(np.linalg.norm(pts, axis=1).max()) * 1.05 + 1e-9
+
+    def fov(distance: float) -> float:
+        cam = Camera(azimuth=azimuth, elevation=elevation, projection="perspective",
+                     distance=distance, up=up, roll=roll)
+        return horizontal_fov(cam, pts)
+
+    if fov(lo) < target_fov_deg:
+        raise ValueError(f"target FOV {target_fov_deg}° is wider than the scene allows at the "
+                         f"nearest safe distance {lo:.3g} (FOV {fov(lo):.2f}°): no solution")
+    hi = lo * 2
+    while fov(hi) > target_fov_deg:
+        hi *= 2
+        if hi > lo * 1e6:  # pragma: no cover
+            raise RuntimeError("camera distance search did not bracket the target FOV")
+    for _ in range(max_iter):
+        mid = (lo + hi) / 2
+        if fov(mid) > target_fov_deg:
+            lo = mid
+        else:
+            hi = mid
+        if abs(fov(mid) - target_fov_deg) < tol_deg:
+            return mid
+    raise RuntimeError("camera distance bisection did not converge")  # pragma: no cover
+
+
 # ---- 可见性 ----------------------------------------------------------------
 
 VISIBILITY_EPS = 1e-9
