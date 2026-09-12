@@ -10,7 +10,9 @@
 
 事件所属多面体按几何定位（事件点在哪个已渲染多面体的该编号面上），不借用 ``draw_raypath``
 调用点传入的 crystal / 遮挡体参数——旧审计脚本正是用错这个参数得出 2.6 "面 3 处 111°" 的假阳性。
-渲染输出被 monkeypatch 掉（``Figure.savefig`` 空操作），不会覆盖 ``img/`` 里的正式图。
+渲染输出被 monkeypatch 掉（``Figure.savefig`` 与 ``PillowWriter.finish`` 空操作），不会覆盖 ``img/``
+里的正式图与 gif；``grab_frame`` 保持真实执行，动画脚本跑满整条逐帧路径。没有光路的图（``PATHS = {}``）
+必须至少渲染了一个多面体或一个球面图元（``cap.spheres``）。
 """
 
 from __future__ import annotations
@@ -24,6 +26,7 @@ from pathlib import Path
 import matplotlib
 
 matplotlib.use("Agg")
+import matplotlib.animation  # noqa: E402
 import matplotlib.figure  # noqa: E402
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
@@ -32,6 +35,7 @@ import pytest  # noqa: E402
 import halo_notes.draw as draw  # noqa: E402
 import halo_notes.draw.scene as scene  # noqa: E402
 import halo_notes.draw.scene2d as scene2d  # noqa: E402
+import halo_notes.draw.sphere as sphere  # noqa: E402
 from halo_notes.draw.geometry import Polyhedron, unit  # noqa: E402
 from halo_notes.draw.raypath import EventKind, RayEvent, RayPath, face_sequence, verify_path  # noqa: E402
 
@@ -60,16 +64,20 @@ FIGURES = {
 }
 
 
+SPHERE_RENDERERS = ("graticule", "render_point_cloud", "render_curve", "render_great_circle", "render_cone")
+
+
 class Capture:
-    """spy：记录本图渲染的所有多面体与画出的所有光路。"""
+    """spy：记录本图渲染的所有多面体、画出的所有光路，以及调用过的球面图元（函数名）。"""
 
     def __init__(self):
         self.bodies: list[Polyhedron] = []
         self.paths: list[tuple[RayPath, str | None]] = []
+        self.spheres: list[str] = []
 
 
-def run_figure(script: str, monkeypatch) -> tuple[Capture, dict]:
-    cap = Capture()
+def install_spies(cap: Capture, monkeypatch) -> None:
+    """把 3D / 2D / 球面渲染入口换成记录到 ``cap`` 的 spy，并让 savefig / gif 落盘变成空操作。"""
     real_render, real_draw = scene.render_crystal, scene.draw_raypath
 
     def spy_render(ax, crystal, raypaths=None, **kw):
@@ -97,7 +105,30 @@ def run_figure(script: str, monkeypatch) -> tuple[Capture, dict]:
     for mod in (scene2d, draw):
         monkeypatch.setattr(mod, "render_section", spy_render2d)
         monkeypatch.setattr(mod, "draw_raypath_2d", spy_draw2d)
-    monkeypatch.setattr(matplotlib.figure.Figure, "savefig", lambda *a, **k: None)
+    for name in SPHERE_RENDERERS:
+        real = getattr(sphere, name)
+
+        def spy_sphere(*a, _name=name, _real=real, **kw):
+            cap.spheres.append(_name)
+            return _real(*a, **kw)
+
+        for mod in (sphere, draw):
+            monkeypatch.setattr(mod, name, spy_sphere)
+    # savefig 只在目标是文件路径时空操作；写进内存缓冲（PillowWriter.grab_frame 逐帧抓画布）照常执行
+    real_savefig = matplotlib.figure.Figure.savefig
+
+    def savefig_unless_file(self, fname, *a, **k):
+        if isinstance(fname, (str, Path)):
+            return None
+        return real_savefig(self, fname, *a, **k)
+
+    monkeypatch.setattr(matplotlib.figure.Figure, "savefig", savefig_unless_file)
+    monkeypatch.setattr(matplotlib.animation.PillowWriter, "finish", lambda self: None)
+
+
+def run_figure(script: str, monkeypatch) -> tuple[Capture, dict]:
+    cap = Capture()
+    install_spies(cap, monkeypatch)
     path = ROOT / script
     monkeypatch.syspath_prepend(str(path.parent))
     sys.modules.pop("_light_corridor_rp132", None)  # 共享 helper 每图重新导入，拿到本次的 spy
@@ -105,6 +136,27 @@ def run_figure(script: str, monkeypatch) -> tuple[Capture, dict]:
         ns = runpy.run_path(str(path), run_name="__main__")
     plt.close("all")
     return cap, ns
+
+
+def test_spies_capture_sphere_renderers_and_swallow_gif_output(monkeypatch, tmp_path):
+    """既有图脚本既不画球面也不产 gif，触发不到这两个 patch——用最小 stub 直接验证它们生效。"""
+    cap = Capture()
+    install_spies(cap, monkeypatch)
+    fig, ax = draw.new_figure(100, 100, dpi=50)
+    cam = draw.Camera(azimuth=30, elevation=20)
+    s = draw.Sphere()
+    draw.graticule(ax, s, camera=cam, preset=draw.PRESETS["default"], lat_step=45, lon_step=90, samples=19)
+    sphere.render_point_cloud(ax, s, [[0, 0, 1]], camera=cam, preset=draw.PRESETS["default"])
+    assert cap.spheres == ["graticule", "render_point_cloud"]
+    out = tmp_path / "x.gif"
+    w = matplotlib.animation.PillowWriter(fps=10)
+    with w.saving(fig, str(out), 50):
+        w.grab_frame()
+    assert len(w._frames) == 1       # 帧确实抓到了（savefig 写内存缓冲照常）
+    assert not out.exists()          # finish 被空操作掉：文件没落盘
+    fig.savefig(tmp_path / "x.png")
+    assert not (tmp_path / "x.png").exists()
+    plt.close(fig)
 
 
 def _on_face(body: Polyhedron, number: int, point) -> bool:
@@ -158,7 +210,7 @@ def test_every_drawn_raypath_is_the_declared_light_path(fig, monkeypatch):
     expected = {k: list(v) for k, v in ns["PATHS"].items()}
     if not expected:
         assert not cap.paths, f"{fig}: PATHS is empty but {len(cap.paths)} RayPath(s) were drawn"
-        assert cap.bodies, f"{fig}: nothing rendered"
+        assert cap.bodies or cap.spheres, f"{fig}: nothing rendered (no polyhedron, no sphere primitive)"
         return
     assert cap.paths, f"{fig}: no RayPath drawn"
     all_paths = [p for p, _ in cap.paths]
