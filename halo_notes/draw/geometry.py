@@ -80,6 +80,8 @@ class Polyhedron:
         self._by_number = {f.number: f for f in self.faces}
         if len(self._by_number) != len(self.faces):
             raise ValueError("duplicate face numbers")
+        self._normals: dict[int, Vec3] = {}
+        self._plane_cache: tuple[np.ndarray, np.ndarray] | None = None
 
     # ---- 基本查询 -------------------------------------------------------
     def face(self, number: int) -> Face:
@@ -94,11 +96,28 @@ class Polyhedron:
         return pts.mean(axis=0)
 
     def normal(self, face: Face) -> Vec3:
-        """面的单位外法向（Newell 公式；顶点环从外侧看逆时针）。"""
+        """面的单位外法向（Newell 公式；顶点环从外侧看逆时针）。
+
+        顶点数组在实例生命周期内不变（变换 / 镜像都返回新实例），所以按面号缓存：
+        射线求交与光路搜索（``solve_raypath`` 要做上万次 ``trace``）反复查法向，
+        逐次 ``np.cross`` 会占掉九成时间。
+        """
+        cached = self._normals.get(face.number)
+        if cached is not None:
+            return cached
         pts = self.face_vertices(face)
         nxt = np.roll(pts, -1, axis=0)
-        n = np.sum(np.cross(pts, nxt), axis=0)
-        return unit(n)
+        n = unit(np.sum(np.cross(pts, nxt), axis=0))
+        self._normals[face.number] = n
+        return n
+
+    def _planes(self) -> tuple[np.ndarray, np.ndarray]:
+        """所有面的 (外法向 (F,3), 面上一点 (F,3))，与 ``self.faces`` 同序；缓存。"""
+        if self._plane_cache is None:
+            normals = np.stack([self.normal(f) for f in self.faces])
+            points = np.stack([self.face_vertices(f)[0] for f in self.faces])
+            self._plane_cache = (normals, points)
+        return self._plane_cache
 
     @property
     def edges(self) -> tuple[tuple[int, int], ...]:
@@ -160,32 +179,46 @@ class Polyhedron:
         """
         o = np.asarray(origin, dtype=float)
         d = unit(direction)
-        t_in, t_out = -np.inf, np.inf
-        f_in = f_out = None
-        for f in self.faces:
-            n = self.normal(f)
-            p0 = self.face_vertices(f)[0]
-            denom = n @ d
-            num = n @ (p0 - o)  # 到平面的有符号距离（沿 d 的分子）
-            if abs(denom) < eps:
-                if num < -eps:
-                    return None  # 与该面平行且在外侧
-                continue
-            t = num / denom
-            if denom < 0:  # 进入半空间
-                if t > t_in:
-                    t_in, f_in = t, f
-            else:  # 离开半空间
-                if t < t_out:
-                    t_out, f_out = t, f
-        if t_in > t_out or f_in is None or f_out is None:
+        normals, points = self._planes()
+        denom = normals @ d
+        num = np.einsum("ij,ij->i", normals, points - o)  # 到平面的有符号距离（沿 d 的分子）
+        parallel = np.abs(denom) < eps
+        if np.any(num[parallel] < -eps):
+            return None  # 与某面平行且在其外侧
+        t = np.where(parallel, np.nan, num / np.where(parallel, 1.0, denom))
+        entering = (denom < 0) & ~parallel   # 进入半空间
+        leaving = (denom > 0) & ~parallel    # 离开半空间
+        if not entering.any() or not leaving.any():
             return None
-        return t_in, f_in, t_out, f_out
+        i_in = int(np.nanargmax(np.where(entering, t, -np.inf)))
+        i_out = int(np.nanargmin(np.where(leaving, t, np.inf)))
+        t_in, t_out = float(t[i_in]), float(t[i_out])
+        if t_in > t_out:
+            return None
+        return t_in, self.faces[i_in], t_out, self.faces[i_out]
 
     def contains(self, point: Sequence[float], eps: float = 1e-9) -> bool:
         p = np.asarray(point, dtype=float)
         return all(self.normal(f) @ (p - self.face_vertices(f)[0]) <= eps
                    for f in self.faces)
+
+    def face_margin(self, face: Face, point: Sequence[float]) -> float:
+        """点到面多边形各边（面内）的最小有符号距离：正 = 在面内部，0 = 恰在棱边上，
+        负 = 在面外。只看面内分量，不检查点是否在面所在平面上（配合 :meth:`face_distance`）。
+        用于判定光线"穿过面的内部"而不是擦边。"""
+        q = np.asarray(point, dtype=float)
+        n = self.normal(face)
+        pts = self.face_vertices(face)
+        nxt = np.roll(pts, -1, axis=0)
+        # 顶点环从外侧看逆时针：边向量 × (点 - 边起点) 沿外法向为正 ⇔ 点在边的内侧
+        edge = nxt - pts
+        signed = np.cross(edge, q - pts) @ n / np.linalg.norm(edge, axis=1)
+        return float(signed.min())
+
+    def face_distance(self, face: Face, point: Sequence[float]) -> float:
+        """点到面所在平面的有符号距离（沿外法向为正）。"""
+        q = np.asarray(point, dtype=float)
+        return float(self.normal(face) @ (q - self.face_vertices(face)[0]))
 
 
 class HexPrism(Polyhedron):

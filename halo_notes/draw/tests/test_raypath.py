@@ -147,3 +147,66 @@ def test_perp_basis_is_orthonormal_right_handed():
         assert np.isclose(u @ a, 0) and np.isclose(w @ a, 0) and np.isclose(u @ w, 0)
         assert np.isclose(np.linalg.norm(u), 1) and np.isclose(np.linalg.norm(w), 1)
         assert np.allclose(np.cross(u, w), a)
+
+
+# ---- solve_raypath：按面序列反解 --------------------------------------------
+
+@pytest.mark.parametrize("ratio, faces", [
+    (0.8, [1, 3, 2]), (2.0, [3, 1, 5, 7, 4]), (2.0, [1, 2, 3, 5, 1]), (3.2, [4, 1]), (1.7, [3, 1, 5]),
+    (1.9, [1]),  # 单个面 = 外反射（4.1）
+])
+def test_solve_raypath_replays_to_same_face_sequence(ratio, faces):
+    from halo_notes.draw.raypath import events_for_faces, face_sequence, solve_raypath
+    c = HexPrism(1.0, ratio)
+    p = solve_raypath(c, faces)
+    assert face_sequence(p) == faces
+    # 用 trace 从同一起点 / 方向回放：面序列全等、坐标逐点一致
+    replay = trace(c, p.points[0], p.points[1] - p.points[0], events_for_faces(faces))
+    assert face_sequence(replay) == faces
+    assert np.allclose(replay.points, p.points)
+    # 每个事件点都在所声明的面内部（不擦边）
+    for ev in p.events:
+        f = c.face(ev.face_number)
+        assert abs(c.face_distance(f, p.points[ev.point_index])) < 1e-6
+        assert c.face_margin(f, p.points[ev.point_index]) > 1e-3
+
+
+def test_solve_raypath_rejects_geometrically_impossible_sequence():
+    """片晶 1-3-1：从顶面进、竖直侧面反射不改变竖直分量，回不到顶面。"""
+    from halo_notes.draw.raypath import solve_raypath
+    with pytest.raises(ValueError, match=r"\[1, 3, 1\]"):
+        solve_raypath(HexPrism(1.0, 0.2), [1, 3, 1])
+
+
+def test_solve_raypath_honours_preference_exactly_when_feasible():
+    """迁移旧脚本：偏好的入射点 / 方向本身就能走出该面序列时原样返回（构图零漂移）。"""
+    from halo_notes.draw.raypath import aim, solve_raypath
+    c = HexPrism(1.0, 0.8)
+    el, az = np.deg2rad(-25), np.deg2rad(-40)
+    d = np.array([np.cos(el) * np.cos(az), np.cos(el) * np.sin(az), np.sin(el)])
+    point = c.centroid(c.face(1)) + np.array([0.5, 0.3, 0])
+    old = trace(c, aim(c, 1, d, offset=(0.5, 0.3, 0)), d, ["refract", "reflect", "refract"])
+    new = solve_raypath(c, [1, 3, 2], prefer_point=point, prefer_direction=d)
+    assert np.allclose(new.points, old.points)
+
+
+def test_solve_raypath_preference_picks_nearest_candidate_when_infeasible():
+    """偏好方向本身走不出该序列时，在可行候选里取方向最接近的那条（而不是随便一条）。"""
+    from halo_notes.draw.raypath import solve_raypath
+    c = HexPrism(1.0, 0.8)
+    wish = np.array([0.3, 0.0, -1.0])  # 近乎垂直射向顶面：只会 1-2 直穿，走不出 1-3-2
+    p = solve_raypath(c, [1, 3, 2], prefer_direction=wish)
+    free = solve_raypath(c, [1, 3, 2])
+    d_p = p.points[1] - p.points[0]
+    d_free = free.points[1] - free.points[0]
+    cos = lambda a, b: a @ b / np.linalg.norm(a) / np.linalg.norm(b)  # noqa: E731
+    assert cos(d_p, wish) >= cos(d_free, wish)
+
+
+def test_events_for_faces():
+    from halo_notes.draw.raypath import events_for_faces
+    assert events_for_faces([1]) == ["reflect"]
+    assert events_for_faces([4, 1]) == ["refract", "refract"]
+    assert events_for_faces([3, 1, 5, 7, 4]) == ["refract", "reflect", "reflect", "reflect", "refract"]
+    with pytest.raises(ValueError):
+        events_for_faces([])
