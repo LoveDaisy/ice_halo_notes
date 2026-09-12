@@ -64,6 +64,7 @@ FIGURES = {
     "3.6": f"{CH3}/fig_tricker_arc_cone_plot.py",
     "4.1": f"{CH4}/fig_ch4_raypath_all.py",
     "5.1": f"{CH5}/fig_ch5_interp.py",
+    "6.1": f"{CH6}/fig_crystal_pose.py",
     "6.2": f"{CH6}/fig_trace.py",
 }
 
@@ -399,3 +400,35 @@ def test_5_1_three_interpolations_share_endpoints_and_differ_midway(monkeypatch)
         for m in range(3):
             assert np.allclose(cap.bodies[3 * n + 3 * r + m].vertices, cap.bodies[3 * i + m].vertices)
     assert all(c is cap.cameras[0] for c in cap.cameras)           # 帧间相机一致
+
+
+def test_6_1_pose_clouds_match_their_main_axes(monkeypatch):
+    """片晶：点云方向均值与主轴箭头夹角 < 2°，天顶角分布与脚本声明的 std 一致（|N(0,σ)| 的折叠正态：均值 σ√(2/π)、
+    标准差 σ√(1−2/π)）；柱晶：天顶角均值 ≈ 90°、std 与声明一致、方位角覆盖四个象限，主轴箭头躺在赤道带内；
+    两栏各画了网格 + 赤道 + 晶体 + 主轴箭头 + 该栏的点云。"""
+    cap, ns = run_figure(FIGURES["6.1"], monkeypatch)
+    clouds, axes_, zenith = ns["CLOUDS"], ns["AXES"], ns["zenith_deg"]
+    assert cap.spheres.count("graticule") == 2 and cap.spheres.count("render_great_circle") == 2
+    assert len(cap.bodies) == 2 and len(cap.arrows) == 2
+    arrows = {tuple(np.round(a[2], 9)) for a in cap.arrows}
+    assert arrows == {tuple(np.round(unit(axes_["plate"]), 9)), tuple(np.round(unit(axes_["column"]), 9))}
+    drawn = [c for c in cap.sphere_calls if c[0] == "render_point_cloud"]
+    assert len(drawn) == 2
+    assert np.array_equal(drawn[0][1][2], clouds["plate"]) and np.array_equal(drawn[1][1][2], clouds["column"])
+    # 片晶
+    plate = clouds["plate"]
+    assert np.allclose(np.linalg.norm(plate, axis=1), 1.0)
+    mean_dir = unit(plate.mean(axis=0))
+    assert np.degrees(np.arccos(np.clip(mean_dir @ unit(axes_["plate"]), -1, 1))) < 2.0
+    sigma = ns["PLATE_ZENITH_STD_DEG"]
+    z = zenith(plate)
+    assert abs(z.mean() - sigma * np.sqrt(2 / np.pi)) < 0.15 * sigma
+    assert abs(z.std() - sigma * np.sqrt(1 - 2 / np.pi)) < 0.15 * sigma
+    # 柱晶
+    col = clouds["column"]
+    zc = zenith(col)
+    assert abs(zc.mean() - 90.0) < 0.3 and abs(zc.std() - ns["COLUMN_ZENITH_STD_DEG"]) < 0.3
+    az = np.degrees(np.arctan2(col[:, 1], col[:, 0]))
+    assert all(((az >= lo) & (az < lo + 90)).mean() > 0.2 for lo in (-180, -90, 0, 90))   # 方位均匀
+    assert abs(zenith(np.asarray(axes_["column"])[None, :])[0] - 90.0) < 1e-9             # 主轴在赤道面内
+    assert abs(zenith(np.asarray(axes_["plate"])[None, :])[0]) < 1e-9

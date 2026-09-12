@@ -103,8 +103,8 @@ class SemanticStyleMap:
     equator_hidden: LineStyle = LineStyle("slate", linewidth=1.3, linestyle="--")  # 后半虚线
     sphere_curve: LineStyle = LineStyle("sphere_curve", linewidth=3.0)      # 球面上的参数曲线（3.5 旧图的粗蓝弧）
     sphere_curve_hidden: LineStyle = LineStyle("sphere_curve", linewidth=3.0, alpha=0.3)
-    pose_cloud: MarkerStyle = MarkerStyle("cloud", size=1.4)                # 姿态点云
-    pose_cloud_hidden: MarkerStyle = MarkerStyle("cloud", size=1.4, alpha=0.35)
+    pose_cloud: MarkerStyle = MarkerStyle("cloud", size=0.9)                # 姿态点云（6.1 旧图的细小灰点）
+    pose_cloud_hidden: MarkerStyle = MarkerStyle("cloud", size=0.9, alpha=0.35)
     cone_surface: FillStyle = FillStyle("cone", alpha=0.35)                 # 3.6 锥面淡填充
     cone_edge: LineStyle = LineStyle("grid", linewidth=0.4)                 # 3.6 锥面网格线
     # 面号 → 配色板颜色名；给定时截面边编号按面号取色（字号 / 透明度仍取对应 face_number* 语义），
