@@ -2,7 +2,7 @@
 # 同一对起终姿态，三种插值并排——左：旋转矩阵逐元素线性插值（中途不再正交，晶体缩瘪 / 塌陷）；中：经度 λ / 纬度 φ /
 # 转角 θ 三参数线性插值（绕远：中途横躺）；右：单位四元数 SLERP（最短路径、匀速、全程刚性）。晶体带贴面编号，透视投影。
 # 重制 5.1 旧图 img/legacy/ch5_interp.gif（旧 matlab 已丢失；起终姿态按旧 gif 首末帧反推：首帧倒立、末帧直立，
-# 二者相差约 163°——刻意不取 180°，避免 slerp 最短路径歧义）。旧 gif 无坐标轴、无参考球，保持。
+# 二者相差约 166°——刻意不取 180°，避免 slerp 最短路径歧义）。旧 gif 无坐标轴、无参考球，保持。
 from pathlib import Path
 
 import matplotlib
@@ -28,8 +28,8 @@ TITLES = ("Interpolation on rotation matrix", "Interpolation on Euler angle", "S
 METHODS = (lerp_matrix, lerp_euler, slerp_matrix)
 CRYSTAL = HexPrism(a=1.0, h=2.8)      # 柱晶（旧 gif 观感）
 # 起终姿态（经度 λ、纬度 φ、转角 θ，度）：起点 c 轴指向纬度 −80°（倒立、略斜），终点 +80°（直立、略斜）；
-# 经度只差 20° 让欧拉角插值的中间帧横躺着侧对观察者（旧 gif 中栏观感）；θ₀=60° 把起终相对旋转角调到约 163°
-POSE_START, POSE_END = (-20.0, -80.0, 60.0), (0.0, 80.0, 0.0)
+# 经度只差 20° 让欧拉角插值的中间帧横躺着侧对观察者（旧 gif 中栏观感）；θ₀=270° 让首帧露出倒立的 6、5（旧 gif）并把起终相对旋转角调到约 166°
+POSE_START, POSE_END = (-20.0, -80.0, 270.0), (0.0, 80.0, 0.0)
 R_START, R_END = lon_lat_roll_to_matrix(*POSE_START), lon_lat_roll_to_matrix(*POSE_END)
 AZIMUTH, ELEVATION, FOV_DEG = 80.0, 15.0, 24.0   # 观察者在 +y 侧偏 x 一点：末帧正对面 4 / 5
 
