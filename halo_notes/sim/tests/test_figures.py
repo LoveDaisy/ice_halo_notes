@@ -48,6 +48,15 @@ def test_compare_two_methods_bands_share_exposure():
     assert ray_nums == sorted(ray_nums) and all(isinstance(n, int) for n in ray_nums)
 
 
+def test_compare_two_methods_uses_point_source():
+    """6.5：旧图（globe + 三条带）都是严格点光源（旧 template.json diameter 0.0），切边才锐利；chore-figures-followup D。"""
+    bands = sorted((ROOT / CH6 / "data").glob("compare_two_methods.band*.lumice.json"))
+    assert len(bands) >= 2
+    for b in bands:
+        assert json.loads(b.read_text())["scene"]["light_source"]["diameter"] == 0
+    assert _cfg(f"{CH6}/data/compare_two_methods.lumice.json")["scene"]["light_source"]["diameter"] == 0
+
+
 def test_all_halos_and_dual_fisheye_are_full_sky():
     for path in (f"{CH0}/data/all_halos.lumice.json", f"{CH6}/data/dual_fisheye.lumice.json"):
         r = _cfg(path)["render"][0]

@@ -1,8 +1,15 @@
 # 产出 ../img/ch5_interp.gif（61 帧、20 ms/帧、循环）与静态三联 ../img/ch5_interp.png（首 / 中 / 末三帧各一行）：
 # 同一对起终姿态，三种插值并排——左：旋转矩阵逐元素线性插值（中途不再正交，晶体缩瘪 / 塌陷）；中：经度 λ / 纬度 φ /
-# 转角 θ 三参数线性插值（绕远：中途横躺）；右：单位四元数 SLERP（最短路径、匀速、全程刚性）。晶体带贴面编号，透视投影。
-# 重制 5.1 旧图 img/legacy/ch5_interp.gif（旧 matlab 已丢失；起终姿态按旧 gif 首末帧反推：首帧倒立、末帧直立，
-# 二者相差约 166°——刻意不取 180°，避免 slerp 最短路径歧义）。旧 gif 无坐标轴、无参考球，保持。
+# 转角 θ 三参数线性插值（绕远：中途横躺 + 多余旋转）；右：单位四元数 SLERP（最短路径、匀速、全程刚性）。晶体带贴面
+# 编号，透视投影。
+# 场景（chore-figures-followup E，2026-09-12 改）：六棱柱上下底面翻个个儿——终点直立（面 1 朝上），
+# 起点是终点绕世界水平轴（+x）翻 180°（面 1 朝下），让三种插值的动态差别最大化：
+# - 矩阵线性插值：R_START + R_END 恰好正交抵消成奇异矩阵 diag(1,0,0)，中途晶体压扁成一条线；
+# - 欧拉角插值：不能从矩阵反解 (λ,φ,θ)（±90° 纬度万向锁，反解给出的 λ/θ 是任意值，抹掉本该有的「多余
+#   旋转」），改为显式给一组精确表示 R_START/R_END 的三元组（纬度 −90→+90 过程中经度、转角也都有大幅
+#   变化），插值路径总旋转量 ≈ 255°，明显超过最短路径的 180°；
+# - slerp：R_START/R_END 相对旋转角恰为 180°（四元数点积为 0），测地线唯一，匀速绕翻转轴转过 180°。
+# 旧 gif（img/legacy/ch5_interp.gif，旧 matlab 已丢失）无坐标轴、无参考球，保持。
 from pathlib import Path
 
 import matplotlib
@@ -11,7 +18,7 @@ matplotlib.use("Agg")
 import numpy as np
 
 from halo_notes.draw import (PRESETS, Camera, HexPrism, animate, export_frames_png, finish, frame, lerp_euler,
-                             lerp_matrix, lon_lat_roll_to_matrix, multi_panel, render_crystal, slerp_matrix,
+                             lerp_matrix, lon_lat_roll_to_matrix, multi_panel, render_crystal, rotation, slerp_matrix,
                              solve_camera_distance)
 from halo_notes.draw.style import TextStyle
 
@@ -25,18 +32,25 @@ PATHS: dict = {}   # 本图没有光路
 PRESET = PRESETS["default"].replace(style_map=PRESETS["default"].style_map.replace(
     panel_title=TextStyle("ink", fontsize=13, weight="bold", family=("DejaVu Sans",))))   # 旧图：粗体无衬线英文标题
 TITLES = ("Interpolation on rotation matrix", "Interpolation on Euler angle", "SLERP on unit quaternion")
-METHODS = (lerp_matrix, lerp_euler, slerp_matrix)
 CRYSTAL = HexPrism(a=1.0, h=2.8)      # 柱晶（旧 gif 观感）
-# 起终姿态（经度 λ、纬度 φ、转角 θ，度）：起点 c 轴指向纬度 −80°（倒立、略斜），终点 +80°（直立、略斜）；
-# 经度只差 20° 让欧拉角插值的中间帧横躺着侧对观察者（旧 gif 中栏观感）；θ₀=270° 让首帧露出倒立的 6、5（旧 gif）并把起终相对旋转角调到约 166°
-POSE_START, POSE_END = (-20.0, -80.0, 270.0), (0.0, 80.0, 0.0)
-R_START, R_END = lon_lat_roll_to_matrix(*POSE_START), lon_lat_roll_to_matrix(*POSE_END)
+# 终点：直立，面 1（c 轴）朝上；起点：终点绕世界 +x 轴翻 180°，面 1 朝下——两者相对旋转角恰为 180°。
+R_END = lon_lat_roll_to_matrix(0.0, 90.0, 0.0)
+R_START = rotation((1.0, 0.0, 0.0), 180.0) @ R_END
+# 欧拉角插值专用三元组（经度 λ、纬度 φ、转角 θ，度）：精确表示 R_START / R_END（φ=±90° 处经度/转角
+# 不唯一——这里显式选出一组带非零 λ/θ 变化的解，让插值路径出现「多余旋转」，而不是被动落到反解给出的
+# λ=0 默认解）。核验：``lon_lat_roll_to_matrix(*EULER_POSE_START)`` 与 ``R_START`` 逐元素相差 < 1e-9（单测覆盖）。
+EULER_POSE_START, EULER_POSE_END = (180.0, -90.0, 0.0), (0.0, 90.0, 0.0)
 AZIMUTH, ELEVATION, FOV_DEG = 80.0, 15.0, 24.0   # 观察者在 +y 侧偏 x 一点：末帧正对面 4 / 5
 
 
 def pose(method: int, i: int) -> np.ndarray:
     """第 ``method`` 栏第 ``i`` 帧的姿态矩阵（t = i / (N-1)）。"""
-    return METHODS[method](R_START, R_END, i / (N_FRAMES - 1))
+    t = i / (N_FRAMES - 1)
+    if method == 0:
+        return lerp_matrix(R_START, R_END, t)
+    if method == 1:
+        return lerp_euler(EULER_POSE_START, EULER_POSE_END, t)
+    return slerp_matrix(R_START, R_END, t)
 
 
 def all_poses() -> list[np.ndarray]:

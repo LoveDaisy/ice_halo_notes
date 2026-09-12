@@ -1,224 +1,386 @@
-$ /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/.lumice/v4.5.1/Lumice -f /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/config.json -o /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9 --format png
+$ /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/.lumice/v4.5.1/Lumice -f /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/config.json -o /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9 --format png
 --- stdout ---
-2026-09-12 17:04:57.347 [I] ServerImpl: gpu_route=false worker_count=10 (preferred_backend=0)
-2026-09-12 17:04:57.351 [I] CommitConfig: restart took 3.7ms (Stop 0.0ms + rebuild 3.6ms + Start 0.0ms)
-2026-09-12 17:04:57.351 [I] GenerateScene: first batch enqueued at 0.0ms after start
-2026-09-12 17:04:57.376 [I] ConsumeData: first batch consumed (896 ray segments)
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=8952064, crystals=1, orientations=8952064
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=18797696, crystals=1, orientations=18797696
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=28355712, crystals=1, orientations=28355712
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=37573632, crystals=1, orientations=37573632
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=46765824, crystals=1, orientations=46765824
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=56372608, crystals=1, orientations=56372608
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=66118656, crystals=1, orientations=66118656
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=75855616, crystals=1, orientations=75855616
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=85108992, crystals=1, orientations=85108992
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=94314368, crystals=1, orientations=94314368
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=103527296, crystals=1, orientations=103527296
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=113094912, crystals=1, orientations=113094912
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=121873280, crystals=1, orientations=121873280
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=131126528, crystals=1, orientations=131126528
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=139088256, crystals=1, orientations=139088256
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=148894336, crystals=1, orientations=148894336
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=158421120, crystals=1, orientations=158421120
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=168237952, crystals=1, orientations=168237952
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=178076160, crystals=1, orientations=178076160
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=187972608, crystals=1, orientations=187972608
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=197791104, crystals=1, orientations=197791104
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=207821440, crystals=1, orientations=207821440
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=217647360, crystals=1, orientations=217647360
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=227571584, crystals=1, orientations=227571584
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=237294080, crystals=1, orientations=237294080
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=247202304, crystals=1, orientations=247202304
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=256967296, crystals=1, orientations=256967296
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=266863744, crystals=1, orientations=266863744
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=276867584, crystals=1, orientations=276867584
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=286721408, crystals=1, orientations=286721408
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=296669952, crystals=1, orientations=296669952
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=306741760, crystals=1, orientations=306741760
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=316859776, crystals=1, orientations=316859776
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=326717568, crystals=1, orientations=326717568
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=336588032, crystals=1, orientations=336588032
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=346415744, crystals=1, orientations=346415744
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=356439552, crystals=1, orientations=356439552
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=366313856, crystals=1, orientations=366313856
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=376277248, crystals=1, orientations=376277248
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=386199168, crystals=1, orientations=386199168
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=396035968, crystals=1, orientations=396035968
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=405801216, crystals=1, orientations=405801216
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=415861248, crystals=1, orientations=415861248
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=425229568, crystals=1, orientations=425229568
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=434929536, crystals=1, orientations=434929536
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=444791296, crystals=1, orientations=444791296
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=454182528, crystals=1, orientations=454182528
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=463828096, crystals=1, orientations=463828096
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=472376320, crystals=1, orientations=472376320
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=480597248, crystals=1, orientations=480597248
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=489471616, crystals=1, orientations=489471616
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=499006080, crystals=1, orientations=499006080
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=508662272, crystals=1, orientations=508662272
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=518153472, crystals=1, orientations=518153472
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=527263104, crystals=1, orientations=527263104
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=536686336, crystals=1, orientations=536686336
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=546124800, crystals=1, orientations=546124800
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=555290752, crystals=1, orientations=555290752
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=564535040, crystals=1, orientations=564535040
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=573821952, crystals=1, orientations=573821952
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=582687360, crystals=1, orientations=582687360
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=591689856, crystals=1, orientations=591689856
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=601288960, crystals=1, orientations=601288960
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=610571264, crystals=1, orientations=610571264
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=619526400, crystals=1, orientations=619526400
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=628731008, crystals=1, orientations=628731008
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=638113792, crystals=1, orientations=638113792
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=647423232, crystals=1, orientations=647423232
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=657037184, crystals=1, orientations=657037184
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=666552832, crystals=1, orientations=666552832
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=675966976, crystals=1, orientations=675966976
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=685104128, crystals=1, orientations=685104128
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=694593664, crystals=1, orientations=694593664
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=703934976, crystals=1, orientations=703934976
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=713117056, crystals=1, orientations=713117056
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=722279552, crystals=1, orientations=722279552
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=731133568, crystals=1, orientations=731133568
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=740449536, crystals=1, orientations=740449536
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=749632256, crystals=1, orientations=749632256
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=758710016, crystals=1, orientations=758710016
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=767832064, crystals=1, orientations=767832064
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=777133568, crystals=1, orientations=777133568
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=786454272, crystals=1, orientations=786454272
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=795631360, crystals=1, orientations=795631360
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=805018752, crystals=1, orientations=805018752
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=814285184, crystals=1, orientations=814285184
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=823547904, crystals=1, orientations=823547904
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=832979072, crystals=1, orientations=832979072
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=842213760, crystals=1, orientations=842213760
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=851409920, crystals=1, orientations=851409920
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=860699136, crystals=1, orientations=860699136
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=870111360, crystals=1, orientations=870111360
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=879588992, crystals=1, orientations=879588992
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=888796416, crystals=1, orientations=888796416
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=897329792, crystals=1, orientations=897329792
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=906018688, crystals=1, orientations=906018688
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=914476544, crystals=1, orientations=914476544
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=923290240, crystals=1, orientations=923290240
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=932158208, crystals=1, orientations=932158208
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=940536576, crystals=1, orientations=940536576
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=949127040, crystals=1, orientations=949127040
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=958059776, crystals=1, orientations=958059776
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=966835200, crystals=1, orientations=966835200
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=975667968, crystals=1, orientations=975667968
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=984403840, crystals=1, orientations=984403840
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
-Stats: sim_rays=992972160, crystals=1, orientations=992972160
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-9/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+2026-09-12 20:14:03.410 [I] ServerImpl: gpu_route=false worker_count=10 (preferred_backend=0)
+2026-09-12 20:14:03.416 [I] CommitConfig: restart took 5.2ms (Stop 0.0ms + rebuild 5.2ms + Start 0.0ms)
+2026-09-12 20:14:03.416 [I] GenerateScene: first batch enqueued at 0.0ms after start
+2026-09-12 20:14:03.444 [I] ConsumeData: first batch consumed (896 ray segments)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=4818560, crystals=1, orientations=4818560
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=9645184, crystals=1, orientations=9645184
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=14976256, crystals=1, orientations=14976256
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=20391936, crystals=1, orientations=20391936
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=26160128, crystals=1, orientations=26160128
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=30464000, crystals=1, orientations=30464000
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=34918016, crystals=1, orientations=34918016
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=39350528, crystals=1, orientations=39350528
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=43966080, crystals=1, orientations=43966080
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=48624256, crystals=1, orientations=48624256
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=53137920, crystals=1, orientations=53137920
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=57671808, crystals=1, orientations=57671808
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=62461568, crystals=1, orientations=62461568
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=67744000, crystals=1, orientations=67744000
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=72994432, crystals=1, orientations=72994432
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=77772800, crystals=1, orientations=77772800
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=82567680, crystals=1, orientations=82567680
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=87937664, crystals=1, orientations=87937664
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=93217536, crystals=1, orientations=93217536
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=98516096, crystals=1, orientations=98516096
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=103105152, crystals=1, orientations=103105152
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=107868672, crystals=1, orientations=107868672
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=112356480, crystals=1, orientations=112356480
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=116610944, crystals=1, orientations=116610944
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=120846080, crystals=1, orientations=120846080
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=125576832, crystals=1, orientations=125576832
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=130280320, crystals=1, orientations=130280320
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=134941056, crystals=1, orientations=134941056
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=140349440, crystals=1, orientations=140349440
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=146000512, crystals=1, orientations=146000512
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=151479552, crystals=1, orientations=151479552
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=157005440, crystals=1, orientations=157005440
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=161946880, crystals=1, orientations=161946880
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=166836864, crystals=1, orientations=166836864
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=171389184, crystals=1, orientations=171389184
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=176768512, crystals=1, orientations=176768512
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=181646464, crystals=1, orientations=181646464
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=186172672, crystals=1, orientations=186172672
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=190441984, crystals=1, orientations=190441984
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=195141760, crystals=1, orientations=195141760
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=199360384, crystals=1, orientations=199360384
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=203725952, crystals=1, orientations=203725952
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=208340608, crystals=1, orientations=208340608
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=212879104, crystals=1, orientations=212879104
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=217552768, crystals=1, orientations=217552768
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=222779136, crystals=1, orientations=222779136
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=227925248, crystals=1, orientations=227925248
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=232991616, crystals=1, orientations=232991616
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=238040192, crystals=1, orientations=238040192
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=243208832, crystals=1, orientations=243208832
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=248370432, crystals=1, orientations=248370432
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=254053504, crystals=1, orientations=254053504
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=258436352, crystals=1, orientations=258436352
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=263027584, crystals=1, orientations=263027584
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=267397248, crystals=1, orientations=267397248
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=271905152, crystals=1, orientations=271905152
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=276458240, crystals=1, orientations=276458240
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=281216896, crystals=1, orientations=281216896
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=285356800, crystals=1, orientations=285356800
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=290059648, crystals=1, orientations=290059648
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=295434368, crystals=1, orientations=295434368
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=300687744, crystals=1, orientations=300687744
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=305762048, crystals=1, orientations=305762048
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=310955776, crystals=1, orientations=310955776
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=316281088, crystals=1, orientations=316281088
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=321333248, crystals=1, orientations=321333248
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=326273152, crystals=1, orientations=326273152
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=330821504, crystals=1, orientations=330821504
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=335228032, crystals=1, orientations=335228032
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=339324160, crystals=1, orientations=339324160
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=343697664, crystals=1, orientations=343697664
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=347878784, crystals=1, orientations=347878784
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=352469120, crystals=1, orientations=352469120
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=356751488, crystals=1, orientations=356751488
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=361352704, crystals=1, orientations=361352704
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=365878784, crystals=1, orientations=365878784
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=370817536, crystals=1, orientations=370817536
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=375917568, crystals=1, orientations=375917568
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=380858496, crystals=1, orientations=380858496
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=385804160, crystals=1, orientations=385804160
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=390871168, crystals=1, orientations=390871168
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=395795328, crystals=1, orientations=395795328
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=401012736, crystals=1, orientations=401012736
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=409258752, crystals=1, orientations=409258752
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=416950912, crystals=1, orientations=416950912
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=425233792, crystals=1, orientations=425233792
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=433112448, crystals=1, orientations=433112448
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=441109504, crystals=1, orientations=441109504
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=449596032, crystals=1, orientations=449596032
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=456353152, crystals=1, orientations=456353152
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=463532544, crystals=1, orientations=463532544
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=471652736, crystals=1, orientations=471652736
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=479670016, crystals=1, orientations=479670016
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=487815168, crystals=1, orientations=487815168
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=495841920, crystals=1, orientations=495841920
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=503911680, crystals=1, orientations=503911680
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=511646848, crystals=1, orientations=511646848
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=519438208, crystals=1, orientations=519438208
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=527841664, crystals=1, orientations=527841664
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=535676032, crystals=1, orientations=535676032
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=542648064, crystals=1, orientations=542648064
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=548791552, crystals=1, orientations=548791552
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=555406464, crystals=1, orientations=555406464
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=562148864, crystals=1, orientations=562148864
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=569052800, crystals=1, orientations=569052800
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=575546624, crystals=1, orientations=575546624
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=582007040, crystals=1, orientations=582007040
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=588782976, crystals=1, orientations=588782976
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=595167488, crystals=1, orientations=595167488
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=603433472, crystals=1, orientations=603433472
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=611564928, crystals=1, orientations=611564928
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=619282432, crystals=1, orientations=619282432
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=627236736, crystals=1, orientations=627236736
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=635396224, crystals=1, orientations=635396224
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=643563392, crystals=1, orientations=643563392
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=651752704, crystals=1, orientations=651752704
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=659814656, crystals=1, orientations=659814656
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=667141632, crystals=1, orientations=667141632
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=672229632, crystals=1, orientations=672229632
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=676668160, crystals=1, orientations=676668160
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=681132672, crystals=1, orientations=681132672
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=685458944, crystals=1, orientations=685458944
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=689799424, crystals=1, orientations=689799424
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=694576000, crystals=1, orientations=694576000
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=699254144, crystals=1, orientations=699254144
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=703717120, crystals=1, orientations=703717120
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=708655616, crystals=1, orientations=708655616
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=715333632, crystals=1, orientations=715333632
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=719912832, crystals=1, orientations=719912832
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=724334976, crystals=1, orientations=724334976
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=728768640, crystals=1, orientations=728768640
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=733128576, crystals=1, orientations=733128576
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=737835520, crystals=1, orientations=737835520
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=742431872, crystals=1, orientations=742431872
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=746865664, crystals=1, orientations=746865664
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=751899904, crystals=1, orientations=751899904
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=756878336, crystals=1, orientations=756878336
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=761772288, crystals=1, orientations=761772288
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=766987776, crystals=1, orientations=766987776
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=772188416, crystals=1, orientations=772188416
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=777144064, crystals=1, orientations=777144064
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=782100096, crystals=1, orientations=782100096
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=787207680, crystals=1, orientations=787207680
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=791620352, crystals=1, orientations=791620352
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=796217216, crystals=1, orientations=796217216
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=800837888, crystals=1, orientations=800837888
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=805506048, crystals=1, orientations=805506048
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=810018432, crystals=1, orientations=810018432
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=814768768, crystals=1, orientations=814768768
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=819457152, crystals=1, orientations=819457152
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=823969536, crystals=1, orientations=823969536
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=828985344, crystals=1, orientations=828985344
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=834125696, crystals=1, orientations=834125696
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=839181312, crystals=1, orientations=839181312
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=844108032, crystals=1, orientations=844108032
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=849064832, crystals=1, orientations=849064832
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=854147328, crystals=1, orientations=854147328
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=858902016, crystals=1, orientations=858902016
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=863546752, crystals=1, orientations=863546752
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=867984128, crystals=1, orientations=867984128
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=872328704, crystals=1, orientations=872328704
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=876802176, crystals=1, orientations=876802176
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=881120640, crystals=1, orientations=881120640
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=885620352, crystals=1, orientations=885620352
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=890015104, crystals=1, orientations=890015104
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=895250560, crystals=1, orientations=895250560
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=900116480, crystals=1, orientations=900116480
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=905313920, crystals=1, orientations=905313920
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=910072832, crystals=1, orientations=910072832
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=915394048, crystals=1, orientations=915394048
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=919688960, crystals=1, orientations=919688960
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=924686848, crystals=1, orientations=924686848
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=929415296, crystals=1, orientations=929415296
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=934185856, crystals=1, orientations=934185856
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=938819200, crystals=1, orientations=938819200
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=943284224, crystals=1, orientations=943284224
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=947614464, crystals=1, orientations=947614464
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=952227840, crystals=1, orientations=952227840
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=956777856, crystals=1, orientations=956777856
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=961218688, crystals=1, orientations=961218688
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=965508864, crystals=1, orientations=965508864
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=970430848, crystals=1, orientations=970430848
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=975318144, crystals=1, orientations=975318144
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=980517248, crystals=1, orientations=980517248
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=985602432, crystals=1, orientations=985602432
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=990765952, crystals=1, orientations=990765952
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
+Stats: sim_rays=995776512, crystals=1, orientations=995776512
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-12/06-monte-carlo-vs-integration/data/compare_two_methods/band1e9/img_01.png (251x801)
 Stats: sim_rays=1000000000, crystals=1, orientations=1000000000
-2026-09-12 17:06:47.636 [I] Consume profile: 7812500 batches, avg 1.0us (proj 0.7us 75% + accum 0.2us 25%)
+2026-09-12 20:17:17.949 [I] Consume profile: 7812500 batches, avg 1.1us (proj 0.8us 73% + accum 0.3us 27%)
 
 --- stderr ---
 
