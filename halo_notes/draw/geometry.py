@@ -87,10 +87,17 @@ def rotation_from_frames(src_a: Sequence[float], src_b: Sequence[float],
 
 class Polyhedron:
     """凸多面体：顶点数组 + 带编号的面。所有几何查询均基于顶点即时计算，
-    所以刚体变换只需变换顶点。"""
+    所以刚体变换只需变换顶点。
+
+    ``DIM`` 是顶点维数：这里是 3；:class:`geometry2d.Polygon2D` 以 ``DIM = 2`` 继承本类，
+    半空间裁剪求交 / 包含判定 / 面距离 / 镜像 / 刚体变换这些只用点积的查询原样共用，
+    只有法向与"点在面内"判定（``normal`` / ``face_margin``）按维数各写一份。
+    """
+
+    DIM = 3
 
     def __init__(self, vertices: np.ndarray, faces: Iterable[Face]):
-        self.vertices = np.asarray(vertices, dtype=float).reshape(-1, 3)
+        self.vertices = np.asarray(vertices, dtype=float).reshape(-1, self.DIM)
         self.faces: tuple[Face, ...] = tuple(faces)
         self._by_number = {f.number: f for f in self.faces}
         if len(self._by_number) != len(self.faces):
