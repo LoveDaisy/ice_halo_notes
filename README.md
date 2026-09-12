@@ -39,6 +39,6 @@ pyproject.toml         # 一个系列一个 python 环境
 
 - **git LFS**：图片、视频、psd、eps、svg 等二进制全部走 LFS（规则见 `.gitattributes`）。克隆后 `git lfs pull`；`git lfs ls-files` 应全部为 `*`（本地完整）。
 - **Obsidian**：重命名 / 移动 md 文件必须走 `obsidian rename` / `obsidian move`（自动改写 wikilink），禁止裸 `mv` / `git mv`。只改目录名、不改 md 文件名时不受此限。
-- **Python 环境**：系列根 `pyproject.toml`（`pip install -e .`），新章画图/仿真代码一律 python，跨章复用的上提到 `halo_notes/`。
+- **Python 环境**：`uv` 管理——系列根 `pyproject.toml` + `uv.lock`，每个 checkout（含 worktree）各自 `uv sync`，`uv run python <脚本>` / `uv run pytest`；不用 `pip install -e` 装进共享环境。新章画图/仿真代码一律 python，跨章复用的上提到 `halo_notes/`。
 - **仿真器**：`~/Codes/Ice Halo Simulation`，本仓只放调用它的胶水代码与参数，不放仿真器本身。旧的 `render_raypaths.py`（ch2 / ch3 `code/legacy/`）依赖已删除的 `IceHaloEndless` 二进制，已失效。
 - **旧脚本**：`.m` / `.nb` 保持原样放在各章 `code/`，被 python 重做后挪进 `code/legacy/`。

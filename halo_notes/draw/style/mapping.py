@@ -69,6 +69,7 @@ class SemanticStyleMap:
     ray_marker_hidden: MarkerStyle
     face_number: TextStyle
     face_number_hidden: TextStyle
+    face_number_ghost: TextStyle         # 展开幽灵晶体上朝向观察者的面编号（中等灰：比实体淡、比背面深）
     axis: LineStyle
     axis_occluded: LineStyle
     axis_label: TextStyle
@@ -97,6 +98,7 @@ DEFAULT_MAP = SemanticStyleMap(
     ray_marker_hidden=MarkerStyle("accent_warm", size=5.0, alpha=0.3),
     face_number=TextStyle("slate", fontsize=26, weight="bold"),
     face_number_hidden=TextStyle("slate", fontsize=26, weight="bold", alpha=0.2),  # 与 face_number 同字号，只靠变淡表达在背面
+    face_number_ghost=TextStyle("slate", fontsize=26, weight="bold", alpha=0.45),  # 旧 2.4 幽灵上的 4 / 5 / 8：中等灰
     axis=LineStyle("accent_warm", linewidth=1.3),
     axis_occluded=LineStyle("accent_warm", linewidth=1.3, alpha=0.2),
     axis_label=TextStyle("ink", fontsize=22, style="italic"),

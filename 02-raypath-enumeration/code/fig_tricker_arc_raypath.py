@@ -7,11 +7,14 @@ import matplotlib
 matplotlib.use("Agg")
 import numpy as np
 
-from halo_notes.draw import (PRESETS, Camera, HexPrism, aim, annotate, finish, new_figure,
-                             render_crystal, rotation, rotation_between, trace)
+from halo_notes.draw import (PRESETS, Camera, HexPrism, annotate, face_sequence, finish, new_figure,
+                             render_crystal, rotation, rotation_between, solve_raypath)
 
 OUT = Path(__file__).resolve().parent.parent / "img" / "Tricker_arc_raypath.png"
 WIDTH, HEIGHT, DPI = 2832, 1246, 200  # = 旧图分辨率
+
+# 两条特里克尔弧光路；读者要看出：左图从侧面进、顶面 + 两个侧面反射、从相邻侧面出；右图同一底面进出
+PATHS = {"3-1-5-7-4": [3, 1, 5, 7, 4], "1-2-3-5-1": [1, 2, 3, 5, 1]}
 
 CAMERA = Camera(azimuth=60, elevation=24)
 
@@ -34,18 +37,17 @@ def main() -> None:
     tail, head = preset.geom.incident_tail, preset.geom.exit_head
     crystal = HexPrism(1.0, 2.0)
 
+    # 光路按面序列反解；偏好入射点 / 方向沿用首版手调值（本就可行，构图零漂移）
     # 1) 3-1-5-7-4：从侧面 3 上半部斜向上射入，在顶面 1 反射后依次在 5、7 反射，从 4 出射
-    d1 = direction(145, 30)
-    p1 = trace(crystal, aim(crystal, 3, d1, offset=(0, 0, 0.5)), d1,
-               ["refract", "reflect", "reflect", "reflect", "refract"], tail=tail, head=head)
-    assert [e.face_number for e in p1.events] == [3, 1, 5, 7, 4]
+    p1 = solve_raypath(crystal, PATHS["3-1-5-7-4"], prefer_direction=direction(145, 30),
+                       prefer_point=crystal.centroid(crystal.face(3)) + np.array([0, 0, 0.5]),
+                       tail=tail, head=head)
     r1, t1 = pose(CAMERA.to_world(0.85, -0.25, 0.35), -75, -3.5)
 
     # 2) 1-2-3-5-1：从顶面 1 斜向下射入，在底面 2 反射后依次在 3、5 反射，仍从顶面 1 出射
-    d2 = direction(25, -40)
-    p2 = trace(crystal, aim(crystal, 1, d2, offset=(-0.5, -0.3, 0)), d2,
-               ["refract", "reflect", "reflect", "reflect", "refract"], tail=tail, head=head)
-    assert [e.face_number for e in p2.events] == [1, 2, 3, 5, 1]
+    p2 = solve_raypath(crystal, PATHS["1-2-3-5-1"], prefer_direction=direction(25, -40),
+                       prefer_point=crystal.centroid(crystal.face(1)) + np.array([-0.5, -0.3, 0]),
+                       tail=tail, head=head)
     r2, t2 = pose(CAMERA.to_world(-0.8, -0.25, 0.4), -15, 3.5)
 
     for (r, t), path, caption in ((r1, t1), p1, "光路 3-1-5-7-4"), ((r2, t2), p2, "光路 1-2-3-5-1"):
@@ -53,7 +55,7 @@ def main() -> None:
         render_crystal(ax, c, [path.transformed(r, t)], camera=CAMERA, preset=preset,
                        face_numbers=True)
         annotate(ax, caption, c.centroid(), (0, -2.55), camera=CAMERA, preset=preset, ha="center")
-        print([(e.face_number, e.kind.value) for e in path.events])
+        print(face_sequence(path))
 
     finish(ax, (-6.6, 6.6), (-2.9, 2.9))
     fig.savefig(OUT, dpi=DPI, facecolor=fig.get_facecolor())

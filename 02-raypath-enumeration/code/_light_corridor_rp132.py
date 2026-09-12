@@ -4,16 +4,17 @@ from pathlib import Path
 
 import numpy as np
 
-from halo_notes.draw import (PRESETS, Camera, HexPrism, RayPath, SegmentKind, aim, finish, new_figure,
-                             render_corridor, trace)
+from halo_notes.draw import (PRESETS, Camera, Corridor, HexPrism, RayPath, SegmentKind, finish, new_figure,
+                             render_corridor, solve_raypath)
 from halo_notes.draw.raypath import EventKind, RayEvent
 
 IMG = Path(__file__).resolve().parent.parent / "img"
 WIDTH, HEIGHT, DPI = 2400, 1350, 200  # = 旧图分辨率
 CAMERA = Camera(azimuth=-60, elevation=28)  # 反射面 3 在右后，幽灵晶体展开到右后方（旧图视角）
 PRESET = PRESETS["default"]
-CRYSTAL = HexPrism(1.0, 0.8).transformed(translation=CAMERA.to_world(-1.4, 0.1, 0))
+CRYSTAL = HexPrism(1.0, 0.8).transformed(translation=CAMERA.to_world(-0.7, 0.1, 0))  # 晶体 + 幽灵整体居中
 XLIM, YLIM = (-4.2, 4.2), (-2.36, 2.36)
+FACES = [1, 3, 2]  # 走廊的面序列：顶面 1 进、侧面 3 反射、底面 2 出
 
 
 def direction(azimuth_deg: float, elevation_deg: float) -> np.ndarray:
@@ -21,27 +22,29 @@ def direction(azimuth_deg: float, elevation_deg: float) -> np.ndarray:
     return np.array([np.cos(e) * np.cos(a), np.cos(e) * np.sin(a), np.sin(e)])
 
 
-def trace_132(d: np.ndarray, offset=(0.0, 0.0, 0.0)) -> RayPath:
-    """沿 ``d`` 打向顶面 1 上 ``offset`` 处的真实追迹，断言确实走 1-3-2。"""
+def solve_132(d: np.ndarray, offset=(0.0, 0.0, 0.0)) -> RayPath:
+    """走 1-3-2 的真实光路，偏好沿 ``d`` 打向顶面 1 上质心 + ``offset`` 处（可行时原样采用）。"""
     geom = PRESET.geom
-    path = trace(CRYSTAL, aim(CRYSTAL, 1, d, offset=offset), d, ["refract", "reflect", "refract"],
-                 tail=geom.incident_tail, head=geom.exit_head)
-    assert [e.face_number for e in path.events] == [1, 3, 2], [e.face_number for e in path.events]
-    return path
+    return solve_raypath(CRYSTAL, FACES, prefer_direction=d,
+                         prefer_point=CRYSTAL.centroid(CRYSTAL.face(1)) + np.asarray(offset, float),
+                         tail=geom.incident_tail, head=geom.exit_head)
 
 
 # 走廊本身由这条参考光路定义（与 2.4 同一条），三张图的幽灵晶体 / 高亮面都一样
-REFERENCE = trace_132(direction(-40, -25), offset=(0.5, 0.3, 0))
+REFERENCE = solve_132(direction(-40, -25), offset=(0.5, 0.3, 0))
+CORRIDOR = Corridor(CRYSTAL, REFERENCE)   # 构造时已断言展开直线穿过 1 / 3 / 幽灵 2 三个面的内部
 
 
 def centroid_line(chain) -> RayPath:
-    """连接走廊三个面（面 1、面 3、幽灵的面 2）质心的折线——2.7 里"仅靠对称性就知道共线"的那条。"""
+    """连接走廊三个面（面 1、面 3、幽灵的面 2）质心的折线——2.7 里"仅靠对称性就知道共线"的那条。
+    这是几何候选线，不是光线（在面 1 没有折射折点），所以 ``sketch=True``；事件只用来在三个
+    质心处打点。"""
     crystal, ghost = chain
     pts = [crystal.centroid(crystal.face(1)), crystal.centroid(crystal.face(3)),
            ghost.centroid(ghost.face(2))]
-    events = (RayEvent(0, 1, EventKind.REFRACT_IN), RayEvent(1, 3, EventKind.REFLECT_INTERNAL),
+    events = (RayEvent(0, 1, EventKind.REFRACT_IN), RayEvent(1, 3, EventKind.PASS_THROUGH),
               RayEvent(2, 2, EventKind.REFRACT_OUT))
-    return RayPath(np.array(pts), (SegmentKind.INTERNAL, SegmentKind.INTERNAL), events)
+    return RayPath(np.array(pts), (SegmentKind.INTERNAL, SegmentKind.INTERNAL), events, sketch=True)
 
 
 def new_corridor_figure():

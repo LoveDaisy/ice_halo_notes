@@ -23,8 +23,8 @@ from .unfold import corridor_faces, unfold
 # 绘制层级：从后往前。光线锥体的遮挡衬底压在光线 / 晶体线之上、锥体轮廓之下
 Z_HIDDEN_FILL, Z_HIDDEN_EDGE, Z_HIDDEN_LABEL, Z_INTERNAL = 1, 2, 3, 4
 Z_VISIBLE_FILL, Z_VISIBLE_EDGE, Z_VISIBLE_LABEL, Z_EXTERNAL = 5, 6, 7, 8
-Z_CONE_FILL, Z_CONE_OUTLINE = 9, 10
-Z_TEXT = 11
+Z_CONE_FILL, Z_CONE_ENTRY, Z_CONE_OUTLINE = 9, 10, 11   # Z_CONE_ENTRY：光线穿入锥底到底面中心那一小段
+Z_TEXT = 12
 
 ConeFillMode = Literal["wire", "solid", "occlude"]
 
@@ -72,8 +72,8 @@ def render_crystal(ax, crystal: Polyhedron, raypaths: Iterable[RayPath] | None =
     ``highlight``：要高亮的面号，按该面在**这个**晶体上的可见性选
     ``face_highlight`` / ``face_highlight_hidden``（不查其他晶体的遮挡）。
     ``ghost``：按展开幽灵晶体画——不填充（高亮面除外）、全部边用 ``edge_ghost``
-    样式画出（透明线框，不受 ``hidden_edges`` 开关影响）、面编号一律用淡的
-    ``face_number_hidden`` 样式。两个参数正交。
+    样式画出（透明线框，不受 ``hidden_edges`` 开关影响）、面编号两级：朝向观察者的面用
+    ``face_number_ghost``（中等灰），背向的用 ``face_number_hidden``（更淡）。两个参数正交。
     """
     raypaths = list(raypaths or [])
     sm, geom = preset.style_map, preset.geom
@@ -118,9 +118,13 @@ def render_crystal(ax, crystal: Polyhedron, raypaths: Iterable[RayPath] | None =
                 continue
             if not visible[f.number] and not geom.label_hidden_faces:
                 continue
-            # 幽灵晶体的编号一律用 face_number_hidden（淡）样式，只有层级仍按真实可见性排
-            t = draw_face_number(ax, crystal, f, camera, preset,
-                                 visible=visible[f.number] and not ghost)
+            # 幽灵晶体的编号按该面在这个幽灵上的可见性二选一：可见 → face_number_ghost（中等灰），
+            # 背面 → face_number_hidden；镜像字形由贴面雅可比自然给出，不动几何
+            semantic = None
+            if ghost:
+                semantic = "face_number_ghost" if visible[f.number] else "face_number_hidden"
+            t = draw_face_number(ax, crystal, f, camera, preset, visible=visible[f.number],
+                                 semantic=semantic)
             t.set_zorder(Z_VISIBLE_LABEL if visible[f.number] else Z_HIDDEN_LABEL)
 
     for path in raypaths:
@@ -222,6 +226,17 @@ def draw_cone(ax, cone: Cone, *, camera: Camera, line_kwargs: dict, z: int,
         ax.plot(piece[:, 0], piece[:, 1], zorder=z, solid_capstyle="round", **line_kwargs)
 
 
+def segment_cone(p0, p1, kind: SegmentKind, geom) -> Cone:
+    """外部段上的锥体箭头：锥尖朝传播方向，锥尖落在该段 ``incident_cone_at`` / ``exit_cone_at``
+    处，锥底在上游。"""
+    p0, p1 = np.asarray(p0, float), np.asarray(p1, float)
+    d = unit(p1 - p0)
+    at = geom.incident_cone_at if kind is SegmentKind.INCIDENT else geom.exit_cone_at
+    tip = p0 + (p1 - p0) * at
+    return Cone.along(tip, -d, length=geom.cone_length, radius=geom.cone_radius,
+                      rings=geom.cone_rings, samples=geom.cone_samples)
+
+
 def draw_raypath(ax, path: RayPath, crystal: Polyhedron | None = None, *,
                  camera: Camera, preset: Preset, semantic: str | None = None) -> None:
     """画光路：入射 / 出射段（含遮挡处理与锥体箭头）、内部段、事件点与端点。
@@ -232,26 +247,38 @@ def draw_raypath(ax, path: RayPath, crystal: Polyhedron | None = None, *,
     """
     sm, geom = preset.style_map, preset.geom
     mono = preset.style(semantic) if semantic else None
+
+    def plot_piece(a, b, line, z_visible, kind):
+        if mono is not None:
+            xy = camera.project_xy(np.stack([a, b]))
+            ax.plot(xy[:, 0], xy[:, 1], solid_capstyle="round",
+                    zorder=Z_INTERNAL if kind is SegmentKind.INTERNAL else z_visible,
+                    **preset.line_kwargs(line))
+        else:
+            draw_segment(ax, a, b, camera=camera, preset=preset, semantic=line,
+                         occluded_semantic="ray_occluded", occluder=crystal,
+                         z_visible=z_visible, z_hidden=Z_INTERNAL)
+
     for p0, p1, kind in path.segments():
-        if kind is SegmentKind.INTERNAL or mono is not None:
+        if kind is SegmentKind.INTERNAL:
             line = mono if mono is not None else sm.ray_internal
             xy = camera.project_xy(np.stack([p0, p1]))
-            ax.plot(xy[:, 0], xy[:, 1], solid_capstyle="round",
-                    zorder=Z_INTERNAL if kind is SegmentKind.INTERNAL else Z_EXTERNAL,
+            ax.plot(xy[:, 0], xy[:, 1], solid_capstyle="round", zorder=Z_INTERNAL,
                     **preset.line_kwargs(line))
-            if kind is SegmentKind.INTERNAL:
-                continue
-        else:
-            line = sm.ray_incident if kind is SegmentKind.INCIDENT else sm.ray_exit
-            draw_segment(ax, p0, p1, camera=camera, preset=preset, semantic=line,
-                         occluded_semantic="ray_occluded", occluder=crystal,
-                         z_visible=Z_EXTERNAL, z_hidden=Z_INTERNAL)
-        # 锥体箭头：顶点在上游、底面朝传播方向
+            continue
+        line = mono if mono is not None else (
+            sm.ray_incident if kind is SegmentKind.INCIDENT else sm.ray_exit)
+        cone = segment_cone(p0, p1, kind, geom)
+        # 光线分两截画：上游一截到锥底中心为止（锥底朝观察者时压在锥体衬底之上，看起来
+        # 是"穿入锥底、消失在底面中心"；锥底背对观察者时按正常层级，在轮廓处被衬底遮住），
+        # 下游一截从锥尖起——锥体内部那段不画，实心锥体把它挡住
         d = unit(p1 - p0)
-        at = geom.incident_cone_at if kind is SegmentKind.INCIDENT else geom.exit_cone_at
-        apex = p0 + (p1 - p0) * at
-        cone = Cone.along(apex, d, length=geom.cone_length, radius=geom.cone_radius,
-                          rings=geom.cone_rings, samples=geom.cone_samples)
+        if (cone.base_center - p0) @ d > 1e-9:
+            base_toward_viewer = cone.axis @ camera.view_vector(cone.base_center)[0] > 0
+            plot_piece(p0, cone.base_center, line,
+                       Z_CONE_ENTRY if base_toward_viewer else Z_EXTERNAL, kind)
+        if (p1 - cone.apex) @ d > 1e-9:
+            plot_piece(cone.apex, p1, line, Z_EXTERNAL, kind)
         draw_cone(ax, cone, camera=camera, line_kwargs=preset.line_kwargs(line),
                   z=Z_CONE_OUTLINE, fill_mode="occlude", z_fill=Z_CONE_FILL,
                   fill_kwargs=dict(facecolor=preset.palette["background"], edgecolor="none"))
@@ -316,8 +343,7 @@ def draw_axes(ax, *, camera: Camera, preset: Preset,
                      camera=camera, preset=preset,
                      semantic="axis", occluded_semantic="axis_occluded", occluder=occluder,
                      z_visible=Z_EXTERNAL, z_hidden=Z_INTERNAL)
-        # 轴箭头是标准箭头：锥尖在轴端、锥底朝原点（旧图 3.3 约定）；
-        # 与光线端点「沿传播方向张开」的喇叭锥（Cone.along(apex, d)）方向相反
+        # 轴箭头是标准箭头：锥尖在轴端、锥底朝原点（旧图 3.3 约定），与光线锥体同向
         k_scale = geom.axis_cone_scale
         cone = Cone.along(tip, -d, length=geom.cone_length * k_scale,
                           radius=geom.cone_radius * k_scale, samples=geom.cone_samples)

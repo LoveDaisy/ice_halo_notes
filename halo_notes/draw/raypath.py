@@ -2,7 +2,9 @@
 
 - :class:`RayPath`：折线光路，每段带语义（入射 / 内部 / 出射）
 - :func:`trace`：在凸晶体内按给定事件序列（折射 / 反射）做几何光学追迹，
-  得到物理上自洽的折线，画图脚本只需声明"进哪个面、在哪反射、从哪出"
+  得到物理上自洽的折线
+- :func:`solve_raypath`：按**面序列**反解光路（搜索入射点 × 入射方向使 ``trace`` 的面序列
+  恰好等于给定序列）——画图脚本的唯一入口，只需声明"进哪个面、在哪反射、从哪出"
 - :class:`Cone`：3D 圆锥体（顶点 + 轴向 + 长度 + 半径），投影后给出可见的
   轮廓母线与纬线圆弧，视角一变形状随之变化
 """
@@ -11,7 +13,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Iterator, Sequence
+from typing import Callable, Iterator, Sequence
 
 import numpy as np
 
@@ -32,6 +34,7 @@ class EventKind(str, Enum):
     REFLECT_INTERNAL = "reflect_internal"
     REFRACT_OUT = "refract_out"
     REFLECT_EXTERNAL = "reflect_external"
+    PASS_THROUGH = "pass_through"     # 展开直线穿过幽灵晶体的面（方向不变，只是记录"穿过了这个面"）
 
 
 @dataclass(frozen=True)
@@ -46,6 +49,9 @@ class RayPath:
     points: np.ndarray                 # (N, 3)
     kinds: tuple[SegmentKind, ...]     # N-1 段
     events: tuple[RayEvent, ...] = ()
+    # 示意线：手画的、不是 trace / solve_raypath / Corridor 追迹出来的折线（如 2.3 右"1-3-1 不成立"）。
+    # 画图脚本必须显式声明；test_figures 只放行带此标记的非追迹光路，未标记的一律判失败
+    sketch: bool = False
 
     def __post_init__(self) -> None:
         pts = np.asarray(self.points, dtype=float).reshape(-1, 3)
@@ -72,7 +78,7 @@ class RayPath:
             p = p @ np.asarray(rotation, dtype=float).T
         if translation is not None:
             p = p + np.asarray(translation, dtype=float)
-        return RayPath(p, self.kinds, self.events)
+        return RayPath(p, self.kinds, self.events, self.sketch)
 
 
 # ---- 几何光学 --------------------------------------------------------------
@@ -150,6 +156,158 @@ def trace(crystal: Polyhedron, origin: Sequence[float], direction: Sequence[floa
         else:
             raise ValueError(f"unknown event {e!r}")
     raise ValueError("event sequence ended while the ray is still inside the crystal")
+
+
+def verify_path(path: RayPath, body_of: Callable[[RayEvent], Polyhedron], *,
+                n_ice: float = N_ICE, tol: float = 1e-9, min_margin: float = 0.0) -> None:
+    """白盒复核一条光路的物理与几何：每个事件点落在 ``body_of(event)`` 的该编号面上、在面
+    内部（到棱边距离 > ``min_margin``），且方向变化满足对应定律——折入 / 折出用 Snell、
+    内 / 外反射用镜面反射、``PASS_THROUGH`` 方向不变；偏差（单位方向向量之差的模，
+    小角度下 ≈ 弧度）超过 ``tol`` 抛 ``ValueError``。
+    端点上的事件（没有前一段或后一段）只查落点不查定律。
+    """
+    pts = path.points
+    for ev in path.events:
+        body = body_of(ev)
+        face = body.face(ev.face_number)
+        q = pts[ev.point_index]
+        dist = body.face_distance(face, q)
+        if abs(dist) > 1e-6:
+            raise ValueError(f"event on face {ev.face_number} is {dist:.2e} off the face plane")
+        margin = body.face_margin(face, q)
+        if margin <= min_margin:
+            raise ValueError(f"event on face {ev.face_number} is not inside the face "
+                             f"(margin {margin:.2e})")
+        i = ev.point_index
+        if i == 0 or i == len(pts) - 1:
+            continue
+        d_in, d_out = unit(pts[i] - pts[i - 1]), unit(pts[i + 1] - pts[i])
+        n = body.normal(face)
+        if ev.kind is EventKind.REFRACT_IN:
+            expected = refract(d_in, n, 1.0, n_ice)
+        elif ev.kind is EventKind.REFRACT_OUT:
+            expected = refract(d_in, -n, n_ice, 1.0)
+        elif ev.kind is EventKind.REFLECT_INTERNAL:
+            expected = reflect(d_in, -n)
+        elif ev.kind is EventKind.REFLECT_EXTERNAL:
+            expected = reflect(d_in, n)
+        elif ev.kind is EventKind.PASS_THROUGH:
+            expected = d_in
+        else:  # pragma: no cover
+            raise ValueError(f"unknown event kind {ev.kind!r}")
+        # 用方向向量之差的模而不是 arccos 量偏差：arccos 在 1 附近的浮点分辨率只有 ~1e-6°，
+        # 会把正确光路（差值 ~1e-16）误判
+        dev = float(np.linalg.norm(expected - d_out))
+        if dev > tol:
+            law = "refraction" if "refract" in ev.kind.value else "reflection"
+            raise ValueError(f"{ev.kind.value} on face {ev.face_number} deviates {dev:.3g} "
+                             f"(|Δdirection|, ≈{np.degrees(dev):.3g}°) from the law of {law}")
+
+
+def events_for_faces(faces: Sequence[int]) -> list[str]:
+    """把面序列机械翻成 :func:`trace` 的事件序列：首面折入、中间面内反射、末面折出；
+    单个面 = 外反射。"""
+    if len(faces) == 0:
+        raise ValueError("faces must not be empty")
+    if len(faces) == 1:
+        return ["reflect"]
+    return ["refract"] + ["reflect"] * (len(faces) - 2) + ["refract"]
+
+
+def face_sequence(path: RayPath) -> list[int]:
+    """光路依次相遇的面号。"""
+    return [ev.face_number for ev in path.events]
+
+
+def _incident_directions(n: np.ndarray, theta_deg: np.ndarray, phi_deg: np.ndarray) -> np.ndarray:
+    """朝向面（外法向 ``n``）的入射方向采样：入射角 θ × 方位角 φ，返回 (N, 3)。"""
+    u, w = perp_basis(n)
+    th, ph = np.meshgrid(np.deg2rad(theta_deg), np.deg2rad(phi_deg), indexing="ij")
+    th, ph = th.ravel(), ph.ravel()
+    return (-np.cos(th)[:, None] * n[None, :]
+            + (np.sin(th) * np.cos(ph))[:, None] * u[None, :]
+            + (np.sin(th) * np.sin(ph))[:, None] * w[None, :])
+
+
+def _face_points(crystal: Polyhedron, face, n_ring: int) -> np.ndarray:
+    """面上的采样点：质心 + 质心到各顶点连线上的 ``n_ring`` 个分点（不含顶点），(N, 3)。"""
+    c = crystal.centroid(face)
+    verts = crystal.face_vertices(face)
+    fractions = np.arange(1, n_ring + 1) / (n_ring + 1)
+    pts = [c] + [c + s * (v - c) for s in fractions for v in verts]
+    return np.array(pts)
+
+
+def solve_raypath(crystal: Polyhedron, faces: Sequence[int], *, n_ice: float = N_ICE,
+                  prefer_point: Sequence[float] | None = None,
+                  prefer_direction: Sequence[float] | None = None,
+                  angle_range: tuple[float, float] = (2.0, 88.0),
+                  theta_step: float = 4.0, phi_step: float = 10.0, n_ring: int = 3,
+                  tail: float = 1.6, head: float = 1.6) -> RayPath:
+    """按面序列反解一条光路：搜索入射点 × 入射方向，使 :func:`trace` 相遇的面序列
+    **恰好**等于 ``faces``（首面折入、中间面内反射、末面折出；单个面 = 外反射）。
+
+    搜索空间：入射面上"质心 + 质心到各顶点连线的分点"（``n_ring`` 圈）× 入射角
+    ``angle_range`` 内每 ``theta_step`` 度 × 方位角每 ``phi_step`` 度。命中的候选里：
+
+    - 给了 ``prefer_direction`` / ``prefer_point`` 时先**原样**试这一组（命中即返回，
+      迁移旧脚本时构图零漂移），否则在候选里取与偏好最接近的（方向夹角优先，其次入射点距离）
+    - 没给偏好时取"最不擦边"的一条：各事件点到所在面棱边的最小距离最大
+
+    找不到解抛 ``ValueError``，报文带面序列与采样规模。
+    """
+    faces = [int(f) for f in faces]
+    events = events_for_faces(faces)
+    entry = crystal.face(faces[0])
+    n = crystal.normal(entry)
+
+    def attempt(point: np.ndarray, d: np.ndarray) -> RayPath | None:
+        try:
+            path = trace(crystal, point - d * 3.0, d, events, n_ice=n_ice, tail=tail, head=head)
+        except (ValueError, RuntimeError):
+            return None
+        return path if face_sequence(path) == faces else None
+
+    # 1) 偏好组合原样先试
+    pref_d = unit(prefer_direction) if prefer_direction is not None else None
+    pref_p = (np.asarray(prefer_point, dtype=float) if prefer_point is not None
+              else crystal.centroid(entry))
+    if pref_d is not None and (n @ pref_d) < 0:
+        hit = attempt(pref_p, pref_d)
+        if hit is not None:
+            return hit
+
+    # 2) 网格搜索
+    thetas = np.arange(angle_range[0], angle_range[1] + 1e-9, theta_step)
+    phis = np.arange(0.0, 360.0, phi_step)
+    dirs = _incident_directions(n, thetas, phis)
+    points = _face_points(crystal, entry, n_ring)
+    candidates: list[RayPath] = []
+    for p in points:
+        for d in dirs:
+            hit = attempt(p, d)
+            if hit is not None:
+                candidates.append(hit)
+    if not candidates:
+        raise ValueError(
+            f"no ray realises face sequence {faces} on this crystal "
+            f"(searched {len(points)} entry points × {len(dirs)} directions; "
+            f"the sequence may be geometrically impossible, or try a finer grid)")
+
+    def margin(path: RayPath) -> float:
+        return min(crystal.face_margin(crystal.face(ev.face_number), path.points[ev.point_index])
+                   for ev in path.events)
+
+    if pref_d is None and prefer_point is None:
+        return max(candidates, key=margin)
+
+    def closeness(path: RayPath) -> tuple[float, float, float]:
+        d = unit(path.points[1] - path.points[0])
+        ang = float(np.arccos(np.clip(d @ pref_d, -1, 1))) if pref_d is not None else 0.0
+        dist = float(np.linalg.norm(path.points[1] - pref_p)) if prefer_point is not None else 0.0
+        return ang, dist, -margin(path)
+
+    return min(candidates, key=closeness)
 
 
 def aim(crystal: Polyhedron, face_number: int, direction: Sequence[float], *,
