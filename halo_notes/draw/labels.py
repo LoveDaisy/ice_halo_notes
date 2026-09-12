@@ -39,17 +39,20 @@ def point_in_polygon(pt, polygon: np.ndarray) -> bool:
     return inside
 
 
-def _text_semantic(poly, face, camera, visible):
+def _text_semantic(poly, face, camera, visible, semantic=None):
+    if semantic is not None:
+        return semantic
     if visible is None:
         visible = face_visible(poly, face, camera)
     return "face_number" if visible else "face_number_hidden"
 
 
 def draw_face_number_flat(ax, poly: Polyhedron, face: Face, camera: Camera, preset: Preset,
-                          visible: bool | None = None, text: str | None = None):
+                          visible: bool | None = None, text: str | None = None,
+                          semantic: str | None = None):
     """在面心水平正放面编号（可读性优先于随面变形）。"""
     x, y = face_label_anchor(poly, face, camera)
-    kw = preset.text_kwargs(_text_semantic(poly, face, camera, visible))
+    kw = preset.text_kwargs(_text_semantic(poly, face, camera, visible, semantic))
     return ax.text(x, y, text if text is not None else str(face.number),
                    ha="center", va="center", **kw)
 
@@ -72,9 +75,10 @@ def face_text_transform(ax, poly: Polyhedron, face: Face, camera: Camera, *,
 
 
 def draw_face_number_warped(ax, poly: Polyhedron, face: Face, camera: Camera, preset: Preset,
-                            visible: bool | None = None, text: str | None = None):
+                            visible: bool | None = None, text: str | None = None,
+                            semantic: str | None = None):
     """面编号贴面：``TextPath`` 字形经面内仿射铺到面上，随视角倾斜 / 缩放。"""
-    style = preset.style(_text_semantic(poly, face, camera, visible))
+    style = preset.style(_text_semantic(poly, face, camera, visible, semantic))
     if style.family:
         prop = FontProperties(weight=style.weight, style=style.style, family=style.family)
     else:
@@ -95,8 +99,10 @@ def draw_face_number_warped(ax, poly: Polyhedron, face: Face, camera: Camera, pr
 
 
 def draw_face_number(ax, poly: Polyhedron, face: Face, camera: Camera, preset: Preset,
-                     visible: bool | None = None, text: str | None = None):
-    """按 ``preset.geom.face_number_style`` 分派到贴面或正放；``visible`` 为 None 时自动判定。"""
+                     visible: bool | None = None, text: str | None = None,
+                     semantic: str | None = None):
+    """按 ``preset.geom.face_number_style`` 分派到贴面或正放；``visible`` 为 None 时自动判定；
+    ``semantic`` 给定时直接用该文字语义（如幽灵晶体的 ``face_number_ghost``），不再按可见性选。"""
     fn = (draw_face_number_warped if preset.geom.face_number_style is FaceNumberStyle.WARPED
           else draw_face_number_flat)
-    return fn(ax, poly, face, camera, preset, visible=visible, text=text)
+    return fn(ax, poly, face, camera, preset, visible=visible, text=text, semantic=semantic)
