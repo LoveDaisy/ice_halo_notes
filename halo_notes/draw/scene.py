@@ -14,7 +14,7 @@ from matplotlib.patches import Polygon
 
 from .geometry import Polyhedron, unit
 from .labels import draw_face_number
-from .projection import (Camera, depth_sorted_faces, edge_visible, face_visible,
+from .projection import (Camera, depth_sorted_faces, edge_visible, face_in_plane_basis, face_visible,
                          point_on_visible_face)
 from .raypath import Cone, RayPath, SegmentKind
 from .style import PRESETS, HiddenEdgeMode, MarkerStyle, Preset
@@ -25,6 +25,7 @@ Z_HIDDEN_FILL, Z_HIDDEN_EDGE, Z_HIDDEN_LABEL, Z_INTERNAL = 1, 2, 3, 4
 Z_VISIBLE_FILL, Z_VISIBLE_EDGE, Z_VISIBLE_LABEL, Z_EXTERNAL = 5, 6, 7, 8
 Z_CONE_FILL, Z_CONE_ENTRY, Z_CONE_OUTLINE = 9, 10, 11   # Z_CONE_ENTRY：光线穿入锥底到底面中心那一小段
 Z_TEXT = 12
+Z_PLANE, Z_PLANE_FRONT = Z_VISIBLE_EDGE + 0.5, Z_VISIBLE_EDGE + 0.6   # 镜面平面压在晶体线之上；平面前方的边再描一遍压在平面之上
 
 ConeFillMode = Literal["wire", "solid", "occlude"]
 
@@ -98,14 +99,9 @@ def render_crystal(ax, crystal: Polyhedron, raypaths: Iterable[RayPath] | None =
     # 边
     for e in crystal.edges:
         vis = edge_visible(crystal, e, camera)
-        if ghost:
-            semantic = "edge_ghost"
-        elif vis:
-            semantic = "edge_visible"
-        elif geom.hidden_edges is HiddenEdgeMode.HIDE:
+        semantic = _edge_semantic(vis, geom, ghost)
+        if semantic is None:
             continue
-        else:
-            semantic = "edge_hidden"
         xy = camera.project_xy(crystal.vertices[list(e)])
         ax.plot(xy[:, 0], xy[:, 1], zorder=Z_VISIBLE_EDGE if vis else Z_HIDDEN_EDGE,
                 solid_capstyle="round", **preset.line_kwargs(semantic))
@@ -129,6 +125,62 @@ def render_crystal(ax, crystal: Polyhedron, raypaths: Iterable[RayPath] | None =
 
     for path in raypaths:
         draw_raypath(ax, path, crystal, camera=camera, preset=preset)
+
+
+def _edge_semantic(visible: bool, geom, ghost: bool) -> str | None:
+    """一条边用哪个线语义：幽灵 → ``edge_ghost``；可见 → ``edge_visible``；不可见 → ``edge_hidden`` 或（``HIDE`` 模式）不画。"""
+    if ghost:
+        return "edge_ghost"
+    if visible:
+        return "edge_visible"
+    if geom.hidden_edges is HiddenEdgeMode.HIDE:
+        return None
+    return "edge_hidden"
+
+
+def mirror_plane_quad(crystal: Polyhedron, face_number: int, *, scale: float = 1.3,
+                      through_center: bool = True) -> np.ndarray:
+    """与面 ``face_number`` 平行的矩形（4 顶点 (4,3)）：面内基取 :func:`projection.face_in_plane_basis`，半边长 =
+    该面顶点在两基方向上的最大跨度 × ``scale``；``through_center=True`` 时矩形中心在晶体质心（镜面 $S_n$ 只关乎方向，
+    画成穿过晶体的平面，正对的两个面共用它），否则在该面质心（与面共面）。纯几何，供 :func:`draw_highlight_plane` 与单测共用。"""
+    face = crystal.face(face_number)
+    u, v = face_in_plane_basis(crystal, face)
+    c0 = crystal.centroid(face)
+    rel = crystal.face_vertices(face) - c0
+    hu, hv = float(np.abs(rel @ u).max()) * scale, float(np.abs(rel @ v).max()) * scale
+    center = crystal.centroid() if through_center else c0
+    return np.array([center + su * hu * u + sv * hv * v for su, sv in ((-1, -1), (1, -1), (1, 1), (-1, 1))])
+
+
+def draw_highlight_plane(ax, crystal: Polyhedron, face_number: int, *, camera: Camera, preset: Preset,
+                         scale: float = 1.3, through_center: bool = True, ghost: bool = False,
+                         fill_semantic: str = "mirror_plane", edge_semantic: str = "mirror_plane_edge",
+                         samples: int = 64) -> np.ndarray:
+    """半透明镜面平面（7.4 变体 b）：:func:`mirror_plane_quad` 的矩形按 ``fill_semantic`` 填充 + ``edge_semantic`` 轮廓，
+    画在晶体所有线之上（``Z_PLANE``）；然后把晶体各边**位于平面朝观察者一侧**的那部分按各自原样式再描一遍、压在平面
+    之上（``_plot_runs`` 按逐点"在平面哪一侧"切段）——于是平面只遮住它背后的边，穿过晶体时前后关系正确。
+    须在 :func:`render_crystal` 之后调用（本函数不画晶体本身）；``ghost`` 与 render_crystal 的同名参数取同值。
+    返回矩形的 4 个 3D 顶点。"""
+    quad = mirror_plane_quad(crystal, face_number, scale=scale, through_center=through_center)
+    n = crystal.normal(crystal.face(face_number))
+    c = quad.mean(axis=0)
+    xy = camera.project_xy(quad)
+    fill = preset.fill_kwargs(fill_semantic)
+    ax.add_patch(Polygon(xy, closed=True, zorder=Z_PLANE, **fill))
+    ring = np.vstack([xy, xy[:1]])
+    ax.plot(ring[:, 0], ring[:, 1], zorder=Z_PLANE, solid_capstyle="round", **preset.line_kwargs(edge_semantic))
+    # 观察者在平面哪一侧：透视用相机位置，正交用视线方向
+    side = np.sign((camera.position - c) @ n if camera.projection == "perspective" else camera.view_dir @ n)
+    ts = np.linspace(0.0, 1.0, samples)
+    for e in crystal.edges:
+        semantic = _edge_semantic(edge_visible(crystal, e, camera), preset.geom, ghost)
+        if semantic is None:
+            continue
+        p0, p1 = crystal.vertices[list(e)]
+        pts = p0[None, :] + ts[:, None] * (p1 - p0)[None, :]
+        front = np.sign((pts - c) @ n) == side
+        _plot_runs(ax, pts, front, camera, preset.line_kwargs(semantic), None, Z_PLANE_FRONT, Z_PLANE_FRONT)
+    return quad
 
 
 def render_corridor(ax, crystal: Polyhedron, path: RayPath, *, camera: Camera,

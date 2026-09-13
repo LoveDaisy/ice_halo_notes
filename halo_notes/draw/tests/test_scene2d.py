@@ -169,3 +169,48 @@ def test_multi_panel_grid_and_shared_scale():
     assert all(a.get_xlim() == (-2, 2) for row in axes for a in row)
     assert [t.get_text() for row in axes for a in row for t in a.texts] == [f"$R^c_{k}$" for k in range(6)]
     plt.close(fig)
+
+
+# ---- ch7 新增图元：翻转标记 / 跨 axes 引线 ----------------------------------------------------
+
+def test_draw_flip_marker_draws_bar_and_double_arrow(ax):
+    from halo_notes.draw.scene2d import draw_flip_marker
+    preset = PRESETS["default"]
+    draw_flip_marker(ax, (0.5, -0.25), preset=preset, size=0.6)
+    lines = ax.lines
+    assert len(lines) == 2
+    bar = [l for l in lines if np.ptp(l.get_ydata()) == 0][0]          # 水平线：长 = size、过中心
+    shaft = [l for l in lines if np.ptp(l.get_xdata()) == 0][0]        # 竖直杆：过中心
+    assert np.isclose(np.ptp(bar.get_xdata()), 0.6) and np.allclose(np.mean(bar.get_xdata()), 0.5)
+    assert np.allclose(bar.get_ydata(), -0.25) and np.allclose(shaft.get_xdata(), 0.5)
+    tris = [p for p in ax.patches if isinstance(p, Polygon)]
+    assert len(tris) == 2
+    tips = sorted(t.get_xy()[0][1] for t in tris)
+    assert np.isclose(tips[0], -0.25 - 0.36) and np.isclose(tips[1], -0.25 + 0.36)   # 两头尖在 ±size·0.6
+    kw = preset.line_kwargs("flip_marker")
+    assert all(l.get_color() == kw["color"] for l in lines)
+    with pytest.raises(ValueError):
+        draw_flip_marker(ax, (0, 0), preset=preset, size=0.1)
+
+
+def test_draw_connector_keeps_data_coordinates_of_both_axes():
+    from matplotlib.patches import ConnectionPatch
+
+    from halo_notes.draw.scene2d import draw_connector
+    fig = plt.figure()
+    ax_a, ax_b = fig.add_axes([0, 0, 0.5, 1]), fig.add_axes([0.5, 0, 0.5, 1])
+    ax_a.set_xlim(0, 10), ax_a.set_ylim(0, 10), ax_b.set_xlim(-1, 1), ax_b.set_ylim(-1, 1)
+    preset = PRESETS["default"]
+    patch = draw_connector(ax_a, (2.0, 3.0), ax_b, (0.5, -0.5), preset=preset)
+    assert isinstance(patch, ConnectionPatch) and patch in ax_b.get_children()
+    assert tuple(patch.xy1) == (2.0, 3.0) and tuple(patch.xy2) == (0.5, -0.5)
+    assert patch.coords1 == "data" and patch.coords2 == "data" and patch.axesA is ax_a
+    # 端点在 figure 像素坐标里确实落到两个 axes 各自的数据点上
+    fig.canvas.draw()
+    a_px = ax_a.transData.transform((2.0, 3.0))
+    b_px = ax_b.transData.transform((0.5, -0.5))
+    verts = patch.get_path().transformed(patch.get_transform()).vertices
+    assert np.allclose(verts[0], a_px, atol=1e-6) and np.allclose(verts[-1], b_px, atol=1e-6)
+    kw = preset.line_kwargs("connector")
+    assert patch.get_edgecolor()[:3] == pytest.approx(matplotlib.colors.to_rgb(kw["color"]))
+    plt.close(fig)
