@@ -16,7 +16,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from _pose_to_sky import (CAMERA_3D, CAMERAS_SKY, D_IN, IMG, PRESET, PSI0, ROW_DATA, ROWS, SUN, THETAS,  # noqa: F401
+from _pose_to_sky import (BACKDROPS, CAMERA_3D, D_IN, IMG, PRESET, PSI0, ROW_DATA, ROWS, SUN, THETAS,  # noqa: F401
                           render_row)
 from halo_notes.draw import face_sequence
 from halo_notes.draw.geometry import unit

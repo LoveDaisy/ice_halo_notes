@@ -1,0 +1,76 @@
+$ /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/.lumice/v4.5.1/Lumice -f /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/config.json -o /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3 --format png
+--- stdout ---
+2026-09-13 20:02:03.406 [I] ServerImpl: gpu_route=false worker_count=10 (preferred_backend=0)
+2026-09-13 20:02:03.477 [I] GenerateScene: first batch enqueued at 0.0ms after start
+2026-09-13 20:02:03.477 [I] CommitConfig: restart took 70.0ms (Stop 0.0ms + rebuild 69.9ms + Start 0.0ms)
+2026-09-13 20:02:03.500 [I] ConsumeData: first batch consumed (1920 ray segments)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=5843968, crystals=1, orientations=5843968
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=12153600, crystals=1, orientations=12153600
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=18399872, crystals=1, orientations=18399872
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=24683136, crystals=1, orientations=24683136
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=30962816, crystals=1, orientations=30962816
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=37290240, crystals=1, orientations=37290240
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=43565696, crystals=1, orientations=43565696
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=49871616, crystals=1, orientations=49871616
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=56157824, crystals=1, orientations=56157824
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=62388864, crystals=1, orientations=62388864
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=68667648, crystals=1, orientations=68667648
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=74950400, crystals=1, orientations=74950400
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=81215872, crystals=1, orientations=81215872
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=86494720, crystals=1, orientations=86494720
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=92609408, crystals=1, orientations=92609408
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=98807424, crystals=1, orientations=98807424
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=105066368, crystals=1, orientations=105066368
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=111338624, crystals=1, orientations=111338624
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=117704960, crystals=1, orientations=117704960
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=123989504, crystals=1, orientations=123989504
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=130313984, crystals=1, orientations=130313984
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=136494080, crystals=1, orientations=136494080
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=142419712, crystals=1, orientations=142419712
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=148575104, crystals=1, orientations=148575104
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=154551680, crystals=1, orientations=154551680
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=160746880, crystals=1, orientations=160746880
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=166967424, crystals=1, orientations=166967424
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=173176576, crystals=1, orientations=173176576
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=179321728, crystals=1, orientations=179321728
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=185603456, crystals=1, orientations=185603456
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=191634304, crystals=1, orientations=191634304
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=197335808, crystals=1, orientations=197335808
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/pose_to_sky_backdrop/col_3/img_01.png (1000x1000)
+Stats: sim_rays=200000000, crystals=1, orientations=200000000
+2026-09-13 20:02:42.852 [I] Consume profile: 1562500 batches, avg 0.1us (proj 0.1us 69% + accum 0.0us 31%)
+
+--- stderr ---
+

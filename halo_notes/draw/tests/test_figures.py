@@ -685,7 +685,7 @@ def test_7_5_pose_to_sky_compresses_theta_for_br_but_not_for_s(monkeypatch):
         else:                                                                             # 中栏 → 右栏
             ends = [P.CAMERA_3D.project_xy(p.end)[0] for d in rows.values() for p in d.paths]
             assert any(np.allclose(c.xy1, e) for e in ends)
-            skies = [P.CAMERAS_SKY[n].project_xy(P.SPHERE.on_surface([p]))[0] for n, d in rows.items() for p in d.sky_points]
+            skies = [P.BACKDROPS[n].project(p)[0] for n, d in rows.items() for p in d.sky_points]
             assert any(np.allclose(c.xy2, q) for q in skies)
     # 两行左栏逐 artist 相同（合成图里的两个左栏）
     lefts = list(dict.fromkeys(left_axes))
@@ -695,6 +695,82 @@ def test_7_5_pose_to_sky_compresses_theta_for_br_but_not_for_s(monkeypatch):
         return ([l.get_xydata().tolist() + [l.get_color(), l.get_markersize()] for l in ax.lines],
                 [(t.get_text(), t.get_position()) for t in ax.texts], ax.get_xlim(), ax.get_ylim())
     assert signature(lefts[0]) == signature(lefts[1]) == signature(lefts[2]) == signature(lefts[3])
+
+
+def _sky(el_deg: float, az_deg: float) -> np.ndarray:
+    e, a = np.radians(el_deg), np.radians(az_deg)
+    return np.array([np.cos(e) * np.cos(a), np.cos(e) * np.sin(a), np.sin(e)])
+
+
+def _window_max(lum: np.ndarray, uv: np.ndarray, half: int) -> np.ndarray:
+    """每个连续像素坐标处 (2·half+1)² 窗内的最大亮度；出界 / NaN 记 NaN。"""
+    h, w = lum.shape
+    out = np.full(len(uv), np.nan)
+    for k, (u, v) in enumerate(uv):
+        if np.isnan(u):
+            continue
+        i, j = int(np.floor(v)), int(np.floor(u))
+        if half <= i < h - half and half <= j < w - half:
+            out[k] = lum[i - half:i + half + 1, j - half:j + half + 1].max()
+    return out
+
+
+def test_7_5_overlay_projection_is_aligned_with_the_lumice_backdrop(monkeypatch):
+    """R1-1 的对齐核验（对不齐不许出图）：
+    (b) 底图自带的每条经纬线按 `halo_notes.sim.projection` 投影后，黑天背景上的采样点 ≥ 99% 在 2 px 窗内有网格亮度、
+        整体平移 6 px 后不到一半（每张底图至少 6 条线参与）；
+    (a) 上行公式特里克尔弧叠在渲染弧上：沿曲线取渲染亮的样本（≥ 100 个），曲线上的亮度是 ±1.5° 处的 ≥ 3 倍，且 ±0.6° 两侧
+        亮度对称（|L₊−L₋|/(L₊+L₋) 中位数 < 0.15）——渲染弧半宽 ≈ 0.5°（日面 0.5° + 倾角 σ 0.5°），曲线偏 0.3° 就落到弧的
+        一侧、两侧亮度比跌到 2.6 / 不对称度升到 0.24（2026-09-13 实测），两条阈值都能判红。"""
+    cap, ns = run_figure(FIGURES["7.5"], monkeypatch)
+    P = sys.modules["_pose_to_sky"]
+    for n, b in P.BACKDROPS.items():
+        lum = b.image.astype(float).mean(axis=2)
+        grid = b.render["grid"]
+        lines = [[_sky(g["value"], a) for a in np.linspace(0, 360, 1441)] for g in grid["elevation"]]
+        lines += [[_sky(e, g["value"]) for e in np.linspace(-75, 75, 601)] for g in grid["longitude"]]   # 避开天顶 / 天底的汇聚点
+        assert len(lines) >= 10
+        checked = 0
+        for pts in lines:
+            uv = b.project(pts)
+            keep = ~np.isnan(uv[:, 0])
+            uv = uv[keep]
+            if len(uv) < 2:
+                continue
+            t = np.gradient(uv, axis=0)
+            t /= np.maximum(np.linalg.norm(t, axis=1, keepdims=True), 1e-12)
+            nrm = np.column_stack([-t[:, 1], t[:, 0]]) * 6.0        # 沿该线的法向平移 6 px 作对照
+            on = _window_max(lum, uv, 2)
+            off = _window_max(lum, uv + nrm, 1)
+            far = _window_max(lum, uv + 2 * nrm, 1)
+            dark = ~np.isnan(on) & ~np.isnan(off) & (far < 30)     # 线旁 12 px 处是黑天：晕光不会把对照也点亮
+            if dark.sum() < 100:                                    # 该线基本在视场外或整条泡在晕光里，跳过
+                continue
+            checked += 1
+            assert np.mean(on[dark] >= 40) >= 0.99, n
+            assert np.mean(off[dark] >= 40) < 0.5, n
+        assert checked >= 6, n
+    from halo_notes.sim.projection import pixels_per_degree
+    b = P.BACKDROPS[3]
+    lum = b.image.astype(float).mean(axis=2)
+    ppd = pixels_per_degree(P.ANTHELIC, b.render)
+    uv = b.project(P.TRICKER.CURVE)
+    uv = uv[~np.isnan(uv[:, 0])]
+    t = np.gradient(uv, axis=0)
+    t /= np.linalg.norm(t, axis=1, keepdims=True)
+    nrm = np.column_stack([-t[:, 1], t[:, 0]])
+    on = _window_max(lum, uv, 1)
+    lit = on > 60
+    assert lit.sum() >= 100
+    far = np.fmax(_window_max(lum, uv + nrm * 1.5 * ppd, 1), _window_max(lum, uv - nrm * 1.5 * ppd, 1))
+    assert np.nanmedian(on[lit] / (far[lit] + 1.0)) >= 3.0
+    lp, lm = _window_max(lum, uv + nrm * 0.6 * ppd, 1), _window_max(lum, uv - nrm * 0.6 * ppd, 1)
+    asym = np.abs(lp - lm) / (lp + lm + 1e-9)
+    assert np.nanmedian(asym[lit]) < 0.15
+    # 三个样本天空点（重合）落在这条曲线上（像素级）
+    for p in ns["ROW_DATA"][3].sky_points:
+        q = b.project(p)[0]
+        assert np.sqrt(((uv - q) ** 2).sum(axis=1)).min() < 1.0
 
 
 def test_7_5_gif_sky_point_holds_still_for_br_and_moves_for_s(monkeypatch):

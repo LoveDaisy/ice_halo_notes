@@ -9,6 +9,8 @@ from pathlib import Path
 
 import pytest
 
+from halo_notes.sim.run import config_sha256
+
 ROOT = Path(__file__).resolve().parents[3]
 CH0, CH1, CH2, CH6 = "00-introduction", "01-symmetry", "02-raypath-enumeration", "06-monte-carlo-vs-integration"
 CH7 = "07-reflection-group"
@@ -79,7 +81,7 @@ def test_provenance_sidecars_present():
     for d in (f"{CH0}/data/all_halos", f"{CH1}/data/halos_3-5", f"{CH2}/data/rp1-3_plt0.5_s25_i2_note", f"{CH6}/data/dual_fisheye"):
         prov = json.loads((ROOT / d / "provenance.json").read_text())
         assert prov["lumice_version"] == "v4.5.1" and prov["wall_clock_s"] > 0 and prov["config_sha256"]
-        assert prov["config_sha256"] == __import__("halo_notes.sim.run", fromlist=["config_sha256"]).config_sha256(_cfg(f"{d}/config.json"))
+        assert prov["config_sha256"] == config_sha256(_cfg(f"{d}/config.json"))
 
 
 @pytest.mark.slow
@@ -88,12 +90,13 @@ def test_provenance_sidecars_present():
     (f"{CH2}/code/fig_rp1_3_note.py", "img/rp1-3_plt0.5_s25_i2_note.png"),
     (f"{CH6}/code/fig_compare_two_methods.py", "img/compare_two_methods.jpg"),
     (f"{CH7}/code/fig_halos_columns.py", "img/halos_3_vs_2.jpg"),
+    (f"{CH7}/code/sim_pose_to_sky_backdrop.py", "data/pose_to_sky_backdrop/col_2/img_01.png"),
 ])
 def test_fig_scripts_run_small(tmp_path, script, out_name):
     mod = runpy.run_path(str(ROOT / script))
     out = mod["main"](["--ray-num", "200000", "--out", str(tmp_path)])
-    if isinstance(out, dict):   # ch7 图 6 一个脚本出两张
-        out = out["halos_3_vs_2"]
+    if isinstance(out, dict):   # ch7 图 6 一个脚本出两张 / 7.5 底图脚本出两张
+        out = out.get("halos_3_vs_2") or out[2]
     assert out == tmp_path / out_name and out.exists()
     assert any((tmp_path / "data").rglob("provenance.json"))
 
@@ -183,4 +186,25 @@ def test_halo_columns_provenance_present():
         d = ROOT / CH7 / "data" / "halo_columns" / f"col_{k}"
         prov = json.loads((d / "provenance.json").read_text())
         assert prov["lumice_version"] == "v4.5.1" and prov["wall_clock_s"] > 0
-        assert prov["config_sha256"] == __import__("halo_notes.sim.run", fromlist=["config_sha256"]).config_sha256(_cfg(f"{CH7}/data/halo_columns.col_{k}.lumice.json"))
+        assert prov["config_sha256"] == config_sha256(_cfg(f"{CH7}/data/halo_columns.col_{k}.lumice.json"))
+
+
+# ---- ch7 7.5 底图（R1-1）：与图 6 同一份仿真、只换 render 段；视场中心 = 该行晕心 ----
+
+
+def test_pose_to_sky_backdrops_share_the_halo_columns_simulation():
+    """crystal / filter / scene 三段与 halo_columns.col_<k> 逐字段相同；render：fisheye_equal_area、1000×1000、
+    #3 反日点为中心（太阳方位 + 180°、仰角 Σ）、#2 太阳为中心，网格与图 6 相同。"""
+    for k in (3, 2):
+        back = _cfg(f"{CH7}/data/pose_to_sky_backdrop.col_{k}.lumice.json")
+        base = _cfg(f"{CH7}/data/halo_columns.col_{k}.lumice.json")
+        for section in ("crystal", "filter", "scene"):
+            assert back[section] == base[section], (k, section)
+        r, r0 = back["render"][0], base["render"][0]
+        assert r["lens"]["type"] == "fisheye_equal_area" and r["resolution"] == [1000, 1000]
+        assert r["grid"] == r0["grid"] and r["visible"] == "full"
+        sun = back["scene"]["light_source"]
+        expect_az = (sun["azimuth"] + 180) % 360 if k == 3 else sun["azimuth"]
+        assert r["view"] == {"azimuth": expect_az, "elevation": sun["altitude"]}
+        prov = json.loads((ROOT / CH7 / "data" / "pose_to_sky_backdrop" / f"col_{k}" / "provenance.json").read_text())
+        assert prov["config_sha256"] == config_sha256(back) and prov["lumice_version"] == "v4.5.1"

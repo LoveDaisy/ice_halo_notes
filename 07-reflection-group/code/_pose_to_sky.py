@@ -1,5 +1,10 @@
-# 7.5 静态图 / 单行图 / gif 共用：柱晶姿态平面 (ψ, θ) → 晶体 + 真实追迹光路 → 天空球，三栏布局与全部数据。
+# 7.5 静态图 / 单行图 / gif 共用：柱晶姿态平面 (ψ, θ) → 晶体 + 真实追迹光路 → 天空（Lumice 渲染底图），三栏布局与全部数据。
 # fig_pose_to_sky.py 与 fig_pose_to_sky_gif.py 各自 import 本模块，不各写一份几何（同 ch3 的 _tricker_arc.py 模式）。
+#
+# 右栏（R1-1，2026-09-13 作者裁定）：底图 = sim_pose_to_sky_backdrop.py 出的 Lumice `fisheye_equal_area` 渲染（与图 6 同一份仿真、
+# 只换 render 段；上行反日点为视场中心、下行太阳为视场中心，带 30° 经纬网格），叠加层用 `halo_notes.sim.projection` 把天空方向
+# 投到同一像素坐标：样本点（三色）、上行淡画的公式特里克尔弧、视场中心标记；下行的弥散区就是渲染本身，不再画点云
+#（原手绘 (ψ,θ) 规则网格点云有莫尔条纹）。对齐核验（公式弧叠在渲染弧上、网格线叠合 < 2 px）见 test_figures 7.5。
 #
 # 几何事实（2026-09-13 探针 scan3e：h/a=3、Σ=10°、入射方向 = −太阳方向、每格 1°、入射面 25×25 网格采样，见 `--probe`）：
 # - #3 $br$ 的代表光路 1-2-3-5-1 只在很窄的姿态里可行（ψ=45° 时无解；ψ=35° 时 θ∈[34°, 65°] 连续可行、ψ=30° 时 [28°, 54°]、
@@ -11,24 +16,27 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
 
-from halo_notes.draw import (PRESETS, Camera, HexPrism, Sphere, annotate, annotate_2d, draw_connector, finish, frame,
-                             graticule, render_crystal, render_curve, render_point_cloud, search_raypath,
-                             solve_camera_distance)
+from halo_notes.draw import (PRESETS, Camera, HexPrism, annotate_2d, draw_connector, finish, frame, render_crystal,
+                             search_raypath, solve_camera_distance)
 from halo_notes.draw.geometry import unit
 from halo_notes.draw.raypath import face_grid_points, face_sequence
+from halo_notes.draw.scene2d import Z_TEXT
 from halo_notes.draw.style import LineStyle, MarkerStyle, TextStyle
 from halo_notes.draw.style.mapping import CJK_SANS
 from halo_notes.math import reflection_group as rg
 from halo_notes.math.attitude import column_attitude, sky_direction, sun_vector
+from halo_notes.sim.projection import project_equal_area, view_direction
 
 CODE_DIR = Path(__file__).resolve().parent
 IMG = CODE_DIR.parent / "img"
+DATA = CODE_DIR.parent / "data"
 
 
 def _load_tricker_arc():
@@ -46,19 +54,17 @@ SUN_ELEVATION_DEG = TRICKER.SUN_ELEVATION_DEG          # 10°，与 3.5 同值
 SUN = sun_vector(SUN_ELEVATION_DEG)                    # 指向太阳
 D_IN = -SUN                                            # 入射光方向（固定）
 ANTHELIC = TRICKER.anthelic_point()
-SPHERE = Sphere()
 
 PRESET = PRESETS["default"].replace(
     style_map=PRESETS["default"].style_map.replace(
         annotation=TextStyle("ink", fontsize=13, family=CJK_SANS),
         panel_title=TextStyle("ink", fontsize=16, family=CJK_SANS),
-        sphere_curve=LineStyle("sphere_curve", linewidth=1.8, alpha=0.75),
-        sphere_curve_hidden=LineStyle("sphere_curve", linewidth=1.8, alpha=0.2),
-        pose_cloud=MarkerStyle("cloud", size=0.6, alpha=0.35),
-        pose_cloud_hidden=MarkerStyle("cloud", size=0.6, alpha=0.1),
+        sphere_curve=LineStyle("sphere_curve", linewidth=1.6, alpha=0.8),      # 底图上淡画的公式特里克尔弧
         ray_internal=LineStyle("accent_warm", linewidth=1.4, alpha=0.6)),
-    geom=PRESETS["default"].geom.replace(end_markers=False, sphere_grid_step_deg=30.0))
+    geom=PRESETS["default"].geom.replace(end_markers=False))
 SAMPLE_COLORS = PRESET.style_map.sample_colors
+BACKDROP_TEXT = TextStyle("background", fontsize=12, family=CJK_SANS)      # 底图（黑）上的白字
+BACKDROP_MARK = MarkerStyle("background", size=5)
 
 H_RATIO = 3.0
 CRYSTAL = HexPrism(a=1.0, h=H_RATIO)
@@ -106,8 +112,6 @@ def sky_point(number: int, R: np.ndarray) -> np.ndarray:
 # ---- 相机 / 版面 ----------------------------------------------------------------------
 
 AZIMUTH_3D, ELEVATION_3D, FOV_3D = PSI0 + 95.0, 22.0, 20.0   # 侧看柱晶：视线大致垂直于 c 轴
-SKY_CAMERAS = {3: (-150.0, 12.0), 2: (-25.0, 14.0)}            # 反日点一侧（同 3.5）/ 太阳一侧
-SKY_FOV = 9.0
 # 三栏 figure 坐标：左（姿态平面）/ 中（晶体面板列）/ 右（天空球）
 COL_LEFT, COL_MID, COL_RIGHT = (0.05, 0.27), (0.34, 0.53), (0.58, 0.98)
 ROW_PAD = 0.06
@@ -120,17 +124,40 @@ def crystal_camera() -> Camera:
     return Camera(azimuth=AZIMUTH_3D, elevation=ELEVATION_3D, distance=d)
 
 
-def sky_camera(number: int) -> Camera:
-    az, el = SKY_CAMERAS[number]
-    extent = np.array([[s if i == k else 0.0 for i in range(3)] for k in range(3) for s in (1, -1)])
-    d = solve_camera_distance([extent], azimuth=az, elevation=el, target_fov_deg=SKY_FOV)
-    return Camera(azimuth=az, elevation=el, distance=d)
-
-
 CAMERA_3D = crystal_camera()
-CAMERAS_SKY = {n: sky_camera(n) for n in ROWS}
-_EXTENT = np.array([[s if i == k else 0.0 for i in range(3)] for k in range(3) for s in (1, -1)])
-SKY_LIMITS = {n: frame(cam, [_EXTENT], 100, 100, margin=0.04) for n, cam in CAMERAS_SKY.items()}
+
+
+@dataclass(frozen=True)
+class Backdrop:
+    """一行的 Lumice 底图：像素数组 + 出它的 render 段（投影用）+ 视场中心是太阳还是反日点。"""
+    image: np.ndarray               # (H, W, 3) uint8
+    render: dict
+    center: str                     # "sun" / "anthelic"
+
+    @property
+    def size(self) -> tuple[int, int]:
+        return int(self.render["resolution"][0]), int(self.render["resolution"][1])
+
+    def project(self, directions) -> np.ndarray:
+        return project_equal_area(directions, self.render)
+
+
+def load_backdrop(number: int) -> Backdrop:
+    """读 sim_pose_to_sky_backdrop.py 落盘的 config + 渲染图（data/，LFS）；视场中心由 render.view 反推、不另存一份。"""
+    from PIL import Image
+    cfg = json.loads((DATA / f"pose_to_sky_backdrop.col_{number}.lumice.json").read_text())
+    render = cfg["render"][0]
+    image = np.asarray(Image.open(DATA / "pose_to_sky_backdrop" / f"col_{number}" / "img_01.png").convert("RGB"))
+    assert image.shape[:2] == tuple(render["resolution"][::-1])
+    z = view_direction(render["view"])
+    center = "sun" if np.linalg.norm(z - SUN) < 1e-6 else "anthelic"
+    assert center == "sun" or np.linalg.norm(z - ANTHELIC) < 1e-6, "底图视场中心必须是太阳或反日点"
+    assert abs(cfg["scene"]["light_source"]["altitude"] - SUN_ELEVATION_DEG) < 1e-9
+    return Backdrop(image, render, center)
+
+
+BACKDROPS = {n: load_backdrop(n) for n in ROWS}
+SKY_LIMITS = {n: ((0, b.size[0]), (b.size[1], 0)) for n, b in BACKDROPS.items()}   # 像素坐标，y 向下
 
 
 def sample_marker(k: int, size: float = 9.0) -> MarkerStyle:
@@ -168,42 +195,32 @@ def draw_samples_on_attitude(ax, samples, *, trail: np.ndarray | None = None) ->
     return artists
 
 
-def build_sky_axes(ax, number: int, *, backdrop: bool = True) -> None:
-    """右栏常驻：经纬网格 + 太阳 / 反日点标记 + （上行）整条特里克尔弧 / （下行）弥散区点云。"""
-    cam = CAMERAS_SKY[number]
-    graticule(ax, SPHERE, camera=cam, preset=PRESET)
-    for p, text, color in ((SUN, "太阳", "accent_warm"), (ANTHELIC, "反日点", "slate")):
-        if SPHERE.facing(p, cam)[0]:
-            render_point_cloud(ax, SPHERE, [p], camera=cam, preset=PRESET, semantic=MarkerStyle(color, size=6),
-                               hidden_semantic=None)
-            annotate(ax, text, p * 1.02, (0.03, 0.03), camera=cam, preset=PRESET, semantic="annotation")
-    if not backdrop:
-        return
+def build_sky_axes(ax, number: int) -> None:
+    """右栏常驻：Lumice 底图（像素坐标 imshow）+ 视场中心标记（太阳 / 反日点）+（上行）整条公式特里克尔弧。"""
+    b = BACKDROPS[number]
+    w, h = b.size
+    ax.imshow(b.image, extent=(0, w, h, 0), interpolation="bilinear", zorder=0)
+    p = SUN if b.center == "sun" else ANTHELIC
+    xy = b.project(p)[0]
+    ax.plot([xy[0]], [xy[1]], zorder=8, **PRESET.marker_kwargs(BACKDROP_MARK))
+    ax.text(xy[0] + 0.012 * w, xy[1] - 0.012 * h, "太阳" if b.center == "sun" else "反日点", ha="left", va="bottom",
+            zorder=Z_TEXT, **PRESET.text_kwargs(BACKDROP_TEXT))
     if number == 3:
-        render_curve(ax, SPHERE, TRICKER.CURVE, camera=cam, preset=PRESET)          # 整条特里克尔弧，前后分段
-    else:
-        render_point_cloud(ax, SPHERE, diffuse_cloud(number), camera=cam, preset=PRESET)
-
-
-def diffuse_cloud(number: int, n_psi: int = 181, n_theta: int = 91) -> np.ndarray:
-    """(ψ, θ) 网格经 sky_direction 的像：不对易的 M 铺成一片（#2：以太阳为中心的弥散区）。"""
-    psis = np.linspace(0.0, 360.0, n_psi, endpoint=False)
-    thetas = np.linspace(0.0, 360.0, n_theta, endpoint=False)
-    M = rg.MATRICES[number]
-    return np.array([sky_direction(M, column_attitude(p, t), SUN) for p in psis for t in thetas])
+        uv = b.project(TRICKER.CURVE)                       # 视线背后的点是 NaN，折线自然断开
+        ax.plot(uv[:, 0], uv[:, 1], zorder=6, **PRESET.line_kwargs("sphere_curve"))
 
 
 def draw_sky_samples(ax, number: int, points, *, stacked: bool, trail: np.ndarray | None = None) -> list:
     """右栏样本点：``stacked=True``（上行：三点重合）画成三色同心环（大到小），否则各画一点；``trail`` 画轨迹（gif）。"""
-    cam = CAMERAS_SKY[number]
+    b = BACKDROPS[number]
     artists = []
     if trail is not None and len(trail) > 1:
-        xy = cam.project_xy(SPHERE.on_surface(trail))
-        artists += ax.plot(xy[:, 0], xy[:, 1], zorder=9, **PRESET.line_kwargs(sample_line(0, 1.2, 0.6)))
+        uv = b.project(trail)
+        artists += ax.plot(uv[:, 0], uv[:, 1], zorder=9, **PRESET.line_kwargs(sample_line(0, 1.4, 0.8)))
     sizes = (15.0, 10.5, 6.0) if stacked else (9.0, 9.0, 9.0)
     for k, (p, size) in enumerate(zip(points, sizes)):
-        xy = cam.project_xy(SPHERE.on_surface([p]))[0]
-        artists += ax.plot([xy[0]], [xy[1]], zorder=10 + k, **PRESET.marker_kwargs(sample_marker(k, size)))
+        uv = b.project(p)[0]
+        artists += ax.plot([uv[0]], [uv[1]], zorder=10 + k, **PRESET.marker_kwargs(sample_marker(k, size)))
     return artists
 
 
@@ -230,7 +247,8 @@ def exit_end_xy(path) -> np.ndarray:
 
 
 def sky_xy(number: int, p) -> np.ndarray:
-    return CAMERAS_SKY[number].project_xy(SPHERE.on_surface([p]))[0]
+    """天空方向在该行底图上的像素坐标（引线终点）。"""
+    return BACKDROPS[number].project(p)[0]
 
 
 # ---- 一行（静态图） ----------------------------------------------------------------------
