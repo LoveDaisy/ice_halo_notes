@@ -98,27 +98,33 @@ def test_fig_scripts_run_small(tmp_path, script, out_name):
     assert any((tmp_path / "data").rglob("provenance.json"))
 
 
-# ---- ch7 图 6a/6b（task-draw-ch7-figs）：三份子图 config 只差过滤器；代表光路 ↔ 权威表矩阵；拼图由子图像素拼成 ----
+# ---- ch7 图 6a/6b（task-draw-ch7-figs）：三份子图 config 只差过滤器与视场中心；代表光路 ↔ 权威表矩阵；拼图由子图像素拼成 ----
 
 
 def _ch7_script():
     return runpy.run_path(str(ROOT / CH7 / "code" / "fig_halos_columns.py"))
 
 
-def _strip_filter(cfg: dict) -> dict:
+def _strip_filter_and_view(cfg: dict) -> dict:
     cfg = json.loads(json.dumps(cfg))
     cfg["filter"] = None
     for layer in cfg["scene"]["scattering"]:
         for e in layer["entries"]:
             e.pop("filter", None)
+    for r in cfg["render"]:
+        r.pop("view", None)
     return cfg
 
 
-def test_halo_columns_configs_differ_only_by_filter():
+def test_halo_columns_configs_differ_only_by_filter_and_view():
+    """R1-5：每张子图以自己那种晕的中心为视场中心（#2 / #11 太阳、#3 反日点 = 太阳方位 + 180°、同一仰角 Σ），
+    除 filter 与 render.view 外三份 config 逐字段相同；镜头 fisheye_equal_area、fov ≥ 320°（幻日环整圈：离太阳最远 180° − 2Σ）；
+    网格：仰角 / 方位每 30° 一条 + 地平线（仰角 0）。"""
     cfgs = {k: _cfg(f"{CH7}/data/halo_columns.col_{k}.lumice.json") for k in (2, 11, 3)}
-    stripped = [json.dumps(_strip_filter(c), sort_keys=True) for c in cfgs.values()]
+    stripped = [json.dumps(_strip_filter_and_view(c), sort_keys=True) for c in cfgs.values()]
     assert len(set(stripped)) == 1
     mod = _ch7_script()
+    sun = cfgs[2]["scene"]["light_source"]
     for k, cfg in cfgs.items():
         assert len(cfg["filter"]) == 1
         assert cfg["filter"][0]["raypath"] == mod["PATHS"][k] and cfg["filter"][0]["symmetry"] == "PBD"
@@ -126,6 +132,14 @@ def test_halo_columns_configs_differ_only_by_filter():
         assert cfg["scene"]["light_source"]["altitude"] == 10 and cfg["render"][0]["lens"]["type"] == "fisheye_equal_area"
         assert cfg["crystal"][0]["axis"]["zenith"]["mean"] == 90 and "roll" not in cfg["crystal"][0]["axis"]   # 柱晶，roll 均匀
         assert cfg["scene"]["ray_num"] == mod["RAY_NUM"]
+        view = cfg["render"][0]["view"]
+        expect_az = sun["azimuth"] if k in (2, 11) else (sun["azimuth"] + 180) % 360
+        assert view["azimuth"] == expect_az and view["elevation"] == sun["altitude"], k
+        assert cfg["render"][0]["lens"]["fov"] >= 2 * (180 - 2 * sun["altitude"])
+        grid = cfg["render"][0]["grid"]
+        assert sorted(g["value"] for g in grid["elevation"]) == list(range(-60, 90, 30))
+        assert sorted(g["value"] for g in grid["longitude"]) == list(range(0, 360, 30))
+    assert mod["VIEW_CENTERS"] == {2: "sun", 11: "sun", 3: "anthelic"}
 
 
 def test_halo_columns_paths_realise_their_matrices_and_pbd_covers_the_class():
