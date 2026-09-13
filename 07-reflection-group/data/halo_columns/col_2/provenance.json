@@ -1,0 +1,23 @@
+{
+  "lumice_version": "v4.5.1",
+  "lumice_bin": "/Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/.lumice/v4.5.1/Lumice",
+  "lumice_bin_sha256": "ebd04c8cba8258bf178dea24dd59b335eb6b6da3fb4b66d8d1f06ef06f791a6a",
+  "config_sha256": "837dad8e6ddda31360f64b5dcd0fcb98977b9db86bb1339b5cf9f8e152dcd976",
+  "wall_clock_s": 103.869,
+  "platform": "Darwin 23.6.0 arm64",
+  "workers": null,
+  "backend": null,
+  "format": "png",
+  "cli_args": [
+    "-f",
+    "/Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/halo_columns/col_2/config.json",
+    "-o",
+    "/Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/halo_columns/col_2",
+    "--format",
+    "png"
+  ],
+  "images": [
+    "img_01.png"
+  ],
+  "ray_num": 200000000
+}

@@ -98,14 +98,9 @@ def render_crystal(ax, crystal: Polyhedron, raypaths: Iterable[RayPath] | None =
     # 边
     for e in crystal.edges:
         vis = edge_visible(crystal, e, camera)
-        if ghost:
-            semantic = "edge_ghost"
-        elif vis:
-            semantic = "edge_visible"
-        elif geom.hidden_edges is HiddenEdgeMode.HIDE:
+        semantic = _edge_semantic(vis, geom, ghost)
+        if semantic is None:
             continue
-        else:
-            semantic = "edge_hidden"
         xy = camera.project_xy(crystal.vertices[list(e)])
         ax.plot(xy[:, 0], xy[:, 1], zorder=Z_VISIBLE_EDGE if vis else Z_HIDDEN_EDGE,
                 solid_capstyle="round", **preset.line_kwargs(semantic))
@@ -129,6 +124,17 @@ def render_crystal(ax, crystal: Polyhedron, raypaths: Iterable[RayPath] | None =
 
     for path in raypaths:
         draw_raypath(ax, path, crystal, camera=camera, preset=preset)
+
+
+def _edge_semantic(visible: bool, geom, ghost: bool) -> str | None:
+    """一条边用哪个线语义：幽灵 → ``edge_ghost``；可见 → ``edge_visible``；不可见 → ``edge_hidden`` 或（``HIDE`` 模式）不画。"""
+    if ghost:
+        return "edge_ghost"
+    if visible:
+        return "edge_visible"
+    if geom.hidden_edges is HiddenEdgeMode.HIDE:
+        return None
+    return "edge_hidden"
 
 
 def render_corridor(ax, crystal: Polyhedron, path: RayPath, *, camera: Camera,

@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from halo_notes.draw.geometry import HexPrism
+from halo_notes.draw.geometry import HexPrism, rotation
 from halo_notes.draw.projection import Camera
 from halo_notes.draw.raypath import (Cone, EventKind, RayPath, SegmentKind, convex_hull_2d,
                                      reflect, refract, trace)
@@ -228,3 +228,22 @@ def test_verify_path_accepts_traced_and_rejects_bent_wrong():
     pts2[1] = pts2[1] + np.array([0.1, 0, 0])
     with pytest.raises(ValueError, match="off the face plane"):
         verify_path(RayPath(pts2, p.kinds, p.events), lambda ev: c)
+
+
+def test_face_grid_points_lie_inside_the_face_and_feed_search_raypath():
+    from halo_notes.draw.raypath import face_grid_points, face_sequence, search_raypath
+    crystal = HexPrism(1.0, 2.0)
+    face = crystal.face(1)
+    pts = face_grid_points(crystal, face, 12)
+    assert len(pts) > 40 and pts.shape[1] == 3
+    assert all(abs(crystal.face_distance(face, q)) < 1e-12 and crystal.face_margin(face, q) > 1e-3 for q in pts)
+    # 2D 多边形同样可用
+    from halo_notes.draw.geometry2d import CrossSection
+    sec = CrossSection(1.0)
+    pts2 = face_grid_points(sec, sec.face(3), 9)
+    assert pts2.shape[1] == 2 and all(sec.face_margin(sec.face(3), q) > 1e-3 for q in pts2)
+    # 作为 search_raypath 的入射点集：与默认辐条采样解出同一面序列
+    d = -np.array([np.cos(np.radians(10)), 0.0, np.sin(np.radians(10))])
+    turned = crystal.transformed(rotation((0, 1, 0), 90.0))
+    path = search_raypath(turned, [1, 3, 2], np.array([d]), entry_points=face_grid_points(turned, turned.face(1), 15))
+    assert face_sequence(path) == [1, 3, 2]

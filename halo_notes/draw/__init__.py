@@ -6,13 +6,13 @@ from .geometry import Face, HexPrism, Polyhedron, rotation, rotation_between, ro
 from .geometry2d import CrossSection, Polygon2D, reflection2d, rotation2d
 from .interp import lerp_euler, lerp_matrix, lon_lat_roll_to_matrix, matrix_to_lon_lat_roll, slerp_matrix
 from .projection import Camera, face_visible, solve_camera_distance, visible_faces
-from .raypath import (Cone, RayPath, RayPath2D, SegmentKind, aim, face_sequence, face_toward,
-                      parallel_origins, solve_raypath, trace, verify_path)
+from .raypath import (Cone, RayPath, RayPath2D, SegmentKind, aim, face_grid_points, face_sequence, face_toward,
+                      parallel_origins, search_raypath, solve_raypath, trace, verify_path)
 from .raypath2d import solve_raypath_2d, unfold_2d
 from .scene import (annotate, draw_axes, draw_axis_arrow, draw_raypath, draw_rotation_arc_3d, finish,
                     frame, new_figure, render_corridor, render_crystal)
-from .scene2d import (annotate_2d, draw_flip_axis, draw_raypath_2d, draw_rotation_arc, draw_wedge_angle,
-                      multi_panel, render_medium, render_section)
+from .scene2d import (annotate_2d, draw_connector, draw_flip_axis, draw_flip_marker, draw_raypath_2d,
+                      draw_rotation_arc, draw_wedge_angle, multi_panel, render_medium, render_section)
 from .schematic import SplitTree, split_tree, two_face_medium, wedge_angle, wedge_apex
 from .sphere import (Sphere, graticule, render_cone, render_curve, render_great_circle,
                      render_point_cloud)
@@ -23,12 +23,13 @@ from .unfold import Corridor, corridor_faces, straighten, unfold, unfolded_tail
 __all__ = [
     "Camera", "Cone", "Corridor", "CrossSection", "FACE_COLORS", "Face", "FlipAxis", "HexPrism",
     "PRESETS", "Polygon2D", "Polyhedron", "Preset", "RayPath", "RayPath2D", "SegmentKind", "SplitTree", "Sphere",
-    "aim", "animate", "annotate", "annotate_2d", "corridor_faces", "draw_axes", "draw_axis_arrow", "draw_flip_axis",
+    "aim", "animate", "annotate", "annotate_2d", "corridor_faces", "draw_axes", "draw_axis_arrow", "draw_connector",
+    "draw_flip_axis", "draw_flip_marker",
     "draw_raypath", "draw_raypath_2d", "draw_rotation_arc", "draw_rotation_arc_3d", "draw_wedge_angle",
-    "export_frames_png", "face_permutation", "face_sequence",
+    "export_frames_png", "face_grid_points", "face_permutation", "face_sequence",
     "face_toward", "face_visible", "finish", "flip", "frame", "graticule", "lerp_euler", "lerp_matrix",
     "lon_lat_roll_to_matrix", "matrix_to_lon_lat_roll", "multi_panel", "new_figure", "parallel_origins",
-    "reflection2d", "render_cone", "render_corridor", "render_crystal", "render_curve",
+    "reflection2d", "render_cone", "render_corridor", "render_crystal", "render_curve", "search_raypath",
     "render_great_circle", "render_medium", "render_point_cloud", "render_section", "rotate", "rotation", "rotation2d", "rotation_between", "rotation_from_frames",
     "slerp_matrix", "solve_camera_distance", "solve_raypath", "solve_raypath_2d", "split_tree", "straighten",
     "trace",

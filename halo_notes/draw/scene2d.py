@@ -12,6 +12,7 @@ from typing import Iterable, Literal, Sequence
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.patches import ConnectionPatch
 from matplotlib.patches import Polygon as MplPolygon
 
 from .geometry import unit
@@ -181,6 +182,24 @@ def draw_flip_axis(ax, point: Sequence[float], direction: Sequence[float], half_
                        color=kw["color"], alpha=kw.get("alpha", 1.0), z=Z_REFERENCE)
 
 
+def draw_flip_marker(ax, point: Sequence[float], *, preset: Preset, size: float = 0.5) -> None:
+    """「z 上下翻转」小标记（7.3 下行格）：以 ``point`` 为中心、长 ``size`` 的水平线（xy 平面的侧视）+ 一支穿过它的
+    竖直双向箭头（半长 ``size·0.6``，两头实心三角）。样式 ``flip_marker``；三角尺寸沿用光线箭头的 ``arrow2d_*``。"""
+    c = np.asarray(point, dtype=float)
+    kw = preset.line_kwargs("flip_marker")
+    geom = preset.geom
+    L, W = geom.arrow2d_length * 0.9, geom.arrow2d_width * 1.2
+    half = size * 0.6
+    if half <= L:
+        raise ValueError(f"size={size} leaves no shaft for arrowheads of length {L:.3g}")
+    ax.plot([c[0] - size / 2, c[0] + size / 2], [c[1], c[1]], solid_capstyle="round", zorder=Z_ARROW, **kw)
+    inner = half - L
+    ax.plot([c[0], c[0]], [c[1] - inner, c[1] + inner], solid_capstyle="round", zorder=Z_ARROW, **kw)
+    for sgn in (+1, -1):
+        draw_arrowhead(ax, c + np.array([0.0, sgn * half]), (0.0, sgn), length=L, width=W,
+                       color=kw["color"], alpha=kw.get("alpha", 1.0), z=Z_ARROW)
+
+
 # ---- 楔形 / 平板介质 ----------------------------------------------------------------
 
 def render_medium(ax, medium: Polygon2D, *, preset: Preset, closure: Literal["jagged", "wavy"],
@@ -256,6 +275,22 @@ def annotate_2d(ax, text: str, xy: Sequence[float], *, preset: Preset, ha: str =
     return ax.text(x, y, text, ha=ha, va=va, zorder=Z_TEXT, **preset.text_kwargs(semantic), **text_kw)
 
 
+def draw_connector(ax_a, xy_a: Sequence[float], ax_b, xy_b: Sequence[float], *, preset: Preset,
+                   semantic: str | LineStyle = "connector", coords_b: str = "data") -> ConnectionPatch:
+    """跨 axes 引线（7.5 左栏样本点 → 中栏面板、中栏出射光末端 → 右栏天空点）：起点是 ``ax_a`` 的**数据坐标**
+    （3D 面板给相机投影后的画面坐标），终点默认也是数据坐标，``coords_b="axes fraction"`` 时落在 ``ax_b`` 的边框上
+    （如 (0, 0.5) = 左边框中点，引线不进入画框）；由 ``ConnectionPatch`` 在 figure 层换算——脚本不手填图纸坐标。
+    patch 挂在 ``ax_b`` 上并在两个 axes 之上绘制；返回它（``xy1`` / ``xy2`` / ``axesA`` / ``coords2`` 供单测核对端点）。"""
+    kw = preset.line_kwargs(semantic)
+    # annotation_clip=False：ConnectionPatch 默认在 xy_a 落在 ax_a 视野之外时整条不画（如出射光末端在面板取景之外）
+    patch = ConnectionPatch(xyA=tuple(xy_a), xyB=tuple(xy_b), coordsA="data", coordsB=coords_b, axesA=ax_a, axesB=ax_b,
+                            color=kw["color"], linewidth=kw["linewidth"], linestyle=kw["linestyle"], alpha=kw["alpha"],
+                            zorder=Z_TEXT, clip_on=False)
+    patch.set_annotation_clip(False)
+    ax_b.add_artist(patch)
+    return patch
+
+
 def multi_panel(rows: int, cols: int, width_px: int, height_px: int, dpi: int = 200, *,
                 preset: Preset = PRESETS["default"], titles: Sequence[str] | None = None,
                 title_frac: float = 0.14, pad: float = 0.01, title_pos: Literal["bottom", "top"] = "bottom"):
@@ -288,5 +323,5 @@ def multi_panel(rows: int, cols: int, width_px: int, height_px: int, dpi: int = 
     return fig, axes
 
 
-__all__ = ["annotate_2d", "draw_arrowhead", "draw_flip_axis", "draw_raypath_2d", "draw_rotation_arc",
-           "draw_wedge_angle", "multi_panel", "render_medium", "render_section"]
+__all__ = ["annotate_2d", "draw_arrowhead", "draw_connector", "draw_flip_axis", "draw_flip_marker", "draw_raypath_2d",
+           "draw_rotation_arc", "draw_wedge_angle", "multi_panel", "render_medium", "render_section"]

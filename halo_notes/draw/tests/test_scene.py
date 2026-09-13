@@ -5,8 +5,10 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 import pytest  # noqa: E402
 
+from matplotlib.patches import Polygon  # noqa: E402
+
 from halo_notes.draw import (PRESETS, Camera, HexPrism, draw_axes, finish, new_figure,  # noqa: E402
-                             render_crystal, trace)
+                             render_crystal, rotation, trace)
 from halo_notes.draw.labels import face_label_anchor, point_in_polygon  # noqa: E402
 from halo_notes.draw.projection import visible_faces  # noqa: E402
 from halo_notes.draw.raypath import RayPath, SegmentKind  # noqa: E402

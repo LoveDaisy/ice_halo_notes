@@ -254,6 +254,27 @@ def _face_points(crystal: Polyhedron, face, n_ring: int) -> np.ndarray:
     return np.array(pts)
 
 
+def face_grid_points(crystal: Polyhedron, face, n: int, *, margin: float = 1e-3) -> np.ndarray:
+    """面上的均匀网格采样点（确定性）：在面内正交基张成的包围盒上取 ``n × n`` 格点，只留落在面内部
+    （:meth:`Polyhedron.face_margin` > ``margin``）的，(N, DIM)。比 :func:`_face_points` 的"质心—顶点辐条"密得多，
+    用于可行入射区只是面上一小片时的搜索（ch7 图 5 固定入射方向下的 1-2-3-5-1）。"""
+    verts = crystal.face_vertices(face)
+    c = verts.mean(axis=0)
+    rel = verts - c
+    # 面内基：首条边方向 + 与法向叉乘（3D）；2D 时直接用边方向与其垂线
+    u = unit(rel[1] - rel[0])
+    if crystal.DIM == 3:
+        w = np.cross(crystal.normal(face), u)
+    else:
+        w = np.array([-u[1], u[0]])
+    a, b = rel @ u, rel @ w
+    ta = np.linspace(a.min(), a.max(), n)
+    tb = np.linspace(b.min(), b.max(), n)
+    pts = np.array([c + x * u + y * w for x in ta for y in tb])
+    keep = [crystal.face_margin(face, q) > margin for q in pts]
+    return pts[keep]
+
+
 def solve_raypath(crystal: Polyhedron, faces: Sequence[int], *, n_ice: float = N_ICE,
                   prefer_point: Sequence[float] | None = None,
                   prefer_direction: Sequence[float] | None = None,
@@ -286,10 +307,12 @@ def solve_raypath(crystal: Polyhedron, faces: Sequence[int], *, n_ice: float = N
 def search_raypath(crystal: Polyhedron, faces: Sequence[int], dirs: np.ndarray, *,
                    n_ice: float = N_ICE, prefer_point: Sequence[float] | None = None,
                    prefer_direction: Sequence[float] | None = None, n_ring: int = 3,
+                   entry_points: np.ndarray | None = None,
                    tail: float = 1.6, head: float = 1.6) -> RayPath:
     """:func:`solve_raypath` 的搜索主体（与维数无关）：在入射面采样点 × 给定入射方向集合 ``dirs``
     （(N, DIM)）里找面序列恰好等于 ``faces`` 的光路，偏好 / 择优规则见 :func:`solve_raypath`。
-    3D 与 2D 只差入射方向怎么采样，共用这一份搜索与择优。"""
+    3D 与 2D 只差入射方向怎么采样，共用这一份搜索与择优。``entry_points`` 给定时用它替代默认的
+    "质心 + 辐条分点"采样（如 :func:`face_grid_points` 的密网格）。"""
     faces = [int(f) for f in faces]
     events = events_for_faces(faces)
     entry = crystal.face(faces[0])
@@ -312,7 +335,7 @@ def search_raypath(crystal: Polyhedron, faces: Sequence[int], dirs: np.ndarray, 
             return hit
 
     # 2) 网格搜索
-    points = _face_points(crystal, entry, n_ring)
+    points = _face_points(crystal, entry, n_ring) if entry_points is None else np.asarray(entry_points, float)
     candidates: list[RayPath] = []
     for p in points:
         for d in dirs:

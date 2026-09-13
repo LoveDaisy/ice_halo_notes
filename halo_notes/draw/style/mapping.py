@@ -107,6 +107,12 @@ class SemanticStyleMap:
     pose_cloud_hidden: MarkerStyle = MarkerStyle("cloud", size=0.9, alpha=0.35)
     cone_surface: FillStyle = FillStyle("cone", alpha=0.35)                 # 3.6 锥面淡填充
     cone_edge: LineStyle = LineStyle("grid", linewidth=0.4)                 # 3.6 锥面网格线
+    # ---- ch7（7.1–7.5）：翻转标记 / 跨 axes 引线 / 姿态样本三色：只增不改 ----
+    flip_marker: LineStyle = LineStyle("slate", linewidth=1.6)             # 7.3 下行格「z 上下翻转」小标记：一条水平线 + 一支双向竖箭头
+    connector: LineStyle = LineStyle("ink_soft", linewidth=1.0, alpha=0.8)   # 7.5 跨 axes 引线（ConnectionPatch）
+    sample_colors: tuple[str, str, str] = ("sample_1", "sample_2", "sample_3")   # 7.5 三个姿态样本的语义色（配色板颜色名）
+    sample_marker: MarkerStyle = MarkerStyle("sample_1", size=9.0)          # 样本点模板：颜色按 sample_colors 逐个 replace
+    sample_frame: LineStyle = LineStyle("sample_1", linewidth=2.4)          # 中栏面板边框模板（同上）
     # 面号 → 配色板颜色名；给定时截面边编号按面号取色（字号 / 透明度仍取对应 face_number* 语义），
     # None = 全部用语义里的颜色。3D 贴面编号不读这个字段
     face_number_colors: Mapping[int, str] | None = None
