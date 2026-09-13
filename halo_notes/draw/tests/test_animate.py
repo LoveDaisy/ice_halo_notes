@@ -111,3 +111,44 @@ def test_gif_is_reproducible(tmp_path):
     animate(render_frame, N, a, fps=50, build_axes=build_axes, dpi=50)
     animate(render_frame, N, b, fps=50, build_axes=build_axes, dpi=50)
     assert a.read_bytes() == b.read_bytes()
+
+
+def _noisy_backdrop_axes(n_rows):
+    """右半幅是一张色彩噪声铺满的「底图」（吃光自适应调色板），左半幅留白画一条细蓝线。"""
+    rng = np.random.default_rng(0)
+    fig = plt.figure(figsize=(4, 2), dpi=50)
+    rows = []
+    for r in range(n_rows):
+        ax_l = fig.add_axes([0.0, r / n_rows, 0.5, 1 / n_rows])
+        ax_r = fig.add_axes([0.5, r / n_rows, 0.5, 1 / n_rows])
+        ax_r.imshow(rng.integers(0, 256, (100, 100, 3), dtype=np.uint8))
+        for ax in (ax_l, ax_r):
+            ax.set_axis_off()
+        rows.append((ax_l, ax_r))
+    return fig, rows
+
+
+def _thin_blue_line(fig, row, i):
+    ax_l, _ = row
+    ax_l.plot([0.1, 0.9], [0.2 + 0.1 * i, 0.8], color="#1f5fd0", linewidth=1.5, solid_capstyle="butt")
+    ax_l.set_xlim(0, 1)
+    ax_l.set_ylim(0, 1)
+
+
+def test_fixed_colors_survive_gif_quantization(tmp_path):
+    """R2-4 根因复现：底图噪声占满 256 色时，细线的蓝在默认量化下丢失（帧里没有一个像素等于该蓝）；``fixed_colors`` 给定后
+    该蓝原样出现在调色板里且线条像素命中它（≥ 30 个像素）；底图区域仍是多色（不被固定色淹没）。"""
+    blue = np.array([0x1F, 0x5F, 0xD0])
+    plain = tmp_path / "plain.gif"
+    animate(_thin_blue_line, 3, plain, fps=10, build_axes=_noisy_backdrop_axes, dpi=50)
+    frames, _ = frames_of(plain)
+    exact_plain = [int(np.all(f == blue, axis=-1).sum()) for f in frames]
+    fixed = tmp_path / "fixed.gif"
+    animate(_thin_blue_line, 3, fixed, fps=10, build_axes=_noisy_backdrop_axes, dpi=50, fixed_colors=["#1f5fd0", "white"])
+    frames_f, _ = frames_of(fixed)
+    exact_fixed = [int(np.all(f == blue, axis=-1).sum()) for f in frames_f]
+    assert max(exact_plain) < 5, exact_plain                     # 默认量化：蓝几乎全丢
+    assert min(exact_fixed) >= 30, exact_fixed                   # 固定色：线条主体精确保留
+    right = frames_f[0][:, 100:, :]
+    assert len(np.unique(right.reshape(-1, 3), axis=0)) > 150    # 底图仍是多色
+    assert len(frames_f) == 3 and all(f.shape == frames_f[0].shape for f in frames_f)

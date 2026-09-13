@@ -649,8 +649,8 @@ def test_7_5_pose_to_sky_compresses_theta_for_br_but_not_for_s(monkeypatch):
     在固定入射方向下解出、面序列 == PATHS；上行：三出射方向两两 |Δ| < 1e-9、== −sky_direction(br, R_i, ŝ)、落在特里克尔弧
     上（== tricker_arc(ψ0)）；下行：两两夹角 > 2°、各 == −sky_direction(s, R_i, ŝ)；引线端点：左→中落在面板左边框中点
     （axes fraction (0, 0.5)），中→右 == 数据坐标换算值；两行左栏 artist 逐个相同、θ 轴只画一个周期 [0, 60°]；
-    R1-2：中栏相机视线 ∥ 入射与出射（下行取均值）所张平面的法向再抬仰角，入射 / 出射在画面上的投影夹角 ≥ 0.9 × 真实夹角；
-    每枚晶体贴了朝向观察者的面编号（== visible_faces）。"""
+    R2-2：中栏相机由显式搜索得到（可行域 = R1-2 展开条件；约束最优 ≥ 0.9 × 无约束最优、5° 网格上无更优、出射朝右），
+    入射 / 出射在画面上的投影夹角 ≥ 0.9 × 真实夹角（R1-2）；每枚晶体贴了朝向观察者的面编号（== visible_faces）。"""
     from halo_notes.draw.projection import visible_faces
     from halo_notes.math import reflection_group as rg
     from halo_notes.math.attitude import column_attitude, sky_direction
@@ -678,16 +678,24 @@ def test_7_5_pose_to_sky_compresses_theta_for_br_but_not_for_s(monkeypatch):
     for i in range(3):
         for j in range(i + 1, 3):
             assert np.linalg.norm(s_[i] - s_[j]) > np.radians(2.0)                       # 下行：三个点分开
-    # 中栏相机：视线（抬仰角前）∥ 入射 × 出射均值；投影夹角 ≥ 0.9 × 真实夹角
+    # 中栏相机（R2-2）：显式搜索——约束下最优正对度 ≥ 0.9 × 无约束最优；5° 网格上没有满足「出射朝右」的相机比它更好（独立复算）；
+    # 三条出射在画面上的水平分量 > 0（正交方向投影与实际透视投影的末段都朝右）；入射 / 出射投影夹角 ≥ 0.9 × 真实夹角（R1-2 沿用）
     for n, data in rows.items():
-        cam = P.CAMERAS_3D[n]
-        normal = unit(np.cross(d_in, unit(np.mean(outs[n], axis=0))))
-        untilted = draw.Camera(azimuth=cam.azimuth, elevation=cam.elevation - P.CAMERA_TILT_DEG[n])
-        assert _same_direction(untilted.view_dir, normal) or _same_direction(untilted.view_dir, -normal)
+        cam, info = P.CAMERAS_3D[n], P.CAMERA_SEARCH[n]
+        assert (cam.azimuth, cam.elevation) == (info["azimuth"], info["elevation"])
+        assert info["value"] >= 0.9 * info["unconstrained"], (n, info)       # 实测 #3 1.00、#2 0.905（见 CAMERA_SEARCH_RECORD 注）
+        assert abs(P.min_face_on(cam, [d_in] + outs[n]) - info["value"]) < 1e-9
+        assert P.exits_point_right(cam, data.paths) and P.in_out_unfolded(cam, data.paths)
+        pts = P.scene_points(n)
+        grid_best = max((P.min_face_on(c, [d_in] + outs[n]) for c in (P.camera_at(az, el, pts) for az in np.arange(0, 360, 5.0)
+                                                                     for el in np.arange(-85, 86, 5.0))
+                         if P.exits_point_right(c, data.paths) and P.in_out_unfolded(c, data.paths)), default=-1.0)
+        assert info["value"] >= grid_best - 1e-9, (n, info["value"], grid_best)
         for path in data.paths:
             a = cam.project_xy(path.points[:2])
             b = cam.project_xy(path.points[-2:])
             v_in, v_out = a[1] - a[0], b[1] - b[0]
+            assert v_out[0] > 0                                                              # 出射朝右
             proj = np.degrees(np.arccos(np.clip(v_in @ v_out / np.linalg.norm(v_in) / np.linalg.norm(v_out), -1, 1)))
             true = np.degrees(np.arccos(np.clip(unit(path.points[1] - path.points[0]) @ unit(path.points[-1] - path.points[-2]), -1, 1)))
             assert proj >= 0.9 * true, (n, proj, true)
@@ -706,7 +714,7 @@ def test_7_5_pose_to_sky_compresses_theta_for_br_but_not_for_s(monkeypatch):
             assert c.coords2 == "data"
             ends = [P.CAMERAS_3D[n].project_xy(p.end)[0] for n, d in rows.items() for p in d.paths]
             assert any(np.allclose(c.xy1, e) for e in ends)
-            skies = [P.BACKDROPS[n].project(p)[0] for n, d in rows.items() for p in d.sky_points]
+            skies = [P.backdrop(n).project(p)[0] for n, d in rows.items() for p in d.sky_points]
             assert any(np.allclose(c.xy2, q) for q in skies)
     # 两行左栏逐 artist 相同（合成图里的两个左栏）；θ 轴 [0, 60]
     lefts = list(dict.fromkeys(left_axes))
@@ -737,43 +745,62 @@ def _window_max(lum: np.ndarray, uv: np.ndarray, half: int) -> np.ndarray:
     return out
 
 
+def _cross_profile(lum: np.ndarray, uv: np.ndarray, offsets: np.ndarray) -> np.ndarray:
+    """沿曲线每个采样点取法向 offset 像素处的亮度，按 offset 叠加平均（把蒙特卡洛噪声平均掉）——曲线两侧的「横截面」。"""
+    t = np.gradient(uv, axis=0)
+    t /= np.maximum(np.linalg.norm(t, axis=1, keepdims=True), 1e-12)
+    nrm = np.column_stack([-t[:, 1], t[:, 0]])
+    h, w = lum.shape
+    out = []
+    for k in offsets:
+        q = uv + nrm * k
+        i, j = np.floor(q[:, 1]).astype(int), np.floor(q[:, 0]).astype(int)
+        m = (i >= 0) & (i < h) & (j >= 0) & (j < w)
+        out.append(lum[i[m], j[m]].mean() if m.sum() > 50 else np.nan)
+    return np.array(out)
+
+
+def _peak_offset(profile: np.ndarray, offsets: np.ndarray, outer: float = 5.0) -> tuple[int, float]:
+    """横截面减去由 |offset| ≥ outer 处拟合的线性底（晕光梯度）后，峰的位置与信噪比（峰高 / 外侧残差 std）。"""
+    far = np.abs(offsets) >= outer
+    a, b = np.polyfit(offsets[far], profile[far], 1)
+    res = profile - (a * offsets + b)
+    return int(offsets[np.argmax(res)]), float(res.max() / max(res[far].std(), 1e-9))
+
+
 def test_7_5_overlay_projection_is_aligned_with_the_lumice_backdrop(monkeypatch):
-    """R1-1 的对齐核验（对不齐不许出图）：
-    (b) 底图自带的每条经纬线按 `halo_notes.sim.projection` 投影后，黑天背景上的采样点 ≥ 99% 在 2 px 窗内有网格亮度、
-        整体平移 6 px 后不到一半（每张底图至少 6 条线参与）；
+    """R1-1 / R2-3 的对齐核验（globe 底图上；对不齐不许出图）：
+    (b) 底图自带的每条经纬线按 `halo_notes.sim.projection` 投影后，沿线叠加的亮度横截面（扣掉晕光的线性梯度）峰值落在
+        |offset| ≤ 1 px、信噪比 ≥ 5（离该行参考点 < 10° 的样本不计：太阳眩光盖过网格）；每张底图至少 8 条线参与；
+        投影整体平移 5 px 时峰跑到 −5 px（反证，2026-09-13 实测）；
     (a) 上行公式特里克尔弧叠在渲染弧上：沿曲线取渲染亮的样本（≥ 100 个），曲线上的亮度是 ±1.5° 处的 ≥ 3 倍，且 ±0.6° 两侧
         亮度对称（|L₊−L₋|/(L₊+L₋) 中位数 < 0.15）——渲染弧半宽 ≈ 0.5°（日面 0.5° + 倾角 σ 0.5°），曲线偏 0.3° 就落到弧的
         一侧、两侧亮度比跌到 2.6 / 不对称度升到 0.24（2026-09-13 实测），两条阈值都能判红。"""
     cap, ns = run_figure(FIGURES["7.5"], monkeypatch)
     P = sys.modules["_pose_to_sky"]
-    for n, b in P.BACKDROPS.items():
+    offsets = np.arange(-8, 9)
+    for n in P.ROWS:
+        b = P.backdrop(n)
+        assert b.render["lens"]["type"] == "globe"                                             # R2-3：球面外视底图
         lum = b.image.astype(float).mean(axis=2)
         grid = b.render["grid"]
-        lines = [[_sky(g["value"], a) for a in np.linspace(0, 360, 1441)] for g in grid["elevation"]]
-        lines += [[_sky(e, g["value"]) for e in np.linspace(-75, 75, 601)] for g in grid["longitude"]]   # 避开天顶 / 天底的汇聚点
+        lines = [[_sky(g["value"], a) for a in np.linspace(0, 360, 2881)] for g in grid["elevation"]]
+        lines += [[_sky(e, g["value"]) for e in np.linspace(-75, 75, 1201)] for g in grid["longitude"]]   # 避开天顶 / 天底的汇聚点
         assert len(lines) >= 10
         checked = 0
         for pts in lines:
+            pts = np.asarray(pts)
             uv = b.project(pts)
-            keep = ~np.isnan(uv[:, 0])
+            keep = ~np.isnan(uv[:, 0]) & (pts @ b.reference < np.cos(np.radians(10)))
             uv = uv[keep]
-            if len(uv) < 2:
-                continue
-            t = np.gradient(uv, axis=0)
-            t /= np.maximum(np.linalg.norm(t, axis=1, keepdims=True), 1e-12)
-            nrm = np.column_stack([-t[:, 1], t[:, 0]]) * 6.0        # 沿该线的法向平移 6 px 作对照
-            on = _window_max(lum, uv, 2)
-            off = _window_max(lum, uv + nrm, 1)
-            far = _window_max(lum, uv + 2 * nrm, 1)
-            dark = ~np.isnan(on) & ~np.isnan(off) & (far < 30)     # 线旁 12 px 处是黑天：晕光不会把对照也点亮
-            if dark.sum() < 100:                                    # 该线基本在视场外或整条泡在晕光里，跳过
+            if len(uv) < 100:                                       # 该线基本在球冠外，跳过
                 continue
             checked += 1
-            assert np.mean(on[dark] >= 40) >= 0.99, n
-            assert np.mean(off[dark] >= 40) < 0.5, n
-        assert checked >= 6, n
+            peak, snr = _peak_offset(_cross_profile(lum, uv, offsets), offsets)
+            assert abs(peak) <= 1 and snr >= 5.0, (n, peak, snr)
+        assert checked >= 8, n
     from halo_notes.sim.projection import pixels_per_degree
-    b = P.BACKDROPS[3]
+    b = P.backdrop(3)
     lum = b.image.astype(float).mean(axis=2)
     ppd = pixels_per_degree(P.ANTHELIC, b.render)
     uv = b.project(P.TRICKER.CURVE)

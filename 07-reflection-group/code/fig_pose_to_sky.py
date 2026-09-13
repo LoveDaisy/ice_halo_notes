@@ -2,10 +2,10 @@
 # 与天空的对应（正文第 137–147 行）。上行 $M = br$（#3，光路 1-2-3-5-1）、下行 $M = s$（#2，光路 1-3-2）。
 # 左栏：姿态平面，竖直线 ψ=ψ0 上三个样本 θ1<θ2<θ3（三色，两行左栏完全相同）；中栏：三枚柱晶（h/a=3）
 # `transformed(column_attitude(ψ0, θi))`，同一入射方向（太阳方向的反向，Σ=10°，同 3.5），晶体内真实追迹的光路
-# （`search_raypath`，入射方向固定、只搜入射点），入射红 / 出射蓝，面板边框 = 样本色；右栏：天空球（同 3.5 / 6.1 的经纬网格）
-# + 太阳 / 反日点，上行淡画整条特里克尔弧（ch3 `_tricker_arc` 同源）、三个样本叠成一点（三色同心环），下行淡画弥散区
-# （`sky_direction` 扫 (ψ,θ) 网格的像）、三个样本三个点；引线：左栏样本 → 中栏面板、中栏出射光末端 → 右栏天空点
-# （`ConnectionPatch`，端点全是数据坐标）。读者要看出：同一入射光、三个绕 c 轴不同转角的晶体、三条不同的路 →
+# （`search_raypath`，入射方向固定、只搜入射点），入射红 / 出射蓝，面板边框 = 样本色，相机由 `search_camera` 显式搜索
+# （出射朝右）；右栏：Lumice `globe` 球面外视底图（该矩阵类全部光路的仿真，30° 经纬网格）+ 参考点（反日点 / 太阳），
+# 上行淡画整条公式特里克尔弧（ch3 `_tricker_arc` 同源）、三个样本叠成一点（三色同心环），下行弥散区就是渲染本身、三个样本
+# 三个点；引线：左栏样本 → 中栏面板左边框、中栏出射光末端 → 右栏天空点（`ConnectionPatch`）。读者要看出：同一入射光、三个绕 c 轴不同转角的晶体、三条不同的路 →
 # 上行出射方向完全相同、落在天上同一点（θ 线压成一点）；下行出射方向各不相同、天上三个点。「压缩」是光路造成的事实。
 # 几何参数（ψ0=35°、θ=39/49/59°、h/a=3、可行区间）来自 _pose_to_sky.py 顶注记录的 1° 扫描探针。
 from pathlib import Path
@@ -16,7 +16,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from _pose_to_sky import (BACKDROPS, CAMERAS_3D, D_IN, IMG, PRESET, PSI0, ROW_DATA, ROWS, SUN, THETAS,  # noqa: F401
+from _pose_to_sky import (CAMERAS_3D, D_IN, IMG, PRESET, PSI0, ROW_DATA, ROWS, SUN, THETAS, backdrop,  # noqa: F401
                           render_row)
 from halo_notes.draw import face_sequence
 from halo_notes.draw.geometry import unit

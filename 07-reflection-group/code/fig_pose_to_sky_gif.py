@@ -4,6 +4,8 @@
 # s 版沿一条曲线画出轨迹。读者要看出：晶体在动、光路在变，出射光点不动（br）；对比 s：θ 一动光点就动。
 # R1-3：原先的第二段 ψ 已删（可行区间只允许 ψ 差 5°，「换 ψ 才动」演不出来反而冗余）。
 # 帧：来回 2×N_HALF = 40 帧、25 fps（40 ms/帧）；θ 区间的可行性由 1° 步长扫描得到，见 _pose_to_sky.py 顶注（ROWS[·].sweep）。
+# 调色板（R2-4）：右栏 Lumice 底图的色彩噪声会吃光 gif 的 256 色，出射箭头的蓝被量化成灰——`animate(fixed_colors=FIXED_COLORS)`
+# 把入射 / 内部 / 出射光的语义色、样本色原样钉进调色板（`halo_notes.draw.animation.PaletteWriter`）。
 # 静态抽帧只作核验（test_figures 经 export_frames_png），不入正文。
 from pathlib import Path
 
@@ -13,9 +15,9 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from _pose_to_sky import (IMG, PANEL_ENTRY, PRESET, PSI0, ROWS, SKY_LIMITS, add_row_axes, build_attitude_axes,  # noqa: F401
+from _pose_to_sky import (IMG, PANEL_ENTRY, PRESET, PSI0, ROWS, add_row_axes, build_attitude_axes,  # noqa: F401
                           build_sky_axes, draw_connector, draw_crystal_panel, draw_samples_on_attitude,
-                          draw_sky_samples, exit_end_xy, finish, sample_line, sky_point, sky_xy, solve)
+                          draw_sky_samples, exit_end_xy, finish, sample_line, sky_limits, sky_point, sky_xy, solve)
 from halo_notes.draw import animate, export_frames_png
 from halo_notes.draw.geometry import unit
 
@@ -24,6 +26,9 @@ WIDTH, HEIGHT, DPI = 1500, 575, 100    # 静态图的一行缩半（gif 体积�
 N_HALF, FPS = 20, 25                   # θa→θb 20 帧、θb→θa 20 帧
 
 PATHS = {f"#{n} {'-'.join(map(str, s.faces))}": list(s.faces) for n, s in ROWS.items()}
+# 必须原样进 gif 调色板的颜色：光路三段语义色 + 样本色（不钉白 / 黑：底图里太阳眩光附近的近白像素会被整块吸成纯白）
+FIXED_COLORS = [PRESET.line_kwargs(sem)["color"] for sem in ("ray_incident", "ray_internal", "ray_exit")] + \
+               [PRESET.line_kwargs(sample_line(0))["color"]]
 
 
 def schedule(number: int) -> list[tuple[float, float]]:
@@ -58,7 +63,7 @@ def make_build_axes(number: int):
             ax_left, mids, ax_sky = add_row_axes(fig, 1.0 - (r + 1) * h, h, 1)
             build_attitude_axes(ax_left)
             build_sky_axes(ax_sky, number)
-            finish(ax_sky, *SKY_LIMITS[number])
+            finish(ax_sky, *sky_limits(number))
             ax_sky.set_title(ROWS[number].title, **PRESET.text_kwargs("panel_title"), math_fontfamily="cm", loc="right")
             rows.append((ax_left, mids[0], ax_sky))
         return fig, rows
@@ -84,7 +89,8 @@ def make_render_frame(number: int):
 
 def main() -> None:
     for number, out in OUTS.items():
-        animate(make_render_frame(number), N_FRAMES[number], out, fps=FPS, build_axes=make_build_axes(number), dpi=DPI)
+        animate(make_render_frame(number), N_FRAMES[number], out, fps=FPS, build_axes=make_build_axes(number), dpi=DPI,
+                fixed_colors=FIXED_COLORS)
         print(f"saved {out} ({N_FRAMES[number]} frames)")
 
 

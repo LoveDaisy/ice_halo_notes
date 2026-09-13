@@ -1,0 +1,22 @@
+$ /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/.lumice/v4.5.1/Lumice -f /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/halo_columns/ref_11/config.json -o /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/halo_columns/ref_11 --format png
+--- stdout ---
+2026-09-13 21:37:38.696 [I] ServerImpl: gpu_route=false worker_count=10 (preferred_backend=0)
+2026-09-13 21:37:38.710 [I] CommitConfig: restart took 13.1ms (Stop 0.0ms + rebuild 13.1ms + Start 0.0ms)
+2026-09-13 21:37:38.710 [I] GenerateScene: first batch enqueued at 0.0ms after start
+2026-09-13 21:37:38.735 [I] ConsumeData: first batch consumed (1920 ray segments)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/halo_columns/ref_11/img_01.png (1440x720)
+Stats: sim_rays=3482624, crystals=1, orientations=3482624
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/halo_columns/ref_11/img_01.png (1440x720)
+Stats: sim_rays=7278848, crystals=1, orientations=7278848
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/halo_columns/ref_11/img_01.png (1440x720)
+Stats: sim_rays=11006592, crystals=1, orientations=11006592
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/halo_columns/ref_11/img_01.png (1440x720)
+Stats: sim_rays=14838912, crystals=1, orientations=14838912
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/halo_columns/ref_11/img_01.png (1440x720)
+Stats: sim_rays=18718848, crystals=1, orientations=18718848
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/halo_columns/ref_11/img_01.png (1440x720)
+Stats: sim_rays=20000000, crystals=1, orientations=20000000
+2026-09-13 21:37:44.603 [I] Consume profile: 156250 batches, avg 4.8us (proj 3.8us 79% + accum 1.0us 21%)
+
+--- stderr ---
+

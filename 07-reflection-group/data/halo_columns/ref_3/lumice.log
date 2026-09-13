@@ -1,0 +1,24 @@
+$ /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/.lumice/v4.5.1/Lumice -f /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/halo_columns/ref_3/config.json -o /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/halo_columns/ref_3 --format png
+--- stdout ---
+2026-09-13 21:38:43.744 [I] ServerImpl: gpu_route=false worker_count=10 (preferred_backend=0)
+2026-09-13 21:38:43.758 [I] CommitConfig: restart took 13.6ms (Stop 0.0ms + rebuild 13.5ms + Start 0.0ms)
+2026-09-13 21:38:43.758 [I] GenerateScene: first batch enqueued at 0.0ms after start
+2026-09-13 21:38:43.782 [I] ConsumeData: first batch consumed (1920 ray segments)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/halo_columns/ref_3/img_01.png (1440x720)
+Stats: sim_rays=2968320, crystals=1, orientations=2968320
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/halo_columns/ref_3/img_01.png (1440x720)
+Stats: sim_rays=6226048, crystals=1, orientations=6226048
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/halo_columns/ref_3/img_01.png (1440x720)
+Stats: sim_rays=9435264, crystals=1, orientations=9435264
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/halo_columns/ref_3/img_01.png (1440x720)
+Stats: sim_rays=12584960, crystals=1, orientations=12584960
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/halo_columns/ref_3/img_01.png (1440x720)
+Stats: sim_rays=15775872, crystals=1, orientations=15775872
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/halo_columns/ref_3/img_01.png (1440x720)
+Stats: sim_rays=19003776, crystals=1, orientations=19003776
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-notes-wt-13/07-reflection-group/data/halo_columns/ref_3/img_01.png (1440x720)
+Stats: sim_rays=20000000, crystals=1, orientations=20000000
+2026-09-13 21:38:50.678 [I] Consume profile: 156250 batches, avg 1.4us (proj 1.0us 70% + accum 0.4us 30%)
+
+--- stderr ---
+

@@ -106,3 +106,24 @@ def test_spectrum_forms():
     assert C.sun(20)["spectrum"] == "D65"
     s = C.sun(20, spectrum=C.LEGACY_SPECTRUM)["spectrum"]
     assert [w["wavelength"] for w in s] == [420, 460, 500, 540, 580, 620]
+
+
+def test_complex_filter_composition_and_reference_checks():
+    """复合过滤器：composition 顶层 = OR、子列表 = AND；symmetry 写在复合过滤器上；build_config 拒绝悬空 / 嵌套复合引用。"""
+    f = C.complex_filter(1, [2, [3, 4], 5], "PBD")
+    assert f == {"id": 1, "type": "complex", "composition": [2, [3, 4], 5], "symmetry": "PBD", "action": "filter_in"}
+    assert C.composition_ids(f) == {2, 3, 4, 5} and C.composition_ids(C.none_filter(9)) == set()
+    with pytest.raises(ValueError):
+        C.complex_filter(1, [], "PBD")
+    with pytest.raises(ValueError):
+        C.complex_filter(1, [2], "PX")
+    subs = [C.raypath_filter(i, [1, 3, 2], "PBD") for i in (2, 3)]
+    sc = C.scene(C.sun(10), 1000, [C.entry(1, filter=1)])
+    render = C.render_unit(1, C.lens("rectangular"), [200, 100])
+    cfg = C.build_config([C.prism_crystal(1)], [C.complex_filter(1, [2, 3], "PBD")] + subs, sc, [render])
+    assert cfg["filter"][0]["composition"] == [2, 3]
+    with pytest.raises(ValueError, match="不存在"):
+        C.build_config([C.prism_crystal(1)], [C.complex_filter(1, [2, 7], "PBD")] + subs, sc, [render])
+    with pytest.raises(ValueError, match="非复合"):
+        C.build_config([C.prism_crystal(1)], [C.complex_filter(1, [2, 4], "PBD"), C.complex_filter(4, [3], "PBD")] + subs,
+                       sc, [render])

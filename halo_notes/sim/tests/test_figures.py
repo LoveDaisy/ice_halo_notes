@@ -101,7 +101,7 @@ def test_fig_scripts_run_small(tmp_path, script, out_name):
     assert any((tmp_path / "data").rglob("provenance.json"))
 
 
-# ---- ch7 图 6a/6b（task-draw-ch7-figs）：三份子图 config 只差过滤器与视场中心；代表光路 ↔ 权威表矩阵；拼图由子图像素拼成 ----
+# ---- ch7 图 6a/6b（task-draw-ch7-figs）：三份子图 config 只差过滤器与帧中心；复合过滤器 == 矩阵类代表集合；帧中心机械可复现；拼图由子图像素拼成 ----
 
 
 def _ch7_script():
@@ -120,46 +120,78 @@ def _strip_filter_and_view(cfg: dict) -> dict:
 
 
 def test_halo_columns_configs_differ_only_by_filter_and_view():
-    """R1-5：每张子图以自己那种晕的中心为视场中心（#2 / #11 太阳、#3 反日点 = 太阳方位 + 180°、同一仰角 Σ），
-    除 filter 与 render.view 外三份 config 逐字段相同；镜头 fisheye_equal_area、fov ≥ 320°（幻日环整圈：离太阳最远 180° − 2Σ）；
-    网格：仰角 / 方位每 30° 一条 + 地平线（仰角 0）。"""
+    """R2-3：三张子图 `globe` 球面外视、fov 30、1400²，除 filter 与 render.view（帧中心）外三份 config 逐字段相同；
+    帧中心是候选之一（太阳 / 反日点 / 侧向），view 按 globe 语义 = (az + 180°, −el)；网格：仰角 / 方位每 30° 一条 + 地平线。"""
+    import numpy as np
+    from halo_notes.sim.projection import frame_center
     cfgs = {k: _cfg(f"{CH7}/data/halo_columns.col_{k}.lumice.json") for k in (2, 11, 3)}
     stripped = [json.dumps(_strip_filter_and_view(c), sort_keys=True) for c in cfgs.values()]
     assert len(set(stripped)) == 1
     mod = _ch7_script()
-    sun = cfgs[2]["scene"]["light_source"]
     for k, cfg in cfgs.items():
-        assert len(cfg["filter"]) == 1
-        assert cfg["filter"][0]["raypath"] == mod["PATHS"][k] and cfg["filter"][0]["symmetry"] == "PBD"
         assert cfg["scene"]["scattering"][0]["entries"] == [{"crystal": 1, "proportion": 100, "filter": 1}]
-        assert cfg["scene"]["light_source"]["altitude"] == 10 and cfg["render"][0]["lens"]["type"] == "fisheye_equal_area"
+        assert cfg["scene"]["light_source"]["altitude"] == 10
+        r = cfg["render"][0]
+        assert r["lens"] == {"type": "globe", "fov": 30} and r["resolution"] == [1400, 1400] and r["visible"] == "full"
         assert cfg["crystal"][0]["axis"]["zenith"]["mean"] == 90 and "roll" not in cfg["crystal"][0]["axis"]   # 柱晶，roll 均匀
         assert cfg["scene"]["ray_num"] == mod["RAY_NUM"]
-        view = cfg["render"][0]["view"]
-        expect_az = sun["azimuth"] if k in (2, 11) else (sun["azimuth"] + 180) % 360
-        assert view["azimuth"] == expect_az and view["elevation"] == sun["altitude"], k
-        assert cfg["render"][0]["lens"]["fov"] >= 2 * (180 - 2 * sun["altitude"])
-        grid = cfg["render"][0]["grid"]
+        name = mod["center_of"](cfg)
+        assert np.linalg.norm(frame_center(r) - mod["CANDIDATES"][name]) < 1e-6
+        assert r["view"] == {"azimuth": {"sun": 180, "anthelic": 0, "side": 270}[name], "elevation": -10}
+        grid = r["grid"]
         assert sorted(g["value"] for g in grid["elevation"]) == list(range(-60, 90, 30))
         assert sorted(g["value"] for g in grid["longitude"]) == list(range(0, 360, 30))
-    assert mod["VIEW_CENTERS"] == {2: "sun", 11: "sun", 3: "anthelic"}
+        assert grid["label"] is False
 
 
-def test_halo_columns_paths_realise_their_matrices_and_pbd_covers_the_class():
-    """每个代表光路的内反射面镜面矩阵连乘 == 权威表目标矩阵；D6 全部像（P/D）+ 上下互换（B）的矩阵集合 == 目标所在共轭类。"""
-    from halo_notes.math import group as D6
-    from halo_notes.math import reflection_group as rg
+def test_halo_columns_frame_center_is_reproducible_from_the_reference_render():
+    """R2-3 帧中心机械选取：对落盘的全天 rectangular 参考图（同一 sim）重算各候选中心 75.5° 球冠内能量占比，argmax 必须等于
+    落盘 config 里的帧中心；参考图 config 与子图 config 除 render / ray_num 外相同；#3 反日点、#2 太阳（占比 > 0.8），
+    #11 幻日环装不下整圈、按判据落在侧向。"""
+    import numpy as np
+    from PIL import Image
     mod = _ch7_script()
-    for k, path in mod["PATHS"].items():
-        assert tuple(path) in rg.by_number(k).representative_paths
-        assert (rg.path_matrix(path) - rg.MATRICES[k]).__abs__().max() < 1e-12
-        cls = next(c for c in rg.conjugacy_classes() if k in c)
-        images = set()
-        for g in D6.elements():
-            img = D6.apply_path(g, path)
-            images.add(rg.identify(rg.path_matrix(img)).number)
-            images.add(rg.identify(rg.path_matrix([{1: 2, 2: 1}.get(f, f) for f in img])).number)
-        assert images == set(cls), (k, images)
+    for k in (2, 11, 3):
+        ref = _cfg(f"{CH7}/data/halo_columns.ref_{k}.lumice.json")
+        sub = _cfg(f"{CH7}/data/halo_columns.col_{k}.lumice.json")
+        for section in ("crystal", "filter"):
+            assert ref[section] == sub[section], (k, section)
+        assert {**ref["scene"], "ray_num": 0} == {**sub["scene"], "ray_num": 0} and ref["scene"]["ray_num"] == mod["REF_RAY_NUM"]
+        r = ref["render"][0]
+        assert r["lens"]["type"] == "rectangular" and r["ev_mode"] == "absolute" and "grid" not in r
+        image = np.asarray(Image.open(ROOT / CH7 / "data" / "halo_columns" / f"ref_{k}" / "img_01.png").convert("RGB"))
+        best, fractions = mod["choose_center"](image, r)
+        assert best == mod["center_of"](sub), (k, fractions)
+        assert set(fractions) == set(mod["CANDIDATES"]) and all(0 <= v <= 1 for v in fractions.values())
+    assert mod["center_of"](_cfg(f"{CH7}/data/halo_columns.col_3.lumice.json")) == "anthelic"
+    assert mod["center_of"](_cfg(f"{CH7}/data/halo_columns.col_2.lumice.json")) == "sun"
+    assert mod["center_of"](_cfg(f"{CH7}/data/halo_columns.col_11.lumice.json")) == "side"
+
+
+def test_halo_columns_complex_filters_are_exactly_the_class_representatives():
+    """R2-1 (c)：每张子图的过滤器段 = 一个 complex（id 1，PBD，OR 全部子过滤器）+ 各代表一个 raypath 子过滤器；复合引用的
+    子光路集合 == `reflection_group` 该类的 PBD 代表集合；每条子光路的镜面积 ∈ 目标共轭类且折射抵消。"""
+    import sys
+    from halo_notes.math import reflection_group as rg
+    from halo_notes.sim import config as C
+    sys.path.insert(0, str(ROOT / CH7 / "code"))
+    import _ch7_sim as S
+    for k in (2, 11, 3):
+        cfg = _cfg(f"{CH7}/data/halo_columns.col_{k}.lumice.json")
+        flts = cfg["filter"]
+        top = flts[0]
+        assert top["id"] == S.FILTER_ID == 1 and top["type"] == "complex" and top["symmetry"] == "PBD"
+        subs = {f["id"]: f for f in flts[1:]}
+        assert C.composition_ids(top) == set(subs) and all(isinstance(c, int) for c in top["composition"])
+        assert all(f["type"] == "raypath" and f["symmetry"] == "PBD" for f in subs.values())
+        paths = S.class_filter_paths(flts)
+        assert paths == set(S.class_representatives(k)) == set(rg.representatives_under_pbd(rg.raypaths_of_class(k)))
+        cls = set(rg.class_of(k))
+        for seq in paths:
+            assert rg.identify(rg.path_matrix(seq)).number in cls and rg.refraction_cancels(seq) and len(seq) <= S.MAX_LEN
+        for old in rg.by_number(k).representative_paths:                                  # ch3 的典型光路都被某个代表的轨道覆盖
+            assert any(old in rg.pbd_orbit(s) for s in paths), (k, old)
+    assert len(S.class_representatives(3)) == 36 and len(S.class_representatives(2)) == 88 and len(S.class_representatives(11)) == 22
 
 
 def test_halo_columns_figures_are_composed_from_the_sub_images():
@@ -177,34 +209,37 @@ def test_halo_columns_figures_are_composed_from_the_sub_images():
         for i, k in enumerate((a, b)):
             x = margin + i * (sky + gap)
             region = canvas[margin + label:margin + label + sky, x:x + sky]
-            assert np.abs(region - subs[k]).mean() < 3.0, (name, k)      # 同一批像素（有损压缩残差）
+            assert np.abs(region - subs[k]).mean() < 6.0, (name, k)      # 同一批像素（有损压缩残差；#2 满幅噪点 3.5）
+            assert np.corrcoef(region.ravel(), subs[k].ravel())[0, 1] > 0.98, (name, k)
     assert (img / "halo_col_2.jpg").stat().st_size > 0 and mod["FIGURES"]["halos_2_vs_11"][0] == mod["FIGURES"]["halos_3_vs_2"][1] == 2
 
 
 def test_halo_columns_provenance_present():
     for k in (2, 11, 3):
-        d = ROOT / CH7 / "data" / "halo_columns" / f"col_{k}"
-        prov = json.loads((d / "provenance.json").read_text())
-        assert prov["lumice_version"] == "v4.5.1" and prov["wall_clock_s"] > 0
-        assert prov["config_sha256"] == config_sha256(_cfg(f"{CH7}/data/halo_columns.col_{k}.lumice.json"))
+        for variant in (f"col_{k}", f"ref_{k}"):
+            d = ROOT / CH7 / "data" / "halo_columns" / variant
+            prov = json.loads((d / "provenance.json").read_text())
+            assert prov["lumice_version"] == "v4.5.1" and prov["wall_clock_s"] > 0
+            assert prov["config_sha256"] == config_sha256(_cfg(f"{CH7}/data/halo_columns.{variant}.lumice.json"))
 
 
-# ---- ch7 7.5 底图（R1-1）：与图 6 同一份仿真、只换 render 段；视场中心 = 该行晕心 ----
+# ---- ch7 7.5 底图（R1-1 / R2-3）：与图 6 同一份仿真、只换 render 段；globe，帧中心 = 该行参考点与样本质心的角平分方向 ----
 
 
 def test_pose_to_sky_backdrops_share_the_halo_columns_simulation():
-    """crystal / filter / scene 三段与 halo_columns.col_<k> 逐字段相同；render：fisheye_equal_area、1000×1000、
-    #3 反日点为中心（太阳方位 + 180°、仰角 Σ）、#2 太阳为中心，网格与图 6 相同。"""
+    """crystal / filter / scene 三段与 halo_columns.col_<k> 逐字段相同；render：globe、fov 30、1000×1000、网格与图 6 相同、
+    view == `_pose_to_sky.backdrop_view(k)`。"""
+    import sys
+    sys.path.insert(0, str(ROOT / CH7 / "code"))
+    import _pose_to_sky as P
     for k in (3, 2):
         back = _cfg(f"{CH7}/data/pose_to_sky_backdrop.col_{k}.lumice.json")
         base = _cfg(f"{CH7}/data/halo_columns.col_{k}.lumice.json")
         for section in ("crystal", "filter", "scene"):
             assert back[section] == base[section], (k, section)
         r, r0 = back["render"][0], base["render"][0]
-        assert r["lens"]["type"] == "fisheye_equal_area" and r["resolution"] == [1000, 1000]
+        assert r["lens"] == {"type": "globe", "fov": 30} and r["resolution"] == [1000, 1000]
         assert r["grid"] == r0["grid"] and r["visible"] == "full"
-        sun = back["scene"]["light_source"]
-        expect_az = (sun["azimuth"] + 180) % 360 if k == 3 else sun["azimuth"]
-        assert r["view"] == {"azimuth": expect_az, "elevation": sun["altitude"]}
+        assert r["view"] == P.backdrop_view(k)
         prov = json.loads((ROOT / CH7 / "data" / "pose_to_sky_backdrop" / f"col_{k}" / "provenance.json").read_text())
         assert prov["config_sha256"] == config_sha256(back) and prov["lumice_version"] == "v4.5.1"

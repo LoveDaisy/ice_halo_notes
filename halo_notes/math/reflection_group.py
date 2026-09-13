@@ -12,6 +12,7 @@ $S_{90°}$、$S_{\\pm30°}$，下标是反射轴在 $xy$ 平面内的方位角�
 
 from __future__ import annotations
 
+import functools
 import itertools
 from dataclasses import dataclass
 from typing import Iterable, Sequence
@@ -201,6 +202,69 @@ def path_matrix(faces: Sequence[int]) -> np.ndarray:
     return M
 
 
+def refraction_cancels(faces: Sequence[int]) -> bool:
+    """「平行光路」的精确判据：出射面法向 $n_{out} = -M\,n_{in}$（$M$ = 内反射镜面连乘）。
+
+    首尾面字面平行（同面或对面）只是 $M n_{in} = \pm n_{in}$ 的特例；ch3 笔记的典型光路里 ``3-1-5-7-4``、``3-4-5`` 等
+    11 条首尾面并不平行，但入射 / 出射两次折射同样精确抵消（$M$ 是正交阵、把入射面法向搬到出射面法向的反向，
+    Snell 定律在正交变换下不变），方向变换仍是常数矩阵 $M$——正文与 ch3 说的「首尾面平行、折射抵消」指的就是这个条件。
+    """
+    faces = [int(f) for f in faces]
+    if len(faces) == 1:
+        return True                                       # 单面外反射：$-S_n n = n$ 自动成立
+    return bool(np.allclose(NORMALS[faces[-1]], -path_matrix(faces) @ NORMALS[faces[0]]))
+
+
+def class_of(number: int) -> list[int]:
+    """``number`` 所在共轭类的全部编号（按 :func:`conjugacy_classes`）。"""
+    return next(c for c in conjugacy_classes() if number in c)
+
+
+@functools.lru_cache(maxsize=None)
+def raypaths_of_class(number: int, max_len: int = 6) -> tuple[tuple[int, ...], ...]:
+    """长度 ≤ ``max_len``、相邻面不重复、折射抵消（:func:`refraction_cancels`）、$M$ 落在 ``number`` 所在**共轭类**内的
+    全部面序列（纯代数枚举，几何可达性交给追迹 / Lumice）。按 (长度, 字典序) 排序。"""
+    targets = {key(MATRICES[n]) for n in class_of(number)}
+    out: list[tuple[int, ...]] = []
+
+    def walk(prefix: tuple[int, ...], M: np.ndarray) -> None:      # M = prefix[1:] 各面镜子的连乘（入射面不算）
+        n_in = NORMALS[prefix[0]]
+        if len(prefix) == 1:
+            if key(MIRRORS[prefix[0]]) in targets:
+                out.append(prefix)
+        elif key(M) in targets and np.allclose(NORMALS[prefix[-1]], -M @ n_in):
+            out.append(prefix)
+        if len(prefix) == max_len:
+            return
+        last = prefix[-1]
+        M_next = MIRRORS[last] @ M if len(prefix) > 1 else M     # 当前末面若不出射就是一次内反射
+        for f in NORMALS:
+            if f != last:
+                walk(prefix + (f,), M_next)
+
+    for f0 in NORMALS:
+        walk((f0,), np.eye(3))
+    return tuple(sorted(out, key=lambda s: (len(s), s)))
+
+
+def pbd_orbit(faces: Sequence[int]) -> set[tuple[int, ...]]:
+    """面序列在 Lumice ``symmetry: "PBD"`` 下的全部像：D6（P 旋转 + D 翻转，:mod:`halo_notes.math.group`）× 上下互换（B）。"""
+    from . import group as D6
+    faces = tuple(int(f) for f in faces)
+    out: set[tuple[int, ...]] = set()
+    for g in D6.elements():
+        im = tuple(D6.apply_path(g, faces))
+        out.add(im)
+        out.add(tuple({1: 2, 2: 1}.get(f, f) for f in im))
+    return out
+
+
+def representatives_under_pbd(seqs: Iterable[Sequence[int]]) -> tuple[tuple[int, ...], ...]:
+    """按 PBD 轨道去重，每个轨道取字典序最小的序列作代表；输出按 (长度, 字典序) 排序。"""
+    reps = {min(pbd_orbit(s)) for s in seqs}
+    return tuple(sorted(reps, key=lambda s: (len(s), s)))
+
+
 # ---- 分类 ------------------------------------------------------------------------
 
 
@@ -248,6 +312,6 @@ def wedge_cosines(group: Sequence[np.ndarray] = GROUP) -> list[float]:
 
 __all__ = ["B", "BY_NUMBER", "ELEMENTS", "Element", "GROUP", "GROWTH", "HALO_NAMES", "MATRICES", "MIRRORS",
            "MIRROR_FACES", "NORMALS", "PUBLISHED", "XY_LATEX", "XY_MATRIX", "XY_ORDER", "Rz", "by_number",
-           "by_xy_z", "closure", "commutes_with_rz", "commuting_with_rz", "conjugacy_classes",
-           "eigenvalue_classes", "identify", "key", "path_matrix", "published_classes", "refl", "sxy",
-           "wedge_cosines"]
+           "by_xy_z", "class_of", "closure", "commutes_with_rz", "commuting_with_rz", "conjugacy_classes",
+           "eigenvalue_classes", "identify", "key", "path_matrix", "pbd_orbit", "published_classes", "raypaths_of_class",
+           "refl", "refraction_cancels", "representatives_under_pbd", "sxy", "wedge_cosines"]

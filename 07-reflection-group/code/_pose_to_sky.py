@@ -1,10 +1,17 @@
 # 7.5 静态图 / 单行图 / gif 共用：柱晶姿态平面 (ψ, θ) → 晶体 + 真实追迹光路 → 天空（Lumice 渲染底图），三栏布局与全部数据。
 # fig_pose_to_sky.py 与 fig_pose_to_sky_gif.py 各自 import 本模块，不各写一份几何（同 ch3 的 _tricker_arc.py 模式）。
 #
-# 右栏（R1-1，2026-09-13 作者裁定）：底图 = sim_pose_to_sky_backdrop.py 出的 Lumice `fisheye_equal_area` 渲染（与图 6 同一份仿真、
-# 只换 render 段；上行反日点为视场中心、下行太阳为视场中心，带 30° 经纬网格），叠加层用 `halo_notes.sim.projection` 把天空方向
-# 投到同一像素坐标：样本点（三色）、上行淡画的公式特里克尔弧、视场中心标记；下行的弥散区就是渲染本身，不再画点云
-#（原手绘 (ψ,θ) 规则网格点云有莫尔条纹）。对齐核验（公式弧叠在渲染弧上、网格线叠合 < 2 px）见 test_figures 7.5。
+# 右栏（R1-1 / R2-3，2026-09-13 作者裁定）：底图 = sim_pose_to_sky_backdrop.py 出的 Lumice `globe` 球面外视渲染（与图 6 同一份
+# 仿真：同 population、同「矩阵类全部光路」复合过滤器，只换 render 段；帧中心按 backdrop_center 机械取该行参考点（上行反日点 /
+# 下行太阳）与三个样本天空点质心的角平分方向，带 30° 经纬网格），叠加层用 `halo_notes.sim.projection.project`（按镜头分派）
+# 把天空方向投到同一像素坐标：样本点（三色）、上行淡画的公式特里克尔弧、参考点标记；下行的弥散区就是渲染本身，不再画点云。
+# 对齐核验（公式弧叠在渲染弧上、网格线叠合 < 2 px）见 test_figures 7.5；钉不住则回退等积鱼眼底图（R2-3）。
+#
+# 中栏相机（R2-2）：`search_camera` 在相机方向球面网格（5° 粗扫 + 1° 细扫）上，对 D = {入射} ∪ {该行三条出射}（br 行三条重合，
+# 退化为两方向）最大化「两两方向所张平面对相机的正对度」的最小值（正对度 = 投影夹角的正弦 × 两段投影长度 / sin 真实夹角，
+# 见 face_on——字面的「投影夹角」在视线接近角平分线时退化到 180° 的短桩，故不用），硬约束三条出射光的画面水平分量 > 0
+#（出射朝右，中→右引线不再穿过面板），可行域先限定在 R1-2 的「入射 / 出射投影夹角 ≥ 0.9 × 真实夹角」内（两条要求同时成立）；
+# 上下两行各自搜索。搜索结果记录在 CAMERA_SEARCH_RECORD（脚本导入时与实时搜索核对）。
 #
 # 几何事实（2026-09-13 探针 scan3e：h/a=3、Σ=10°、入射方向 = −太阳方向、每格 1°、入射面 25×25 网格采样，见 `--probe`）：
 # - #3 $br$ 的代表光路 1-2-3-5-1 只在很窄的姿态里可行（ψ=45° 时无解；ψ=35° 时 θ∈[34°, 65°] 连续可行、ψ=30° 时 [28°, 54°]、
@@ -16,6 +23,7 @@
 # #2 扫 [10°, 60°]（可行到 136°，同样截到一个周期）。
 from __future__ import annotations
 
+import functools
 import importlib.util
 import json
 import sys
@@ -34,7 +42,7 @@ from halo_notes.draw.style import LineStyle, MarkerStyle, TextStyle
 from halo_notes.draw.style.mapping import CJK_SANS
 from halo_notes.math import reflection_group as rg
 from halo_notes.math.attitude import column_attitude, sky_direction, sun_vector
-from halo_notes.sim.projection import project_equal_area, view_direction
+from halo_notes.sim.projection import frame_center, globe_view_for, project
 
 CODE_DIR = Path(__file__).resolve().parent
 IMG = CODE_DIR.parent / "img"
@@ -56,6 +64,8 @@ SUN_ELEVATION_DEG = TRICKER.SUN_ELEVATION_DEG          # 10°，与 3.5 同值
 SUN = sun_vector(SUN_ELEVATION_DEG)                    # 指向太阳
 D_IN = -SUN                                            # 入射光方向（固定）
 ANTHELIC = TRICKER.anthelic_point()
+REFERENCE = {3: ANTHELIC, 2: SUN}                      # 每行天空的参考点：上行反日点、下行太阳
+REFERENCE_NAME = {3: "反日点", 2: "太阳"}
 
 PRESET = PRESETS["default"].replace(
     style_map=PRESETS["default"].style_map.replace(
@@ -112,58 +122,162 @@ def sky_point(number: int, R: np.ndarray) -> np.ndarray:
 
 # ---- 相机 / 版面 ----------------------------------------------------------------------
 
-# 中栏相机（R1-2）：以「入射 / 出射光线」为主体——视线取入射方向与出射方向（下行取三条出射的均值）所张平面的法向，这样
-# 入射 → 出射的夹角在画面上完整展开（上行 br 只有 2Σ=20°）；再抬一点仰角（CAMERA_TILT_DEG，按行）避免光线段与晶体轮廓重叠。
-# 机械核验（test_figures）：入射与出射箭头在画面上的投影夹角 ≥ 0.9 × 三维真实夹角。
 FOV_3D = 20.0
-CAMERA_TILT_DEG = {3: 18.0, 2: 14.0}
+CAMERA_STEP_COARSE, CAMERA_STEP_FINE = 5.0, 1.0
+CAMERA_EL_RANGE = (-85.0, 85.0)
 # 三栏 figure 坐标：左（姿态平面）/ 中（晶体面板列）/ 右（天空底图）
 COL_LEFT, COL_MID, COL_RIGHT = (0.05, 0.27), (0.34, 0.53), (0.58, 0.98)
 ROW_PAD = 0.06
 
 
-def ray_plane_camera(d_in: np.ndarray, d_outs, tilt_deg: float, scene_points) -> Camera:
-    """视线 = d_in 与 mean(d_outs) 所张平面的法向（取朝上的那支），仰角再加 ``tilt_deg``；距离按 FOV_3D 包住 scene_points。"""
-    n = unit(np.cross(d_in, unit(np.mean(np.asarray(d_outs, float), axis=0))))
-    if n[2] < 0:
-        n = -n
-    az = float(np.degrees(np.arctan2(n[1], n[0])))
-    el = float(np.degrees(np.arcsin(np.clip(n[2], -1, 1)))) + tilt_deg
+def face_on(cam: Camera, a: np.ndarray, b: np.ndarray) -> float:
+    """一对方向所张平面对相机的「正对度」|(â × b̂)·v̂| / |â × b̂| ∈ [0, 1]：= 画面上两段投影的 2D 叉积 / sin(真实夹角)，
+    即投影夹角的正弦 × 两段投影长度 / sin(真实夹角)；平面正对观察者时 = 1（投影夹角 = 真实夹角、两段都不缩短），侧视时 → 0。
+    字面的「投影夹角」有退化最优——视线接近两方向的角平分线时两段都缩成短桩、投影夹角趋于 180°（实测 179.996°），
+    「展开」的本意反而没了；正对度把透视缩短计进去，没有这个退化。"""
+    n = np.cross(unit(a), unit(b))
+    nn = np.linalg.norm(n)
+    return float(abs(n @ cam.view_dir) / nn) if nn > 1e-9 else 1.0
+
+
+def min_face_on(cam: Camera, directions) -> float:
+    """D 中两两方向所张平面正对度的最小值；三维上重合的方向对（如 br 行三条出射）不参与。"""
+    d = [unit(v) for v in directions]
+    best = 1.0
+    for i in range(len(d)):
+        for j in range(i + 1, len(d)):
+            if np.linalg.norm(d[i] - d[j]) < 1e-6:
+                continue
+            best = min(best, face_on(cam, d[i], d[j]))
+    return best
+
+
+IN_OUT_MIN_RATIO = 0.9   # R1-2 沿用：每条光路入射 / 出射段在画面上的投影夹角 ≥ 0.9 × 真实夹角（搜索的可行域，按透视投影算）
+
+
+def camera_at(az: float, el: float, scene_points) -> Camera:
+    """(方位, 仰角) → 透视相机，距离按 FOV_3D 包住 scene_points（成图与搜索用同一构造）。"""
     d = solve_camera_distance(scene_points, azimuth=az, elevation=el, target_fov_deg=FOV_3D)
     return Camera(azimuth=az, elevation=el, distance=d)
 
 
+def segment_angles(cam: Camera, path) -> tuple[float, float, np.ndarray]:
+    """一条光路的入射段与出射段在画面上（透视投影）的夹角、三维真实夹角、出射段画面向量。"""
+    a = cam.project_xy(path.points[:2])
+    b = cam.project_xy(path.points[-2:])
+    v_in, v_out = a[1] - a[0], b[1] - b[0]
+    proj = float(np.degrees(np.arccos(np.clip(v_in @ v_out / np.linalg.norm(v_in) / np.linalg.norm(v_out), -1.0, 1.0))))
+    true = float(np.degrees(np.arccos(np.clip(unit(path.points[1] - path.points[0]) @ unit(path.points[-1] - path.points[-2]),
+                                              -1.0, 1.0))))
+    return proj, true, v_out
+
+
+def in_out_unfolded(cam: Camera, paths, ratio: float = IN_OUT_MIN_RATIO) -> bool:
+    """R1-2 的「展开」条件：每条光路入射 / 出射段的画面投影夹角 ≥ ratio × 真实夹角。"""
+    return all(segment_angles(cam, p)[0] >= ratio * segment_angles(cam, p)[1] for p in paths)
+
+
+def exits_point_right(cam: Camera, paths) -> bool:
+    """每条光路出射段的画面水平分量 > 0。"""
+    return all(segment_angles(cam, p)[2][0] > 0 for p in paths)
+
+
+def search_camera(paths, scene_points, *, require_exit_right: bool = True,
+                  coarse: float = CAMERA_STEP_COARSE, fine: float = CAMERA_STEP_FINE) -> tuple[Camera, dict]:
+    """显式搜索中栏相机（R2-2）：方位 × 仰角网格（``coarse`` 度粗扫全球、再在最优附近 ±coarse 内 ``fine`` 度细扫），
+    每个格点按 :func:`camera_at` 建透视相机；可行域 = R1-2 的展开条件（:func:`in_out_unfolded`），在其中最大化
+    D = {入射} ∪ {各出射} 两两所张平面正对度（:func:`face_on`）的最小值；``require_exit_right`` 时再硬约束全部出射段
+    画面水平分量 > 0（"unconstrained" = 只去掉这一条）。返回 (相机, {"azimuth", "elevation", "value", "unconstrained",
+    "projected_in_out"})；并列取扫描顺序靠前者。"""
+    d_in = unit(paths[0].points[1] - paths[0].points[0])
+    outs = [unit(p.points[-1] - p.points[-2]) for p in paths]
+    dirs = [d_in] + outs
+
+    def score(az: float, el: float) -> tuple[float, bool]:
+        cam = camera_at(az, el, scene_points)
+        if not in_out_unfolded(cam, paths):
+            return -1.0, False
+        return min_face_on(cam, dirs), exits_point_right(cam, paths)
+
+    def scan(azs, els):
+        best_c, best_u = None, None
+        for el in els:
+            for az in azs:
+                v, ok = score(float(az), float(el))
+                if best_u is None or v > best_u[2] + 1e-9:
+                    best_u = (float(az), float(el), v)
+                if (ok or not require_exit_right) and (best_c is None or v > best_c[2] + 1e-9):
+                    best_c = (float(az), float(el), v)
+        return best_c, best_u
+
+    lo, hi = CAMERA_EL_RANGE
+    c0, u0 = scan(np.arange(0.0, 360.0, coarse), np.arange(lo, hi + 1e-9, coarse))
+    if c0 is None:
+        raise ValueError("no camera satisfies the constraints")
+    c1, _ = scan(np.arange(c0[0] - coarse, c0[0] + coarse + 1e-9, fine),
+                 np.clip(np.arange(c0[1] - coarse, c0[1] + coarse + 1e-9, fine), lo, hi))
+    _, u1 = scan(np.arange(u0[0] - coarse, u0[0] + coarse + 1e-9, fine),
+                 np.clip(np.arange(u0[1] - coarse, u0[1] + coarse + 1e-9, fine), lo, hi))
+    az, el, value = c1
+    az %= 360.0
+    cam = camera_at(az, el, scene_points)
+    return cam, {"azimuth": az, "elevation": el, "value": value, "unconstrained": u1[2],
+                 "projected_in_out": [segment_angles(cam, p)[0] for p in paths]}
+
+
 @dataclass(frozen=True)
 class Backdrop:
-    """一行的 Lumice 底图：像素数组 + 出它的 render 段（投影用）+ 视场中心是太阳还是反日点。"""
+    """一行的 Lumice 底图：像素数组 + 出它的 render 段（投影用）+ 该行的参考点名（太阳 / 反日点）。"""
     image: np.ndarray               # (H, W, 3) uint8
     render: dict
-    center: str                     # "sun" / "anthelic"
+    number: int
 
     @property
     def size(self) -> tuple[int, int]:
         return int(self.render["resolution"][0]), int(self.render["resolution"][1])
 
+    @property
+    def reference(self) -> np.ndarray:
+        return REFERENCE[self.number]
+
+    @property
+    def reference_name(self) -> str:
+        return REFERENCE_NAME[self.number]
+
     def project(self, directions) -> np.ndarray:
-        return project_equal_area(directions, self.render)
+        return project(directions, self.render)
 
 
-def load_backdrop(number: int) -> Backdrop:
-    """读 sim_pose_to_sky_backdrop.py 落盘的 config + 渲染图（data/，LFS）；视场中心由 render.view 反推、不另存一份。"""
+def backdrop_center(number: int) -> np.ndarray:
+    """底图帧中心（机械规则）：该行参考点（反日点 / 太阳）与三个样本天空点质心的角平分方向——样本与参考点都离帧中心
+    < 40°，远离 globe 75.5° 球冠的边缘（边缘处透视压扁）；上行 7.6°、下行 32° 离参考点。"""
+    return unit(unit(REFERENCE[number]) + unit(np.mean(ROW_DATA[number].sky_points, axis=0)))
+
+
+def backdrop_view(number: int) -> dict:
+    """底图 render.view（globe 语义：帧中心 = (az + 180°, −el)）。"""
+    return globe_view_for(backdrop_center(number))
+
+
+@functools.lru_cache(maxsize=None)
+def backdrop(number: int) -> Backdrop:
+    """读 sim_pose_to_sky_backdrop.py 落盘的 config + 渲染图（data/，LFS）；惰性加载（底图脚本自己也 import 本模块）。
+    核验：镜头 globe、帧中心 == backdrop_center(number)、Σ 一致。"""
     from PIL import Image
     cfg = json.loads((DATA / f"pose_to_sky_backdrop.col_{number}.lumice.json").read_text())
     render = cfg["render"][0]
     image = np.asarray(Image.open(DATA / "pose_to_sky_backdrop" / f"col_{number}" / "img_01.png").convert("RGB"))
     assert image.shape[:2] == tuple(render["resolution"][::-1])
-    z = view_direction(render["view"])
-    center = "sun" if np.linalg.norm(z - SUN) < 1e-6 else "anthelic"
-    assert center == "sun" or np.linalg.norm(z - ANTHELIC) < 1e-6, "底图视场中心必须是太阳或反日点"
+    assert render["lens"]["type"] == "globe", "底图必须是 globe 球面外视（R2-3）"
+    assert np.linalg.norm(frame_center(render) - backdrop_center(number)) < 1e-6, "底图帧中心必须是 backdrop_center 的规则值"
     assert abs(cfg["scene"]["light_source"]["altitude"] - SUN_ELEVATION_DEG) < 1e-9
-    return Backdrop(image, render, center)
+    return Backdrop(image, render, number)
 
 
-BACKDROPS = {n: load_backdrop(n) for n in ROWS}
-SKY_LIMITS = {n: ((0, b.size[0]), (b.size[1], 0)) for n, b in BACKDROPS.items()}   # 像素坐标，y 向下
+def sky_limits(number: int) -> tuple[tuple[int, int], tuple[int, int]]:
+    """右栏 axes 的 xlim / ylim（像素坐标，y 向下）。"""
+    w, h = backdrop(number).size
+    return (0, w), (h, 0)
 
 
 def sample_marker(k: int, size: float = 9.0) -> MarkerStyle:
@@ -212,14 +326,13 @@ def draw_samples_on_attitude(ax, samples, *, trail: np.ndarray | None = None) ->
 
 
 def build_sky_axes(ax, number: int) -> None:
-    """右栏常驻：Lumice 底图（像素坐标 imshow）+ 视场中心标记（太阳 / 反日点）+（上行）整条公式特里克尔弧。"""
-    b = BACKDROPS[number]
+    """右栏常驻：Lumice globe 底图（像素坐标 imshow）+ 参考点标记（反日点 / 太阳）+（上行）整条公式特里克尔弧。"""
+    b = backdrop(number)
     w, h = b.size
     ax.imshow(b.image, extent=(0, w, h, 0), interpolation="bilinear", zorder=0)
-    p = SUN if b.center == "sun" else ANTHELIC
-    xy = b.project(p)[0]
+    xy = b.project(b.reference)[0]
     ax.plot([xy[0]], [xy[1]], zorder=8, **PRESET.marker_kwargs(BACKDROP_MARK))
-    ax.text(xy[0] + 0.012 * w, xy[1] - 0.012 * h, "太阳" if b.center == "sun" else "反日点", ha="left", va="bottom",
+    ax.text(xy[0] + 0.012 * w, xy[1] - 0.012 * h, b.reference_name, ha="left", va="bottom",
             zorder=Z_TEXT, **PRESET.text_kwargs(BACKDROP_TEXT))
     if number == 3:
         uv = b.project(TRICKER.CURVE)                       # 视线背后的点是 NaN，折线自然断开
@@ -228,7 +341,7 @@ def build_sky_axes(ax, number: int) -> None:
 
 def draw_sky_samples(ax, number: int, points, *, stacked: bool, trail: np.ndarray | None = None) -> list:
     """右栏样本点：``stacked=True``（上行：三点重合）画成三色同心环（大到小），否则各画一点；``trail`` 画轨迹（gif）。"""
-    b = BACKDROPS[number]
+    b = backdrop(number)
     artists = []
     if trail is not None and len(trail) > 1:
         uv = b.project(trail)
@@ -264,7 +377,7 @@ def exit_end_xy(number: int, path) -> np.ndarray:
 
 def sky_xy(number: int, p) -> np.ndarray:
     """天空方向在该行底图上的像素坐标（引线终点）。"""
-    return BACKDROPS[number].project(p)[0]
+    return backdrop(number).project(p)[0]
 
 
 # ---- 一行（静态图） ----------------------------------------------------------------------
@@ -294,13 +407,25 @@ def compute_row(number: int) -> RowData:
 ROW_DATA = {n: compute_row(n) for n in ROWS}
 
 
-def _row_camera(number: int) -> Camera:
+def scene_points(number: int) -> list[np.ndarray]:
     d = ROW_DATA[number]
-    pts = [c.vertices for c in d.crystals] + [p.points for p in d.paths] + [np.array([[0, 0, 2.2], [0, 0, -2.2]])]
-    return ray_plane_camera(D_IN, [-p for p in d.sky_points], CAMERA_TILT_DEG[number], pts)
+    return [c.vertices for c in d.crystals] + [p.points for p in d.paths] + [np.array([[0, 0, 2.2], [0, 0, -2.2]])]
 
 
-CAMERAS_3D = {n: _row_camera(n) for n in ROWS}
+def _row_camera(number: int) -> tuple[Camera, dict]:
+    return search_camera(ROW_DATA[number].paths, scene_points(number))
+
+
+_CAMS = {n: _row_camera(n) for n in ROWS}
+CAMERAS_3D = {n: c for n, (c, _) in _CAMS.items()}
+CAMERA_SEARCH = {n: info for n, (_, info) in _CAMS.items()}
+# 搜索结果记录（2026-09-13，5° 粗扫 + 1° 细扫）：(方位角°, 仰角°, 约束下最优正对度, 无约束最优正对度)——脚本导入时与实时搜索核对。
+# #2 行约束 / 无约束 = 0.905：无约束最优处三条出射的画面水平分量异号，镜像相机也救不回来，「出射朝右」是真实代价
+CAMERA_SEARCH_RECORD = {3: (272.0, -11.0, 1.0, 1.0), 2: (219.0, -57.0, 0.721, 0.797)}
+for _n, _rec in CAMERA_SEARCH_RECORD.items():
+    _got = (CAMERA_SEARCH[_n]["azimuth"], CAMERA_SEARCH[_n]["elevation"], round(CAMERA_SEARCH[_n]["value"], 3),
+            round(CAMERA_SEARCH[_n]["unconstrained"], 3))
+    assert _got == _rec, f"相机搜索结果变了：#{_n} {_got} != 记录 {_rec}（更新 CAMERA_SEARCH_RECORD 与顶注）"
 # 中栏取景：该行三枚晶体 + 三条光路（含晶体外 1.2 的入射 / 出射段）一起包进画面，三格共用同一比例尺
 CRYSTAL_LIMITS = {n: frame(CAMERAS_3D[n], [c.vertices for c in ROW_DATA[n].crystals] + [p.points for p in ROW_DATA[n].paths],
                            570, 330, margin=0.04) for n in ROWS}
@@ -333,7 +458,7 @@ def render_row(fig, y0: float, h: float, number: int) -> dict:
         draw_crystal_panel(ax, number, k, data.crystals[k], data.paths[k])
     build_sky_axes(ax_sky, number)
     draw_sky_samples(ax_sky, number, data.sky_points, stacked=(number == 3))
-    finish(ax_sky, *SKY_LIMITS[number])
+    finish(ax_sky, *sky_limits(number))
     ax_sky.set_title(ROWS[number].title, **PRESET.text_kwargs("panel_title"), math_fontfamily="cm", loc="right")
     connectors = []
     for k, ax in zip(order, mids):

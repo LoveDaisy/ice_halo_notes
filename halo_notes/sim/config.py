@@ -109,6 +109,35 @@ def raypath_filter(id: int, raypath: Sequence[int], symmetry: str = "", *, actio
     return {"id": id, "type": "raypath", "raypath": [int(f) for f in raypath], "symmetry": symmetry, "action": action}
 
 
+def complex_filter(id: int, composition: Sequence[int | Sequence[int]], symmetry: str = "", *,
+                   action: str = "filter_in") -> dict[str, Any]:
+    """复合过滤器：``composition`` 顶层列表 = OR，元素是一个子过滤器 id 或一组 id（AND）——doc §filter 6 的
+    ``[1, [2, 6], 5]``（sum-of-products，OR 子句上限 4096）。
+
+    **``symmetry`` 写在复合过滤器上**：v4.5.1 ``filter_spec.cpp::ComplexSpec`` 用复合过滤器自己的 symmetry 构造全部
+    子过滤器，子过滤器 JSON 里的 symmetry 在组合时不生效（只在它被单独引用时生效）。"""
+    bad = set(symmetry) - set("PBD")
+    if bad:
+        raise ValueError(f"symmetry 只能由 P/B/D 组成，收到 {symmetry!r}")
+    comp: list[Any] = []
+    for c in composition:
+        if isinstance(c, (list, tuple)):
+            comp.append([int(i) for i in c])
+        else:
+            comp.append(int(c))
+    if not comp:
+        raise ValueError("composition 不能为空")
+    return {"id": id, "type": "complex", "composition": comp, "symmetry": symmetry, "action": action}
+
+
+def composition_ids(flt: Mapping[str, Any]) -> set[int]:
+    """复合过滤器引用的全部子过滤器 id（非复合过滤器返回空集）。"""
+    out: set[int] = set()
+    for c in flt.get("composition", []) if flt.get("type") == "complex" else []:
+        out.update(c if isinstance(c, list) else [c])
+    return out
+
+
 # ---------- scene ----------
 
 
@@ -285,6 +314,12 @@ def build_config(
         for fid in r.get("filter", []):
             if fid not in filter_ids:
                 raise ValueError(f"render {r['id']} 引用了不存在的 filter id {fid}")
+    for f in filters:
+        for fid in composition_ids(f):
+            if fid not in filter_ids:
+                raise ValueError(f"complex filter {f['id']} 引用了不存在的 filter id {fid}")
+            if f["id"] == fid or filters[[x["id"] for x in filters].index(fid)]["type"] == "complex":
+                raise ValueError(f"complex filter {f['id']} 的子过滤器 {fid} 必须是非复合过滤器（v4.5.1 只展开一层）")
     return {
         "crystal": [dict(c) for c in crystals],
         "filter": [dict(f) for f in filters],

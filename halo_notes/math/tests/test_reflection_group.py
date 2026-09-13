@@ -136,3 +136,74 @@ def test_latex_and_lookup():
     assert rg.by_number(3).latex == r"$b\,R_z(-120^\circ)$" and rg.by_number(2).latex == r"$S_{90^\circ}$"
     with pytest.raises(KeyError):
         rg.identify(rg.Rz(60.0))
+
+
+# ---- 类光路枚举（R2-1）：代表序列镜面积 ∈ 目标类；完备性——长度 ≤ L 的全部合格序列都被某个代表的 PBD 轨道覆盖 ----
+
+
+def _brute_force(number: int, max_len: int) -> set[tuple[int, ...]]:
+    """独立于 DFS 的暴力枚举（itertools.product），作为 raypaths_of_class 的对照。"""
+    import itertools
+    targets = {rg.key(rg.MATRICES[n]) for n in rg.class_of(number)}
+    out = set()
+    for L in range(1, max_len + 1):
+        for s in itertools.product(range(1, 9), repeat=L):
+            if any(s[i] == s[i + 1] for i in range(L - 1)):
+                continue
+            if rg.key(rg.path_matrix(s)) in targets and rg.refraction_cancels(s):
+                out.add(s)
+    return out
+
+
+def test_refraction_cancels_is_the_parallel_raypath_criterion():
+    """ch3 笔记的 29 条典型光路全部满足 n_out = −M n_in；其中 11 条首尾面并不字面平行（如 #3 的 3-1-5-7-4），
+    字面「首尾面平行」会漏掉它们；反例：3-4-3（M = S_4 把 n_3 搬到 n_5）不合格。"""
+    literal = 0
+    for e in rg.ELEMENTS:
+        for p in e.representative_paths:
+            assert rg.refraction_cancels(p), (e.number, p)
+            literal += abs(rg.NORMALS[p[0]] @ rg.NORMALS[p[-1]]) > 0.999
+    assert literal == 29 - 11
+    assert not rg.refraction_cancels((3, 4, 3)) and not rg.refraction_cancels((1, 3, 1))
+    assert rg.refraction_cancels((3, 4, 5)) and rg.refraction_cancels((3, 1, 5, 7, 4))
+
+
+@pytest.mark.parametrize("number", [3, 2, 11])
+def test_raypaths_of_class_match_brute_force_and_representatives_realise_the_class(number):
+    """(a) 每条代表序列：长度 ≤ 6、相邻面不同、折射抵消、镜面积 ∈ 目标共轭类；DFS 枚举 == 暴力枚举（长度 ≤ 4 全量对照）。"""
+    cls = set(rg.class_of(number))
+    seqs = rg.raypaths_of_class(number)
+    assert set(rg.raypaths_of_class(number, 4)) == _brute_force(number, 4)
+    reps = rg.representatives_under_pbd(seqs)
+    assert 0 < len(reps) < len(seqs)
+    for s in reps:
+        assert 1 <= len(s) <= 6 and all(a != b for a, b in zip(s, s[1:]))
+        assert rg.refraction_cancels(s)
+        assert rg.identify(rg.path_matrix(s)).number in cls, (number, s)
+    for p in rg.by_number(number).representative_paths:                      # ch3 的典型光路都在枚举里
+        assert p in seqs
+
+
+@pytest.mark.parametrize("number", [3, 2, 11])
+def test_pbd_orbits_of_representatives_cover_the_class_exactly_once(number):
+    """(b) 完备性：全部合格序列 == 各代表 PBD 轨道（`math.group.apply_path` + 上下互换）的并；轨道两两不交（无冗余代表）。"""
+    seqs = set(rg.raypaths_of_class(number))
+    reps = rg.representatives_under_pbd(seqs)
+    covered: set[tuple[int, ...]] = set()
+    for r in reps:
+        orbit = set()
+        for g in D6.elements():
+            im = tuple(D6.apply_path(g, r))
+            orbit.add(im)
+            orbit.add(tuple({1: 2, 2: 1}.get(f, f) for f in im))
+        assert orbit == rg.pbd_orbit(r)
+        assert orbit <= seqs, (number, r)                                    # 轨道不跑出类外
+        assert not (orbit & covered), (number, r)                            # 轨道互不相交
+        covered |= orbit
+    assert covered == seqs                                                   # 少一个代表这里就红
+
+
+def test_class_sizes_are_stable():
+    """枚举规模（长度 ≤ 6）：#3 类 864 条 / 36 代表，#2 类 1278 / 88，#11 类 330 / 22——改动枚举规则时这里先响。"""
+    assert {n: (len(rg.raypaths_of_class(n)), len(rg.representatives_under_pbd(rg.raypaths_of_class(n))))
+            for n in (3, 2, 11)} == {3: (864, 36), 2: (1278, 88), 11: (330, 22)}
