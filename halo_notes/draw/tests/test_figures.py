@@ -42,6 +42,7 @@ from halo_notes.draw.raypath import EventKind, RayEvent, RayPath, face_sequence,
 ROOT = Path(__file__).resolve().parents[3]
 CH1, CH2, CH3 = "01-symmetry/code", "02-raypath-enumeration/code", "03-parallel-raypaths/code"
 CH4, CH5, CH6 = "04-render-equation/code", "05-rotation-3d/code", "06-monte-carlo-vs-integration/code"
+CH7 = "07-reflection-group/code"
 
 # 图 → 脚本；每个脚本头部自己声明 ``PATHS = {名字: 面序列}``，测试从脚本命名空间读取，不另存一份映射
 #（没有光路的图声明空字典：测试断言它确实一条光路都没画）
@@ -66,6 +67,10 @@ FIGURES = {
     "5.1": f"{CH5}/fig_ch5_interp.py",
     "6.1": f"{CH6}/fig_crystal_pose.py",
     "6.2": f"{CH6}/fig_trace.py",
+    "7.1": f"{CH7}/fig_four_mirrors.py",
+    "7.2": f"{CH7}/fig_two_mirrors_120.py",
+    "7.3": f"{CH7}/fig_grid_6x2.py",
+    "7.4": f"{CH7}/fig_conjugate_rot90.py",
 }
 
 
@@ -83,6 +88,12 @@ class Capture:
         self.cameras: list[object] = []                                   # 每次 render_crystal 传入的相机
         self.arcs: list[tuple[object, np.ndarray, float, str]] = []      # (ax, 轴, 张角, 语义)
         self.arrows: list[tuple[object, np.ndarray, np.ndarray]] = []    # (ax, 起点, 方向)
+        self.planes: list[tuple[object, Polyhedron, int, np.ndarray]] = []   # (ax, 晶体, 面号, 平面四顶点)：draw_highlight_plane
+        self.flip_axes: list[tuple[object, np.ndarray, np.ndarray]] = []     # (ax, 过点, 方向)：scene2d.draw_flip_axis
+        self.arcs2d: list[tuple[object, np.ndarray, float, float]] = []      # (ax, 圆心, 起角, 止角)：scene2d.draw_rotation_arc
+        self.flip_markers: list[tuple[object, np.ndarray]] = []               # (ax, 中心)：scene2d.draw_flip_marker
+        self.connectors: list[object] = []                                    # scene2d.draw_connector 返回的 ConnectionPatch
+        self.axes2d: list[object] = []                                        # 每次 render_section 画在哪个 ax（与 bodies 同序，仅 2D）
 
 
 def install_spies(cap: Capture, monkeypatch) -> None:
@@ -102,6 +113,7 @@ def install_spies(cap: Capture, monkeypatch) -> None:
 
     def spy_render2d(ax, poly, raypaths=None, **kw):
         cap.bodies.append(poly)
+        cap.axes2d.append(ax)
         return real_render2d(ax, poly, raypaths, **kw)
 
     def spy_draw2d(ax, path, **kw):
@@ -128,6 +140,40 @@ def install_spies(cap: Capture, monkeypatch) -> None:
     for mod in (scene, draw):
         monkeypatch.setattr(mod, "draw_rotation_arc_3d", spy_arc)
         monkeypatch.setattr(mod, "draw_axis_arrow", spy_arrow)
+    real_plane = scene.draw_highlight_plane
+
+    def spy_plane(ax, crystal, face_number, **kw):
+        quad = real_plane(ax, crystal, face_number, **kw)
+        cap.planes.append((ax, crystal, int(face_number), quad))
+        return quad
+
+    real_flip_axis, real_arc2d = scene2d.draw_flip_axis, scene2d.draw_rotation_arc
+    real_flip_marker, real_connector = scene2d.draw_flip_marker, scene2d.draw_connector
+
+    def spy_flip_axis(ax, point, direction, half_length, **kw):
+        cap.flip_axes.append((ax, np.asarray(point, float), unit(direction)))
+        return real_flip_axis(ax, point, direction, half_length, **kw)
+
+    def spy_arc2d(ax, center, radius, start_deg, end_deg, **kw):
+        cap.arcs2d.append((ax, np.asarray(center, float), float(start_deg), float(end_deg)))
+        return real_arc2d(ax, center, radius, start_deg, end_deg, **kw)
+
+    def spy_flip_marker(ax, point, **kw):
+        cap.flip_markers.append((ax, np.asarray(point, float)))
+        return real_flip_marker(ax, point, **kw)
+
+    def spy_connector(ax_a, xy_a, ax_b, xy_b, **kw):
+        patch = real_connector(ax_a, xy_a, ax_b, xy_b, **kw)
+        cap.connectors.append(patch)
+        return patch
+
+    for mod in (scene, draw):
+        monkeypatch.setattr(mod, "draw_highlight_plane", spy_plane)
+    for mod in (scene2d, draw):
+        monkeypatch.setattr(mod, "draw_flip_axis", spy_flip_axis)
+        monkeypatch.setattr(mod, "draw_rotation_arc", spy_arc2d)
+        monkeypatch.setattr(mod, "draw_flip_marker", spy_flip_marker)
+        monkeypatch.setattr(mod, "draw_connector", spy_connector)
     for name in SPHERE_RENDERERS:
         real = getattr(sphere, name)
 
@@ -439,3 +485,142 @@ def test_6_1_pose_clouds_match_their_main_axes(monkeypatch):
     assert all(((az >= lo) & (az < lo + 90)).mean() > 0.2 for lo in (-180, -90, 0, 90))   # 方位均匀
     assert abs(zenith(np.asarray(axes_["column"])[None, :])[0] - 90.0) < 1e-9             # 主轴在赤道面内
     assert abs(zenith(np.asarray(axes_["plate"])[None, :])[0]) < 1e-9
+
+
+# ---- ch7（task-draw-ch7-figs）：逐图语义单测，判据来自 issue「机械核验」列 -------------------------------
+
+def _normal_permutation(M: np.ndarray) -> dict[int, int]:
+    """矩阵 M 作用在侧面法向上诱导的置换 ``{原位置上的面号: 现在落在该位置的面号}``（与 symmetry.face_permutation 同一约定）。"""
+    from halo_notes.math import reflection_group as rg
+    out = {}
+    for k in range(3, 9):
+        target = int(np.argmin([np.linalg.norm(M @ rg.NORMALS[k] - rg.NORMALS[j]) for j in range(3, 9)])) + 3
+        out[target] = k
+    return out
+
+
+def test_7_1_four_mirrors_axes_are_the_three_side_mirrors(monkeypatch):
+    """三条反射轴两两夹 60°；每条轴 ⟂ 它标注的一对相对面的法向；轴的翻转置换 == reflection_group 里对应 S_φ 矩阵作用在面上的置换
+    （从 CrossSection 反推，不硬编码）；侧视 inset 画了面 1/2 上下、3/6 左右的矩形 + 一条水平的底面镜轴。"""
+    from halo_notes.math import reflection_group as rg
+    cap, ns = run_figure(FIGURES["7.1"], monkeypatch)
+    section = ns["SECTION"]
+    mirrors = ns["MIRRORS"]
+    assert len(mirrors) == 3 and {xy for xy, _, _ in mirrors} == {"s90", "s30", "s-30"}
+    dirs = {xy: axis.direction(section) for xy, _, axis in mirrors}
+    for a, b in [("s90", "s30"), ("s30", "s-30"), ("s90", "s-30")]:
+        assert abs(abs(dirs[a] @ dirs[b]) - 0.5) < 1e-9           # 夹角 60°（或 120°，同一条线）
+    for xy, (fa, fb), axis in mirrors:
+        d = dirs[xy]
+        assert fb - fa == 3 and (fa, fb) == rg.MIRROR_FACES[xy]
+        for k in (fa, fb):
+            assert abs(d @ section.normal(section.face(k))) < 1e-9   # 轴 ⟂ 该对面的法向（公共垂线）
+        perm = draw.face_permutation(section, draw.flip(section, axis))
+        assert perm == _normal_permutation(rg.XY_MATRIX[xy]), xy
+        assert perm[fa] == fb and perm[fb] == fa                        # 这面镜子把这对面的法向对调（n ↦ −n）
+    # 画出的三条轴方向就是上面的三条（主图），外加 inset 里一条水平轴（底面镜）
+    main_ax, inset_ax = cap.axes2d[0], cap.axes2d[1]
+    main_dirs = [d for ax, p, d in cap.flip_axes if ax is main_ax and np.allclose(p, section.centroid())]
+    assert len(main_dirs) == 3 and all(any(abs(abs(d @ v) - 1) < 1e-9 for v in dirs.values()) for d in main_dirs)
+    inset = [d for ax, _, d in cap.flip_axes if ax is inset_ax]
+    assert len(inset) == 1 and _same_direction(inset[0], [1, 0])
+    rect = [b for b in cap.bodies if {f.number for f in b.faces} == {1, 2, 3, 6}]
+    assert len(rect) == 1
+    assert _same_direction(rect[0].normal(rect[0].face(1)), [0, 1]) and _same_direction(rect[0].normal(rect[0].face(3)), [1, 0])
+
+
+def test_7_2_two_adjacent_mirrors_turn_the_ray_by_120(monkeypatch):
+    """追迹光路 1-3-4-2：入射 / 出射方向的水平方位差 == ±120°（< 1e-9），弧的轴 = z、张角 = 该转角；两反射面 4、3 法向夹 60°；
+    对比线 sketch=True、方向 = 入射水平方向只转 60°、不在 PATHS 里；正俯视（正交、视线沿 z）。"""
+    cap, ns = run_figure(FIGURES["7.2"], monkeypatch)
+    path, crystal = ns["PATH"], ns["CRYSTAL"]
+    assert face_sequence(path) == [1, 3, 4, 2] and list(ns["PATHS"].values()) == [[1, 3, 4, 2]]
+    d_in, d_out = unit(path.points[1] - path.points[0]), unit(path.points[-1] - path.points[-2])
+    h_in, h_out = unit([d_in[0], d_in[1], 0]), unit([d_out[0], d_out[1], 0])
+    rot = ns["ROTATION_DEG"]
+    assert abs(abs(rot) - 120.0) < 1e-9
+    assert _same_direction(draw.rotation((0, 0, 1), rot) @ h_in, h_out)      # 水平方向确实转了 rot
+    assert abs(abs(d_in[2]) - abs(d_out[2])) < 1e-9                          # 首尾面平行：竖直分量只变号
+    n3, n4 = crystal.normal(crystal.face(3)), crystal.normal(crystal.face(4))
+    assert abs(np.degrees(np.arccos(n3 @ n4)) - 60.0) < 1e-9
+    assert len(cap.arcs) == 1
+    _, axis, angle, sem = cap.arcs[0]
+    assert _same_direction(axis, [0, 0, 1]) and abs(angle - rot) < 1e-9 and sem == "arc_azimuth"
+    sketches = [p for p, _ in cap.paths if p.sketch]
+    assert len(sketches) == 1 and not sketches[0].events
+    d_c = unit(sketches[0].points[-1] - sketches[0].points[0])
+    assert _same_direction(draw.rotation((0, 0, 1), np.sign(rot) * 60.0) @ h_in, unit([d_c[0], d_c[1], 0]))
+    assert np.allclose(sketches[0].points[0], path.points[-2])               # 从出射点画起
+    cam = ns["CAMERA"]
+    assert cam.projection == "orthographic" and _same_direction(cam.view_dir, [0, 0, 1])
+    assert _same_direction(cam.right, [1, 0, 0]) and _same_direction(cam.cam_up, [0, 1, 0])
+
+
+def test_7_3_grid_cells_are_the_twelve_elements(monkeypatch):
+    """每格 (列符号, 行符号) 合成矩阵 == 权威表里该编号的矩阵（< 1e-12），12 格编号恰为 1–12 各一次；格内截面的面编号置换 ==
+    该 xy 操作作用在面上的置换；格下晕名 == 该编号发表类型的晕名（查权威表）；列序 = 正文第 92 行；下行格各画一个翻转标记；
+    旋转列画弧（张角 ±120° / 0）、反射列画轴（方向 = 该 S_φ 的不变线）。"""
+    from halo_notes.math import reflection_group as rg
+    cap, ns = run_figure(FIGURES["7.3"], monkeypatch)
+    cells, base = ns["CELLS"], ns["BASE"]
+    assert tuple(ns["COLUMNS"]) == ("e", "r+", "r-", "s90", "s30", "s-30") and tuple(ns["ROWS"]) == (1, -1)
+    assert [(c["xy"], c["z"]) for c in cells] == [(xy, z) for z in ns["ROWS"] for xy in ns["COLUMNS"]]
+    numbers = []
+    for c in cells:
+        Mz = np.diag([1.0, 1.0, float(c["z"])])
+        M = Mz @ rg.XY_MATRIX[c["xy"]]
+        e = c["element"]
+        assert np.abs(M - rg.MATRICES[e.number]).max() < 1e-12
+        assert rg.identify(M).number == e.number
+        numbers.append(e.number)
+        assert draw.face_permutation(base, c["section"]) == _normal_permutation(rg.XY_MATRIX[c["xy"]]), c["xy"]
+        col, plate = rg.HALO_NAMES[rg.PUBLISHED[e.number]]
+        assert c["title"].splitlines() == [f"#{e.number}", f"柱晶：{col}", f"片晶：{plate}"]
+    assert sorted(numbers) == list(range(1, 13))
+    # 正文第 94 行：#11 在 e 列下行，#2 在 S_90 列上行
+    assert cells[6]["element"].number == 11 and cells[3]["element"].number == 2
+    assert len(cap.bodies) == 12 and len(cap.flip_markers) == 6 and len(cap.arcs2d) == 6 and len(cap.flip_axes) == 6
+    axes_by_cell = {id(b_ax): i for i, b_ax in enumerate(cap.axes2d)}   # 第 i 个截面画在第 i 格
+    assert len(axes_by_cell) == 12
+    for ax, _, s, e_ in cap.arcs2d:
+        i = axes_by_cell[id(ax)]
+        step = {"e": 0, "r+": 120.0, "r-": -120.0}[cells[i]["xy"]]
+        assert abs((e_ - s) - step) < 1e-9
+    for ax, p, d in cap.flip_axes:
+        i = axes_by_cell[id(ax)]
+        xy = cells[i]["xy"]
+        phi = {"s90": 90.0, "s30": 30.0, "s-30": -30.0}[xy]
+        assert abs(abs(d @ [np.cos(np.radians(phi)), np.sin(np.radians(phi))]) - 1) < 1e-9, xy   # 轴 = S_φ 的不变线
+    marker_cells = {axes_by_cell[id(ax)] for ax, _ in cap.flip_markers}
+    assert marker_cells == {i for i, c in enumerate(cells) if c["z"] < 0}
+
+
+def test_7_4_rot90_moves_side_mirror_to_basal_but_is_no_symmetry(monkeypatch):
+    """右栏晶体 = R_y(90°) 作用于左栏晶体；R_y(90°)·n_3 = ±e_z（< 1e-12）；转后面法向集合 ≠ 转前；弧的轴 = y、张角 = 90°；
+    两栏同一相机实例；变体 b 的平面：法向 ∥ 面 3 法向、中心在晶体质心（左栏竖直、右栏水平）；变体 a 不画平面。"""
+    cap, ns = run_figure(FIGURES["7.4"], monkeypatch)
+    crystal, turned, R = ns["CRYSTAL"], ns["TURNED"], ns["R"]
+    assert np.abs(R - draw.rotation((0, 1, 0), 90.0)).max() < 1e-12
+    assert np.allclose(turned.vertices, crystal.vertices @ R.T)
+    n3 = crystal.normal(crystal.face(3))
+    assert np.linalg.norm(np.abs(R @ n3) - [0, 0, 1]) < 1e-12
+    before = {tuple(np.round(crystal.normal(f), 6)) for f in crystal.faces}
+    after = {tuple(np.round(turned.normal(f), 6)) for f in turned.faces}
+    assert before != after
+    # 两个变体各渲染 3 个实体（左晶体、右幽灵、右转后晶体），且右栏实体的顶点 == R·左栏
+    assert len(cap.bodies) == 6
+    for k in (0, 3):
+        assert np.allclose(cap.bodies[k].vertices, crystal.vertices)
+        assert np.allclose(cap.bodies[k + 1].vertices, crystal.vertices)          # 幽灵 = 原直立晶体
+        assert np.allclose(cap.bodies[k + 2].vertices, crystal.vertices @ R.T)
+    assert all(c is cap.cameras[0] for c in cap.cameras[:3]) and all(c is cap.cameras[3] for c in cap.cameras[3:])
+    assert len(cap.arcs) == 2
+    for _, axis, angle, sem in cap.arcs:
+        assert _same_direction(axis, [0, 1, 0]) and np.isclose(angle, 90.0) and sem == "arc_tilt"
+    assert len(cap.planes) == 2                                                   # 只有变体 b 画平面：左右各一
+    for (_, body, face_number, quad), expect_n in zip(cap.planes, ([1, 0, 0], [0, 0, -1])):
+        assert face_number == 3
+        qn = np.cross(quad[1] - quad[0], quad[3] - quad[0])
+        assert abs(abs(qn @ body.normal(body.face(3))) - np.linalg.norm(qn)) < 1e-9
+        assert _same_direction(body.normal(body.face(3)), expect_n)
+        assert np.allclose(quad.mean(axis=0), body.centroid())

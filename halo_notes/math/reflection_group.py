@@ -91,8 +91,8 @@ XY_MATRIX: dict[str, np.ndarray] = {
     "s90": sxy(90.0), "s30": sxy(30.0), "s-30": sxy(-30.0),
 }
 XY_LATEX: dict[str, str] = {
-    "e": r"$e$", "r+": r"$R_z(+120°)$", "r-": r"$R_z(-120°)$",
-    "s90": r"$S_{90°}$", "s30": r"$S_{30°}$", "s-30": r"$S_{-30°}$",
+    "e": r"$e$", "r+": r"$R_z(+120^\circ)$", "r-": r"$R_z(-120^\circ)$",
+    "s90": r"$S_{90^\circ}$", "s30": r"$S_{30^\circ}$", "s-30": r"$S_{-30^\circ}$",
 }
 # 反射的不变线（方位角）与它代表的一对相对侧面：不变线 = 面法向方位角 + 90°
 MIRROR_FACES: dict[str, tuple[int, int]] = {"s90": (3, 6), "s30": (5, 8), "s-30": (4, 7)}
@@ -137,7 +137,7 @@ class Element:
 
     @property
     def latex(self) -> str:
-        """mathtext：$xy$ 符号，$z=-1$ 时前面加 $b$（如 ``$b\\,R_z(-120°)$``）。"""
+        """mathtext：$xy$ 符号，$z=-1$ 时前面加 $b$（如 ``$b\\,R_z(-120^\\circ)$``；度号用 ``^\\circ``，Computer Modern 没有「°」字形）。"""
         xy = XY_LATEX[self.xy]
         return xy if self.z_sign > 0 else "$b\\," + xy[1:]
 

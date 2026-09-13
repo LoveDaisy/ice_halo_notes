@@ -133,6 +133,6 @@ def test_d6_images_of_representative_paths_cover_exactly_the_conjugacy_class(e):
 
 def test_latex_and_lookup():
     assert rg.by_xy_z("e", -1).number == 11 and rg.by_xy_z("s90", +1).number == 2
-    assert rg.by_number(3).latex == r"$b\,R_z(-120°)$" and rg.by_number(2).latex == r"$S_{90°}$"
+    assert rg.by_number(3).latex == r"$b\,R_z(-120^\circ)$" and rg.by_number(2).latex == r"$S_{90^\circ}$"
     with pytest.raises(KeyError):
         rg.identify(rg.Rz(60.0))
