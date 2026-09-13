@@ -156,14 +156,15 @@ def _brute_force(number: int, max_len: int) -> set[tuple[int, ...]]:
 
 
 def test_refraction_cancels_is_the_parallel_raypath_criterion():
-    """ch3 笔记的 29 条典型光路全部满足 n_out = −M n_in；其中 11 条首尾面并不字面平行（如 #3 的 3-1-5-7-4），
+    """ch3 笔记的 28 条典型光路全部满足 n_out = −M n_in；其中 10 条首尾面并不字面平行（如 #3 的 3-1-5-7-4），
     字面「首尾面平行」会漏掉它们；反例：3-4-3（M = S_4 把 n_3 搬到 n_5）不合格。"""
     literal = 0
     for e in rg.ELEMENTS:
         for p in e.representative_paths:
             assert rg.refraction_cancels(p), (e.number, p)
             literal += abs(rg.NORMALS[p[0]] @ rg.NORMALS[p[-1]]) > 0.999
-    assert literal == 29 - 11
+    assert literal == 28 - 10
+    assert sum(len(e.representative_paths) for e in rg.ELEMENTS) == 28
     assert not rg.refraction_cancels((3, 4, 3)) and not rg.refraction_cancels((1, 3, 1))
     assert rg.refraction_cancels((3, 4, 5)) and rg.refraction_cancels((3, 1, 5, 7, 4))
 
