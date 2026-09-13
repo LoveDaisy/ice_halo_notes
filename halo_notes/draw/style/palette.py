@@ -65,8 +65,7 @@ DEFAULT_LIGHT = Palette("default_light", {
     "cloud": "#555555",
     "sphere_curve": "#5E81B5",
     "cone": "#BFBFBF",
-    # ch7：镜面平面轮廓（比高亮黄深一档）、姿态样本三色（避开入射红 / 出射蓝：紫 / 橙 / 青）
-    "mirror_edge": "#C9A93A",
+    # ch7：姿态样本三色（避开入射红 / 出射蓝：紫 / 橙 / 青）
     "sample_1": "#8E44AD",
     "sample_2": "#E67E22",
     "sample_3": "#16A085",

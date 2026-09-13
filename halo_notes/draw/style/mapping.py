@@ -107,10 +107,8 @@ class SemanticStyleMap:
     pose_cloud_hidden: MarkerStyle = MarkerStyle("cloud", size=0.9, alpha=0.35)
     cone_surface: FillStyle = FillStyle("cone", alpha=0.35)                 # 3.6 锥面淡填充
     cone_edge: LineStyle = LineStyle("grid", linewidth=0.4)                 # 3.6 锥面网格线
-    # ---- ch7（7.1–7.5）：翻转标记 / 镜面平面 / 跨 axes 引线 / 姿态样本三色：只增不改 ----
+    # ---- ch7（7.1–7.5）：翻转标记 / 跨 axes 引线 / 姿态样本三色：只增不改 ----
     flip_marker: LineStyle = LineStyle("slate", linewidth=1.6)             # 7.3 下行格「z 上下翻转」小标记：一条水平线 + 一支双向竖箭头
-    mirror_plane: FillStyle = FillStyle("highlight", alpha=0.3)            # 7.4 变体 b：穿过晶体、与高亮面平行的半透明镜面平面
-    mirror_plane_edge: LineStyle = LineStyle("mirror_edge", linewidth=0.9)  # 镜面平面的细轮廓
     connector: LineStyle = LineStyle("ink_soft", linewidth=1.0, alpha=0.8)   # 7.5 跨 axes 引线（ConnectionPatch）
     sample_colors: tuple[str, str, str] = ("sample_1", "sample_2", "sample_3")   # 7.5 三个姿态样本的语义色（配色板颜色名）
     sample_marker: MarkerStyle = MarkerStyle("sample_1", size=9.0)          # 样本点模板：颜色按 sample_colors 逐个 replace

@@ -1,7 +1,9 @@
 # 产出 ../img/four_mirrors.png：8 个面只有 4 面镜（正文第 44 行）。主图：六棱柱俯视截面（面编号 3–8，ch3 标准坐标：面 3 法向沿 +x），
 # 三条反射轴穿过中心（$S_{90°}$ / $S_{30°}$ / $S_{-30°}$，点划线同 1.6 的翻转轴），每条轴标出它代表的**一对**相对侧面
-#（3/6、5/8、4/7：法向相反的两面是同一面镜），三轴互夹 60°（标一个 60° 角）；右下 inset：侧视矩形截面（面 1/2 上下、3/6 左右）
-# + 一条水平点划线 = 底面镜，与 c 轴垂直。读者要看出：相对侧面共用一条反射轴；三条侧面镜轴互夹 60°；底面镜单独一面。
+#（3/6、5/8、4/7：法向相反的两面是同一面镜），三轴互夹 60°（标一个 60° 角）；右侧 inset：柱晶（h/a=2）的**侧视**——正交相机
+# 从 −y 方向看（沿 +y 看去），可见面 7 / 8 及二者之间的棱线（编号贴在面上，由 `visible_faces` 推导、不硬编码），面 6 / 3 此时
+# 是左右两条边缘线（引线标注），面 1 / 2 在上下；一条水平点划线 = 底面镜，与 c 轴垂直。
+# 读者要看出：相对侧面共用一条反射轴；三条侧面镜轴互夹 60°；底面镜单独一面。
 # 轴与面对的对应不手填：$S_\phi$ 的不变线 = 该面法向方位角 + 90°，落在过顶点的轴上（plan 附注推导；test_figures 用
 # face_permutation 与 reflection_group 矩阵互相核验）。
 from pathlib import Path
@@ -11,9 +13,9 @@ import matplotlib
 matplotlib.use("Agg")
 import numpy as np
 
-from halo_notes.draw import (FACE_COLORS, PRESETS, CrossSection, FlipAxis, Polygon2D, annotate_2d, draw_flip_axis,
-                             face_permutation, finish, flip, new_figure, render_section)
-from halo_notes.draw.geometry import Face
+from halo_notes.draw import (FACE_COLORS, PRESETS, Camera, CrossSection, FlipAxis, HexPrism, annotate, annotate_2d,
+                             draw_flip_axis, face_permutation, finish, flip, new_figure, render_crystal, render_section)
+from halo_notes.draw.projection import visible_faces
 from halo_notes.draw.scene2d import Z_TEXT
 from halo_notes.math import reflection_group as rg
 
@@ -31,15 +33,18 @@ MIRRORS = [("s90", (3, 6), FlipAxis.vertex(4, 5)),
            ("s-30", (4, 7), FlipAxis.vertex(5, 6))]
 AXIS_HALF, LABEL_AT = 1.6, 1.95        # 轴的半长、标签（符号 + 面对）沿轴的位置（轴的上半端）
 ANGLE_ARC_R = 1.3                      # 60° 角标的半径（六边形之外、标签之内）
-INSET_BOX = (0.70, 0.27, 0.27, 0.44)   # 右侧 inset（figure 比例）
+INSET_BOX = (0.70, 0.16, 0.27, 0.64)   # 右侧 inset（figure 比例）
 XLIM, YLIM = (-2.5, 4.5), (-1.9, 2.35)
-
-
-def side_view() -> Polygon2D:
-    """侧视矩形截面（从 −y 方向看）：上边面 1、下边面 2、右边面 3、左边面 6；宽 = 六边形对边距 √3，高 = 柱高 1.6。"""
-    w, h = np.sqrt(3) / 2, 0.8
-    v = np.array([[w, -h], [w, h], [-w, h], [-w, -h]])
-    return Polygon2D(v, [Face(3, (0, 1)), Face(1, (1, 2)), Face(6, (2, 3)), Face(2, (3, 0))])
+# inset：柱晶 h/a=2，正交相机从 −y 方向看（view_dir = (0, −1, 0)，画面 x = 世界 x、画面 y = c 轴）。可见面由几何推导：
+# 侧面法向 y 分量 < 0 的面 7（240°）/ 8（300°）朝向观察者，面 3 / 6（法向 ±x）与面 1 / 2（法向 ±z）恰好侧对视线。
+# h/a 取 3：这个视线下柱宽 = √3·a，h/a=2 画出来高宽比只有 1.15、近乎正方形，要「明显是柱」得再高一档（R1-7 的意图）
+INSET_H_RATIO = 3.0
+INSET_CRYSTAL = HexPrism(a=1.0, h=INSET_H_RATIO)
+INSET_PRESET = PRESET.replace(geom=PRESET.geom.replace(face_number_height=0.42))
+INSET_CAMERA = Camera(azimuth=-90.0, elevation=0.0, projection="orthographic")
+INSET_VISIBLE = [f.number for f in visible_faces(INSET_CRYSTAL, INSET_CAMERA)]
+assert INSET_VISIBLE == [7, 8], INSET_VISIBLE
+INSET_LIMITS = ((-2.0, 2.0), (-2.35, 2.95))
 
 
 def main() -> None:
@@ -68,17 +73,23 @@ def main() -> None:
                 ha="center", va="center")
     finish(ax, XLIM, YLIM)
 
-    # inset：侧视 + 底面镜
+    # inset：侧视（3D 正交）+ 底面镜
     ins = fig.add_axes(INSET_BOX)
-    rect = side_view()
-    render_section(ins, rect, preset=PRESET, face_numbers=True)
-    draw_flip_axis(ins, rect.centroid(), (1.0, 0.0), 1.35, preset=PRESET)
-    annotate_2d(ins, "$c$", (0.0, 1.05), preset=PRESET, ha="center", va="bottom", semantic="axis_label")
-    ins.annotate("", xy=(0.0, 1.05), xytext=(0.0, 0.0), zorder=Z_TEXT,
+    cam, cr = INSET_CAMERA, INSET_CRYSTAL
+    render_crystal(ins, cr, camera=cam, preset=INSET_PRESET, face_numbers=INSET_VISIBLE)
+    for k, dx in ((6, -0.6), (3, 0.6)):        # 边缘线上的面：引线从文字指到该面质心
+        annotate(ins, f"面 {k}", cr.centroid(cr.face(k)), (dx, 0.7), camera=cam, preset=PRESET, ha="center",
+                 va="bottom", arrow=True)
+    annotate(ins, "面 1", cr.centroid(cr.face(1)), (-0.15, 0.08), camera=cam, preset=PRESET, ha="right", va="bottom")
+    annotate(ins, "面 2", cr.centroid(cr.face(2)), (0.0, -0.1), camera=cam, preset=PRESET, ha="center", va="top")
+    draw_flip_axis(ins, cam.project_xy(cr.centroid())[0], (1.0, 0.0), 1.75, preset=PRESET)
+    c_top = cam.project_xy(cr.centroid(cr.face(1)))[0]
+    ins.annotate("", xy=(0.0, c_top[1] + 0.55), xytext=(0.0, 0.0), zorder=Z_TEXT,
                  arrowprops=dict(arrowstyle="-|>", color=PRESET.palette["ink"], linewidth=1.0))
-    annotate_2d(ins, "底面镜 ⊥ c 轴", (0.0, -1.18), preset=PRESET, ha="center", va="top")
-    annotate_2d(ins, "侧视", (-1.3, 1.1), preset=PRESET, ha="left", va="bottom", semantic="caption")
-    finish(ins, (-1.5, 1.5), (-1.6, 1.5))
+    annotate_2d(ins, "$c$", (0.12, c_top[1] + 0.5), preset=PRESET, ha="left", va="center", semantic="axis_label")
+    annotate_2d(ins, "底面镜 ⊥ c 轴", (0.0, -c_top[1] - 0.55), preset=PRESET, ha="center", va="top")
+    annotate_2d(ins, "侧视（沿 +y 看去）", (-1.95, 2.9), preset=PRESET, ha="left", va="top", semantic="caption")
+    finish(ins, *INSET_LIMITS)
     fig.savefig(OUT, dpi=DPI, facecolor=fig.get_facecolor())
     print(f"saved {OUT}")
 

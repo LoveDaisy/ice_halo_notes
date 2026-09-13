@@ -9,8 +9,8 @@ from .projection import Camera, face_visible, solve_camera_distance, visible_fac
 from .raypath import (Cone, RayPath, RayPath2D, SegmentKind, aim, face_grid_points, face_sequence, face_toward,
                       parallel_origins, search_raypath, solve_raypath, trace, verify_path)
 from .raypath2d import solve_raypath_2d, unfold_2d
-from .scene import (annotate, draw_axes, draw_axis_arrow, draw_highlight_plane, draw_raypath, draw_rotation_arc_3d,
-                    finish, frame, mirror_plane_quad, new_figure, render_corridor, render_crystal)
+from .scene import (annotate, draw_axes, draw_axis_arrow, draw_raypath, draw_rotation_arc_3d, finish,
+                    frame, new_figure, render_corridor, render_crystal)
 from .scene2d import (annotate_2d, draw_connector, draw_flip_axis, draw_flip_marker, draw_raypath_2d,
                       draw_rotation_arc, draw_wedge_angle, multi_panel, render_medium, render_section)
 from .schematic import SplitTree, split_tree, two_face_medium, wedge_angle, wedge_apex
@@ -24,11 +24,11 @@ __all__ = [
     "Camera", "Cone", "Corridor", "CrossSection", "FACE_COLORS", "Face", "FlipAxis", "HexPrism",
     "PRESETS", "Polygon2D", "Polyhedron", "Preset", "RayPath", "RayPath2D", "SegmentKind", "SplitTree", "Sphere",
     "aim", "animate", "annotate", "annotate_2d", "corridor_faces", "draw_axes", "draw_axis_arrow", "draw_connector",
-    "draw_flip_axis", "draw_flip_marker", "draw_highlight_plane",
+    "draw_flip_axis", "draw_flip_marker",
     "draw_raypath", "draw_raypath_2d", "draw_rotation_arc", "draw_rotation_arc_3d", "draw_wedge_angle",
     "export_frames_png", "face_grid_points", "face_permutation", "face_sequence",
     "face_toward", "face_visible", "finish", "flip", "frame", "graticule", "lerp_euler", "lerp_matrix",
-    "lon_lat_roll_to_matrix", "matrix_to_lon_lat_roll", "mirror_plane_quad", "multi_panel", "new_figure", "parallel_origins",
+    "lon_lat_roll_to_matrix", "matrix_to_lon_lat_roll", "multi_panel", "new_figure", "parallel_origins",
     "reflection2d", "render_cone", "render_corridor", "render_crystal", "render_curve", "search_raypath",
     "render_great_circle", "render_medium", "render_point_cloud", "render_section", "rotate", "rotation", "rotation2d", "rotation_between", "rotation_from_frames",
     "slerp_matrix", "solve_camera_distance", "solve_raypath", "solve_raypath_2d", "split_tree", "straighten",
