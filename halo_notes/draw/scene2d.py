@@ -281,9 +281,11 @@ def draw_connector(ax_a, xy_a: Sequence[float], ax_b, xy_b: Sequence[float], *, 
     （3D 面板给相机投影后的画面坐标），由 ``ConnectionPatch`` 在 figure 层换算——脚本不手填图纸坐标。
     patch 挂在 ``ax_b`` 上并在两个 axes 之上绘制；返回它（``xy1`` / ``xy2`` / ``axesA`` 供单测核对端点）。"""
     kw = preset.line_kwargs(semantic)
+    # annotation_clip=False：ConnectionPatch 默认在 xy_a 落在 ax_a 视野之外时整条不画（如出射光末端在面板取景之外）
     patch = ConnectionPatch(xyA=tuple(xy_a), xyB=tuple(xy_b), coordsA="data", coordsB="data", axesA=ax_a, axesB=ax_b,
                             color=kw["color"], linewidth=kw["linewidth"], linestyle=kw["linestyle"], alpha=kw["alpha"],
                             zorder=Z_TEXT, clip_on=False)
+    patch.set_annotation_clip(False)
     ax_b.add_artist(patch)
     return patch
 

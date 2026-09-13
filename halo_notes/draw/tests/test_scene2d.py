@@ -213,4 +213,7 @@ def test_draw_connector_keeps_data_coordinates_of_both_axes():
     assert np.allclose(verts[0], a_px, atol=1e-6) and np.allclose(verts[-1], b_px, atol=1e-6)
     kw = preset.line_kwargs("connector")
     assert patch.get_edgecolor()[:3] == pytest.approx(matplotlib.colors.to_rgb(kw["color"]))
+    # 起点在 ax_a 视野之外（如出射光末端在面板取景之外）也照画：ConnectionPatch 默认会整条不画
+    outside = draw_connector(ax_a, (-5.0, 3.0), ax_b, (0.0, 0.0), preset=preset)
+    assert outside.get_annotation_clip() is False and outside._check_xy(fig.canvas.get_renderer())
     plt.close(fig)
