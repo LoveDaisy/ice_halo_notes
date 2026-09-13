@@ -88,6 +88,7 @@ class Capture:
         self.spheres: list[str] = []
         self.sphere_calls: list[tuple[str, tuple, dict]] = []           # (函数名, 位置参数, 关键字参数)
         self.cameras: list[object] = []                                   # 每次 render_crystal 传入的相机
+        self.face_numbers: list[object] = []                              # 每次 render_crystal 传入的 face_numbers
         self.arcs: list[tuple[object, np.ndarray, float, str]] = []      # (ax, 轴, 张角, 语义)
         self.arrows: list[tuple[object, np.ndarray, np.ndarray]] = []    # (ax, 起点, 方向)
         self.flip_axes: list[tuple[object, np.ndarray, np.ndarray]] = []     # (ax, 过点, 方向)：scene2d.draw_flip_axis
@@ -105,6 +106,7 @@ def install_spies(cap: Capture, monkeypatch) -> None:
     def spy_render(ax, crystal, raypaths=None, **kw):
         cap.bodies.append(crystal)
         cap.cameras.append(kw.get("camera"))
+        cap.face_numbers.append(kw.get("face_numbers", False))
         return real_render(ax, crystal, raypaths, **kw)
 
     def spy_draw(ax, path, crystal=None, **kw):
@@ -645,8 +647,11 @@ def _tricker_point(ns_helper, psi_deg: float) -> np.ndarray:
 def test_7_5_pose_to_sky_compresses_theta_for_br_but_not_for_s(monkeypatch):
     """三个晶体姿态 = column_attitude(ψ0, θi)（同一 ψ0）；三面板入射方向逐位相等（= −太阳方向）；每条光路由 search_raypath
     在固定入射方向下解出、面序列 == PATHS；上行：三出射方向两两 |Δ| < 1e-9、== −sky_direction(br, R_i, ŝ)、落在特里克尔弧
-    上（== tricker_arc(ψ0)）；下行：两两夹角 > 2°、各 == −sky_direction(s, R_i, ŝ)；引线端点 == 数据坐标换算值；
-    两行左栏 artist 逐个相同。"""
+    上（== tricker_arc(ψ0)）；下行：两两夹角 > 2°、各 == −sky_direction(s, R_i, ŝ)；引线端点：左→中落在面板左边框中点
+    （axes fraction (0, 0.5)），中→右 == 数据坐标换算值；两行左栏 artist 逐个相同、θ 轴只画一个周期 [0, 60°]；
+    R1-2：中栏相机视线 ∥ 入射与出射（下行取均值）所张平面的法向再抬仰角，入射 / 出射在画面上的投影夹角 ≥ 0.9 × 真实夹角；
+    每枚晶体贴了朝向观察者的面编号（== visible_faces）。"""
+    from halo_notes.draw.projection import visible_faces
     from halo_notes.math import reflection_group as rg
     from halo_notes.math.attitude import column_attitude, sky_direction
     cap, ns = run_figure(FIGURES["7.5"], monkeypatch)
@@ -666,30 +671,47 @@ def test_7_5_pose_to_sky_compresses_theta_for_br_but_not_for_s(monkeypatch):
             assert np.linalg.norm(-d_out - sky_direction(rg.MATRICES[n], R, P.SUN)) < 1e-9
             assert np.linalg.norm(sky - sky_direction(rg.MATRICES[n], R, P.SUN)) < 1e-12
             outs.setdefault(n, []).append(d_out)
-    assert thetas[0] < thetas[1] < thetas[2]
+    assert thetas[0] < thetas[1] < thetas[2] and 0 <= min(thetas) and max(thetas) < 60
     br, s_ = outs[3], outs[2]
     assert all(np.linalg.norm(a - b) < 1e-9 for a in br for b in br)                   # 上行：压成一点
     assert np.linalg.norm(rows[3].sky_points[0] - _tricker_point(P, psi0)) < 1e-9       # 在特里克尔弧上
     for i in range(3):
         for j in range(i + 1, 3):
             assert np.linalg.norm(s_[i] - s_[j]) > np.radians(2.0)                       # 下行：三个点分开
-    # 引线：每行 6 条（左→中 3、中→右 3），三张图共 24 条；端点全是数据坐标换算值
+    # 中栏相机：视线（抬仰角前）∥ 入射 × 出射均值；投影夹角 ≥ 0.9 × 真实夹角
+    for n, data in rows.items():
+        cam = P.CAMERAS_3D[n]
+        normal = unit(np.cross(d_in, unit(np.mean(outs[n], axis=0))))
+        untilted = draw.Camera(azimuth=cam.azimuth, elevation=cam.elevation - P.CAMERA_TILT_DEG[n])
+        assert _same_direction(untilted.view_dir, normal) or _same_direction(untilted.view_dir, -normal)
+        for path in data.paths:
+            a = cam.project_xy(path.points[:2])
+            b = cam.project_xy(path.points[-2:])
+            v_in, v_out = a[1] - a[0], b[1] - b[0]
+            proj = np.degrees(np.arccos(np.clip(v_in @ v_out / np.linalg.norm(v_in) / np.linalg.norm(v_out), -1, 1)))
+            true = np.degrees(np.arccos(np.clip(unit(path.points[1] - path.points[0]) @ unit(path.points[-1] - path.points[-2]), -1, 1)))
+            assert proj >= 0.9 * true, (n, proj, true)
+    # 贴面编号：每次渲染的 face_numbers == 该相机下的可见面（非空）
+    for body, cam, numbers in zip(cap.bodies, cap.cameras, cap.face_numbers):
+        assert list(numbers) == [f.number for f in visible_faces(body, cam)] and len(numbers) >= 3
+    # 引线：每行 6 条（左→中 3、中→右 3），三张图共 24 条
     assert len(cap.connectors) == 24
-    anchor = P.CAMERA_3D.project_xy(np.zeros(3))[0]
     left_axes = []
     for c in cap.connectors:
         if c.axesA.get_xlim() == (0.0, 360.0):                                            # 左栏 → 中栏
             left_axes.append(c.axesA)
             k = [i for i, t in enumerate(thetas) if np.allclose(c.xy1, (psi0, t))]
-            assert len(k) == 1 and np.allclose(c.xy2, anchor)
+            assert len(k) == 1 and c.coords2 == "axes fraction" and tuple(c.xy2) == (0.0, 0.5)
         else:                                                                             # 中栏 → 右栏
-            ends = [P.CAMERA_3D.project_xy(p.end)[0] for d in rows.values() for p in d.paths]
+            assert c.coords2 == "data"
+            ends = [P.CAMERAS_3D[n].project_xy(p.end)[0] for n, d in rows.items() for p in d.paths]
             assert any(np.allclose(c.xy1, e) for e in ends)
             skies = [P.BACKDROPS[n].project(p)[0] for n, d in rows.items() for p in d.sky_points]
             assert any(np.allclose(c.xy2, q) for q in skies)
-    # 两行左栏逐 artist 相同（合成图里的两个左栏）
+    # 两行左栏逐 artist 相同（合成图里的两个左栏）；θ 轴 [0, 60]
     lefts = list(dict.fromkeys(left_axes))
     assert len(lefts) == 4                                                                # 合成图 2 + 单行图各 1
+    assert all(ax.get_ylim() == (0.0, 60.0) for ax in lefts)
 
     def signature(ax):
         return ([l.get_xydata().tolist() + [l.get_color(), l.get_markersize()] for l in ax.lines],
@@ -774,8 +796,9 @@ def test_7_5_overlay_projection_is_aligned_with_the_lumice_backdrop(monkeypatch)
 
 
 def test_7_5_gif_sky_point_holds_still_for_br_and_moves_for_s(monkeypatch):
-    """每帧光路可行且面序列 == 声明；br 版：同一 ψ 段内所有帧天空点两两距离 < 1e-9、两段之间 > 阈值、都在特里克尔弧上；
-    s 版：同一 ψ 段内天空点沿曲线单调移动（相邻步方向不反转、步长 > 0）；所有帧尺寸相同；θ 区间来自 1° 扫描并写进脚本注释。"""
+    """每帧光路可行且面序列 == 声明；只有一段 ψ（= ψ0，R1-3）、θ 在 [θa, θb] ⊂ [0°, 60°] 内来回；br 版：所有帧天空点两两距离
+    < 1e-9、都在特里克尔弧上；s 版：天空点沿曲线单调移动（相邻步方向不反转、步长 > 0）；所有帧尺寸相同；θ 区间来自 1° 扫描
+    并写进脚本注释。"""
     from halo_notes.math import reflection_group as rg
     from halo_notes.math.attitude import sky_direction
     cap, ns = run_figure(FIGURES["7.5g"], monkeypatch)
@@ -783,31 +806,26 @@ def test_7_5_gif_sky_point_holds_still_for_br_and_moves_for_s(monkeypatch):
     frames, rows = ns["FRAMES"], ns["ROWS"]
     assert set(frames) == {3, 2}
     for n, fr in frames.items():
-        segments: dict[float, list] = {}
         for f in fr:
             assert face_sequence(f["path"]) == list(rows[n].faces)
             assert _same_direction(f["path"].points[1] - f["path"].points[0], P.D_IN)
             assert np.linalg.norm(-unit(f["path"].points[-1] - f["path"].points[-2]) - f["sky"]) < 1e-9
             assert np.linalg.norm(f["sky"] - sky_direction(rg.MATRICES[n], f["R"], P.SUN)) < 1e-12
-            segments.setdefault(f["psi"], []).append(f)
-        assert list(segments) == [psi for psi, _ in rows[n].sweeps]
-        for psi, seg in segments.items():
-            a, b = dict(rows[n].sweeps)[psi]
-            th = [f["theta"] for f in seg]
-            assert min(th) == a and max(th) == b and th[0] == a and th[-1] == a       # 来回扫：a → b → a
-            assert max(np.diff(th[:th.index(b) + 1])) > 0 and min(np.diff(th[th.index(b):])) < 0
-            pts = np.array([f["sky"] for f in seg])
-            if n == 3:
-                assert np.abs(pts - pts[0]).max() < 1e-9                                  # 纹丝不动
-                assert np.linalg.norm(pts[0] - _tricker_point(P, psi)) < 1e-9             # 在弧上
-            else:
-                forth = pts[:th.index(b) + 1]
-                steps = np.diff(forth, axis=0)
-                assert np.linalg.norm(steps, axis=1).min() > 1e-6                          # 每步都动
-                assert all(steps[i] @ steps[i + 1] > 0 for i in range(len(steps) - 1))    # 沿曲线单调、不折返
+        assert {f["psi"] for f in fr} == {P.PSI0}                                      # 只扫一个 ψ
+        a, b = rows[n].sweep
+        assert 0 <= a < b <= 60
+        th = [f["theta"] for f in fr]
+        assert min(th) == a and max(th) == b and th[0] == a and th[-1] == a           # 来回扫：a → b → a
+        assert max(np.diff(th[:th.index(b) + 1])) > 0 and min(np.diff(th[th.index(b):])) < 0
+        pts = np.array([f["sky"] for f in fr])
         if n == 3:
-            p0, p1 = (segments[psi][0]["sky"] for psi, _ in rows[n].sweeps)
-            assert np.linalg.norm(p0 - p1) > np.radians(1.0)                              # 换 ψ 才挪
+            assert np.abs(pts - pts[0]).max() < 1e-9                                  # 纹丝不动
+            assert np.linalg.norm(pts[0] - _tricker_point(P, P.PSI0)) < 1e-9          # 在弧上
+        else:
+            forth = pts[:th.index(b) + 1]
+            steps = np.diff(forth, axis=0)
+            assert np.linalg.norm(steps, axis=1).min() > 1e-6                          # 每步都动
+            assert all(steps[i] @ steps[i + 1] > 0 for i in range(len(steps) - 1))    # 沿曲线单调、不折返
     assert len(cap.gif_frames) == sum(ns["N_FRAMES"].values()) and len(set(cap.gif_frames)) == 1
     src = (ROOT / FIGURES["7.5g"]).read_text(encoding="utf-8") + (ROOT / CH7 / "_pose_to_sky.py").read_text(encoding="utf-8")
     assert "1°" in src and "扫描" in src

@@ -1,10 +1,10 @@
 # 产出 ../img/pose_to_sky_br.gif（#3，$M=br$）与 ../img/pose_to_sky_s.gif（#2，$M=s$）：与 7.5 静态图同一行布局（三栏），
-# 中栏只剩一枚会动的柱晶——θ 在所选光路的连续可行区间 [θa, θb] 内匀速来回扫（每帧 `search_raypath` 固定入射方向重新解光路），
-# 左栏样本点同步沿竖线 ψ=ψ0 移动并留下轨迹，右栏天空点：br 版纹丝不动（弧上一个亮点），s 版沿一条曲线画出轨迹；
-# 扫完一轮后 ψ 跳到 ψ1 再扫一轮——br 版天空点这时才沿特里克尔弧挪到新位置、s 版轨迹换到另一条曲线。
-# 读者要看出：晶体在动、光路在变，出射光点不动；只有换 ψ 光点才动（br）；对比 s：θ 一动光点就动。
-# 帧：每段 ψ 来回 2×N_HALF 帧，两段共 4×N_HALF = 80 帧、25 fps（40 ms/帧）；θ 区间的可行性由 1° 步长扫描得到，
-# 见 _pose_to_sky.py 顶注（ROWS[·].sweeps）。静态抽帧只作核验（test_figures 经 export_frames_png），不入正文。
+# 中栏只剩一枚会动的柱晶——ψ=ψ0 固定，θ 在所选光路的扫描区间 [θa, θb] 内匀速来回一轮（每帧 `search_raypath` 固定入射方向重新
+# 解光路），左栏样本点同步沿竖线 ψ=ψ0 移动并留下轨迹，右栏（Lumice 底图上）天空点：br 版纹丝不动（弧上一个亮点），
+# s 版沿一条曲线画出轨迹。读者要看出：晶体在动、光路在变，出射光点不动（br）；对比 s：θ 一动光点就动。
+# R1-3：原先的第二段 ψ 已删（可行区间只允许 ψ 差 5°，「换 ψ 才动」演不出来反而冗余）。
+# 帧：来回 2×N_HALF = 40 帧、25 fps（40 ms/帧）；θ 区间的可行性由 1° 步长扫描得到，见 _pose_to_sky.py 顶注（ROWS[·].sweep）。
+# 静态抽帧只作核验（test_figures 经 export_frames_png），不入正文。
 from pathlib import Path
 
 import matplotlib
@@ -13,26 +13,24 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from _pose_to_sky import (IMG, PRESET, ROWS, SKY_LIMITS, add_row_axes, build_attitude_axes, build_sky_axes,  # noqa: F401
-                          crystal_anchor_xy, draw_connector, draw_crystal_panel, draw_samples_on_attitude,
+from _pose_to_sky import (IMG, PANEL_ENTRY, PRESET, PSI0, ROWS, SKY_LIMITS, add_row_axes, build_attitude_axes,  # noqa: F401
+                          build_sky_axes, draw_connector, draw_crystal_panel, draw_samples_on_attitude,
                           draw_sky_samples, exit_end_xy, finish, sample_line, sky_point, sky_xy, solve)
 from halo_notes.draw import animate, export_frames_png
 from halo_notes.draw.geometry import unit
 
 OUTS = {3: IMG / "pose_to_sky_br.gif", 2: IMG / "pose_to_sky_s.gif"}
 WIDTH, HEIGHT, DPI = 1500, 575, 100    # 静态图的一行缩半（gif 体积）
-N_HALF, FPS = 20, 25                   # 每段 ψ：θa→θb 20 帧、θb→θa 20 帧
+N_HALF, FPS = 20, 25                   # θa→θb 20 帧、θb→θa 20 帧
 
 PATHS = {f"#{n} {'-'.join(map(str, s.faces))}": list(s.faces) for n, s in ROWS.items()}
 
 
 def schedule(number: int) -> list[tuple[float, float]]:
-    """帧表 [(ψ, θ), …]：每段 ψ 的 θ 在 [θa, θb] 内匀速来回（首尾各到端点一次）。"""
-    frames = []
-    for psi, (a, b) in ROWS[number].sweeps:
-        forth = np.linspace(a, b, N_HALF)
-        frames += [(psi, float(t)) for t in forth] + [(psi, float(t)) for t in forth[::-1][1:-1]] + [(psi, float(a))]
-    return frames
+    """帧表 [(ψ0, θ), …]：θ 在 [θa, θb] 内匀速来回（首尾各到端点一次）。"""
+    a, b = ROWS[number].sweep
+    forth = np.linspace(a, b, N_HALF)
+    return [(PSI0, float(t)) for t in forth] + [(PSI0, float(t)) for t in forth[::-1][1:-1]] + [(PSI0, float(a))]
 
 
 def compute_frames(number: int) -> list[dict]:
@@ -73,12 +71,14 @@ def make_render_frame(number: int):
     def render_frame(fig, row, i: int) -> None:
         ax_left, ax_mid, ax_sky = row
         f = frames[i]
-        seg = [g for g in frames[:i + 1] if g["psi"] == f["psi"]]          # 本段 ψ 内到目前为止的轨迹
+        seg = frames[:i + 1]                                                # 到目前为止的轨迹
         draw_samples_on_attitude(ax_left, [(f["psi"], f["theta"])], trail=np.array([(g["psi"], g["theta"]) for g in seg]))
-        draw_crystal_panel(ax_mid, 0, f["crystal"], f["path"])
+        draw_crystal_panel(ax_mid, number, 0, f["crystal"], f["path"])
         draw_sky_samples(ax_sky, number, [f["sky"]], stacked=False, trail=np.array([g["sky"] for g in seg]))
-        draw_connector(ax_left, (f["psi"], f["theta"]), ax_mid, crystal_anchor_xy(), preset=PRESET, semantic=sample_line(0))
-        draw_connector(ax_mid, exit_end_xy(f["path"]), ax_sky, sky_xy(number, f["sky"]), preset=PRESET, semantic=sample_line(0))
+        draw_connector(ax_left, (f["psi"], f["theta"]), ax_mid, PANEL_ENTRY, preset=PRESET, semantic=sample_line(0),
+                       coords_b="axes fraction")
+        draw_connector(ax_mid, exit_end_xy(number, f["path"]), ax_sky, sky_xy(number, f["sky"]), preset=PRESET,
+                       semantic=sample_line(0))
     return render_frame
 
 

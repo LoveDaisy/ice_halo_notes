@@ -217,3 +217,19 @@ def test_draw_connector_keeps_data_coordinates_of_both_axes():
     outside = draw_connector(ax_a, (-5.0, 3.0), ax_b, (0.0, 0.0), preset=preset)
     assert outside.get_annotation_clip() is False and outside._check_xy(fig.canvas.get_renderer())
     plt.close(fig)
+
+
+def test_draw_connector_can_end_on_the_target_axes_frame():
+    """``coords_b="axes fraction"``：终点落在 ``ax_b`` 的边框上（(0, 0.5) = 左边框中点），与数据坐标无关（7.5 左→中引线）。"""
+    from halo_notes.draw.scene2d import draw_connector
+    fig = plt.figure()
+    ax_a, ax_b = fig.add_axes([0, 0, 0.5, 1]), fig.add_axes([0.6, 0.2, 0.3, 0.6])
+    ax_a.set_xlim(0, 10), ax_a.set_ylim(0, 10), ax_b.set_xlim(-7, 3), ax_b.set_ylim(5, 9)
+    patch = draw_connector(ax_a, (2.0, 3.0), ax_b, (0.0, 0.5), preset=PRESETS["default"], coords_b="axes fraction")
+    assert patch.coords1 == "data" and patch.coords2 == "axes fraction" and tuple(patch.xy2) == (0.0, 0.5)
+    fig.canvas.draw()
+    verts = patch.get_path().transformed(patch.get_transform()).vertices
+    x0, y0, w, h = ax_b.get_position().bounds
+    fw, fh = fig.canvas.get_width_height()
+    assert np.allclose(verts[-1], (x0 * fw, (y0 + h / 2) * fh), atol=1e-6)
+    plt.close(fig)
