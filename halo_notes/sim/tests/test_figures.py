@@ -11,6 +11,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[3]
 CH0, CH1, CH2, CH6 = "00-introduction", "01-symmetry", "02-raypath-enumeration", "06-monte-carlo-vs-integration"
+CH7 = "07-reflection-group"
 
 
 def _cfg(path: str) -> dict:
@@ -86,9 +87,86 @@ def test_provenance_sidecars_present():
     (f"{CH1}/code/fig_halos_3_5.py", "img/halos_3-5.jpg"),
     (f"{CH2}/code/fig_rp1_3_note.py", "img/rp1-3_plt0.5_s25_i2_note.png"),
     (f"{CH6}/code/fig_compare_two_methods.py", "img/compare_two_methods.jpg"),
+    (f"{CH7}/code/fig_halos_columns.py", "img/halos_3_vs_2.jpg"),
 ])
 def test_fig_scripts_run_small(tmp_path, script, out_name):
     mod = runpy.run_path(str(ROOT / script))
     out = mod["main"](["--ray-num", "200000", "--out", str(tmp_path)])
+    if isinstance(out, dict):   # ch7 图 6 一个脚本出两张
+        out = out["halos_3_vs_2"]
     assert out == tmp_path / out_name and out.exists()
     assert any((tmp_path / "data").rglob("provenance.json"))
+
+
+# ---- ch7 图 6a/6b（task-draw-ch7-figs）：三份子图 config 只差过滤器；代表光路 ↔ 权威表矩阵；拼图由子图像素拼成 ----
+
+
+def _ch7_script():
+    return runpy.run_path(str(ROOT / CH7 / "code" / "fig_halos_columns.py"))
+
+
+def _strip_filter(cfg: dict) -> dict:
+    cfg = json.loads(json.dumps(cfg))
+    cfg["filter"] = None
+    for layer in cfg["scene"]["scattering"]:
+        for e in layer["entries"]:
+            e.pop("filter", None)
+    return cfg
+
+
+def test_halo_columns_configs_differ_only_by_filter():
+    cfgs = {k: _cfg(f"{CH7}/data/halo_columns.col_{k}.lumice.json") for k in (2, 11, 3)}
+    stripped = [json.dumps(_strip_filter(c), sort_keys=True) for c in cfgs.values()]
+    assert len(set(stripped)) == 1
+    mod = _ch7_script()
+    for k, cfg in cfgs.items():
+        assert len(cfg["filter"]) == 1
+        assert cfg["filter"][0]["raypath"] == mod["PATHS"][k] and cfg["filter"][0]["symmetry"] == "PBD"
+        assert cfg["scene"]["scattering"][0]["entries"] == [{"crystal": 1, "proportion": 100, "filter": 1}]
+        assert cfg["scene"]["light_source"]["altitude"] == 10 and cfg["render"][0]["lens"]["type"] == "fisheye_equal_area"
+        assert cfg["crystal"][0]["axis"]["zenith"]["mean"] == 90 and "roll" not in cfg["crystal"][0]["axis"]   # 柱晶，roll 均匀
+        assert cfg["scene"]["ray_num"] == mod["RAY_NUM"]
+
+
+def test_halo_columns_paths_realise_their_matrices_and_pbd_covers_the_class():
+    """每个代表光路的内反射面镜面矩阵连乘 == 权威表目标矩阵；D6 全部像（P/D）+ 上下互换（B）的矩阵集合 == 目标所在共轭类。"""
+    from halo_notes.math import group as D6
+    from halo_notes.math import reflection_group as rg
+    mod = _ch7_script()
+    for k, path in mod["PATHS"].items():
+        assert tuple(path) in rg.by_number(k).representative_paths
+        assert (rg.path_matrix(path) - rg.MATRICES[k]).__abs__().max() < 1e-12
+        cls = next(c for c in rg.conjugacy_classes() if k in c)
+        images = set()
+        for g in D6.elements():
+            img = D6.apply_path(g, path)
+            images.add(rg.identify(rg.path_matrix(img)).number)
+            images.add(rg.identify(rg.path_matrix([{1: 2, 2: 1}.get(f, f) for f in img])).number)
+        assert images == set(cls), (k, images)
+
+
+def test_halo_columns_figures_are_composed_from_the_sub_images():
+    """6a = col_2 | col_11、6b = col_3 | col_2：成图对应区域的像素与子图一致（jpg 重压缩容差），且 6a/6b 共用同一 halo_col_2.jpg。"""
+    import numpy as np
+    from PIL import Image
+    mod = _ch7_script()
+    img = ROOT / CH7 / "img"
+    sky, margin, gap, label = mod["SKY_PX"], mod["MARGIN"], mod["GAP"], mod["LABEL_PX"]
+    subs = {k: np.asarray(Image.open(img / f"halo_col_{k}.jpg").convert("L"), float) for k in (2, 11, 3)}
+    assert all(s.shape == (sky, sky) for s in subs.values())
+    for name, (a, b) in mod["FIGURES"].items():
+        canvas = np.asarray(Image.open(img / f"{name}.jpg").convert("L"), float)
+        assert canvas.shape == (mod["HEIGHT"], mod["WIDTH"])
+        for i, k in enumerate((a, b)):
+            x = margin + i * (sky + gap)
+            region = canvas[margin + label:margin + label + sky, x:x + sky]
+            assert np.abs(region - subs[k]).mean() < 3.0, (name, k)      # 同一批像素（有损压缩残差）
+    assert (img / "halo_col_2.jpg").stat().st_size > 0 and mod["FIGURES"]["halos_2_vs_11"][0] == mod["FIGURES"]["halos_3_vs_2"][1] == 2
+
+
+def test_halo_columns_provenance_present():
+    for k in (2, 11, 3):
+        d = ROOT / CH7 / "data" / "halo_columns" / f"col_{k}"
+        prov = json.loads((d / "provenance.json").read_text())
+        assert prov["lumice_version"] == "v4.5.1" and prov["wall_clock_s"] > 0
+        assert prov["config_sha256"] == __import__("halo_notes.sim.run", fromlist=["config_sha256"]).config_sha256(_cfg(f"{CH7}/data/halo_columns.col_{k}.lumice.json"))
