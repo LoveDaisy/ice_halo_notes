@@ -279,3 +279,17 @@ def test_real_lumice_analyze_pipeline_smoke(tmp_path):
     exact = enumerate_raypaths(crystal, max_len, LatLonGrid(45, 90), entry_faces=(1, 3), symmetry_orbit=rg.pbd_orbit)
     cc = A.crosscheck(res.rows, exact, mc_max_len=max_len)
     assert isinstance(cc.ok, bool) and not cc.uncovered
+
+
+def test_fine_grid_area_recovers_coarse_grid_miss():
+    """h/a=1 的 `3-6-3-6-4`：2° 网格判不可达（枚举器口径），0.5° 细网格上有可行格（2026-09-15 互证违反项归因样例）；
+    宽窗口的 `3-5` 两边都可行；单面序列拒绝。"""
+    crystal = HexPrism.from_ratio(1.0)
+    from halo_notes.geometry.feasibility import is_feasible
+    assert not is_feasible(crystal, [3, 6, 3, 6, 4], LatLonGrid(90, 180))
+    area, n = A.fine_grid_area(crystal, [3, 6, 3, 6, 4], step_deg=0.5)
+    assert n > 0 and 0 < area < 0.01
+    area_wide, n_wide = A.fine_grid_area(crystal, [3, 5], step_deg=2.0)
+    assert n_wide > 100 and area_wide > 0.5
+    with pytest.raises(ValueError):
+        A.fine_grid_area(crystal, [3])

@@ -387,6 +387,43 @@ def crosscheck(rows: Iterable[AnalysisRow], exact: Iterable[RaypathRecord], *, m
     )
 
 
+# ---------- 违反项归因：细网格复核 ----------
+
+
+def fine_grid_area(crystal: Polyhedron, faces: Sequence[int], *, step_deg: float = 0.2,
+                   batch: int = 400_000) -> tuple[float, int]:
+    """在 ``step_deg`` 经纬细网格上（只扫入射约束允许的方向锥）从头判定 ``faces`` 的可行方向集，返回 ``(面积 sr, 可行格数)``。
+
+    互证违反项的归因工具：枚举器（``LatLonGrid(90, 180)``，2°）判不可达而 MC 命中的链，若在细网格上有可行格，就是
+    **网格分辨率漏判**（窗口窄于粗网格格距，DFS 在粗网格上被剪掉）而非判据错；若细网格上也没有，才是另一类问题。
+    只用 :mod:`halo_notes.geometry.feasibility` 的原语（同一 ``area_eps`` / 临界角判据），不改枚举器。"""
+    from ..geometry.feasibility import area_eps, corridor_polygons, entry_ok, exit_ok, geometric_ok
+
+    faces = [int(f) for f in faces]
+    if len(faces) < 2:
+        raise ValueError("单面序列没有走廊，不需要细网格复核")
+    n_lat, n_lon = int(round(180 / step_deg)), int(round(360 / step_deg))
+    lat = np.deg2rad(-90 + (np.arange(n_lat) + 0.5) * step_deg)
+    lon = np.deg2rad((np.arange(n_lon) + 0.5) * step_deg)
+    n_a = crystal.normal(crystal.face(faces[0]))
+    polys, n_tilde_b = corridor_polygons(crystal, faces)
+    eps = area_eps(crystal)
+    cell = np.deg2rad(step_deg) ** 2
+    area, n_cells = 0.0, 0
+    rows_per_chunk = max(1, batch // n_lon)
+    for la in np.array_split(lat, max(1, math.ceil(n_lat / rows_per_chunk))):
+        la_grid, lo_grid = np.meshgrid(la, lon, indexing="ij")
+        d = np.stack([np.cos(la_grid) * np.cos(lo_grid), np.cos(la_grid) * np.sin(lo_grid), np.sin(la_grid)],
+                     axis=-1).reshape(-1, 3)
+        ok = entry_ok(n_a, d) & exit_ok(n_tilde_b, d)
+        if not ok.any():
+            continue
+        g = geometric_ok(polys, d[ok], eps)
+        n_cells += int(g.sum())
+        area += float((np.cos(la_grid.reshape(-1)[ok][g]) * cell).sum())
+    return area, n_cells
+
+
 # ---------- 秩相关 ----------
 
 
@@ -417,5 +454,5 @@ def spearman_rho(x: Sequence[float], y: Sequence[float]) -> float:
 
 
 __all__ = ["AggregatedClass", "AnalysisHeader", "AnalysisResult", "AnalysisRow", "CSV_NAME", "CrosscheckResult",
-           "analysis_config", "classify_rows", "crosscheck", "has_adjacent_repeat", "load_analysis",
+           "analysis_config", "classify_rows", "crosscheck", "fine_grid_area", "has_adjacent_repeat", "load_analysis",
            "parse_analysis_csv", "parse_raypath", "run_analysis", "spearman_rho", "usable_rows"]
