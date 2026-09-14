@@ -43,7 +43,7 @@ obsidian rename file=<旧名> name=<新名>.md   # 重命名 md 必须走 Obsidi
 
 ### 当前状态（2026-09-14）
 
-目标布局已落地。ch0–ch6 published，ch7 draft（正文与 7 图 2 gif 已成，待发表），ch8 outline（骨架 + `check_signature.py` 已建），ch12 outline。`halo_notes/` 已有 `geometry`（几何单一权威：`Polyhedron` / `HexPrism` / `Pyramid` / `unfold_faces`）/ `draw` / `math` / `sim` 四包；35 张旧图已重制 34 张（余 6.4 等直接积分项目，后排）。
+目标布局已落地。ch0–ch6 published，ch7 draft（正文与 7 图 2 gif 已成，待发表），ch8 outline（骨架 + `check_signature.py` 已建），ch12 outline。`halo_notes/` 已有 `geometry`（几何单一权威：`Polyhedron` / `HexPrism` / `Pyramid` / `unfold_faces`；`feasibility` 方向扫描 + 凸多边形投影求交的光路可行性判定，`enumerate` DFS 单调剪枝 + PBD 去重的可行光路枚举器——ch2 枚举器的 python 复活）/ `draw` / `math` / `sim` 四包；35 张旧图已重制 34 张（余 6.4 等直接积分项目，后排）。
 
 ### 外部依赖
 

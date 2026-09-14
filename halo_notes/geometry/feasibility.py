@@ -454,5 +454,5 @@ def external_directions(crystal: Polyhedron, faces: Sequence[int], directions: n
 
 __all__ = ["AdmissibleMask", "AdmissibleResult", "COS_CRITICAL", "CorridorMask", "EPS_REL", "LatLonGrid",
            "admissible_directions", "area_eps", "corridor_intersection", "corridor_mask", "corridor_polygons",
-           "entry_ok", "entry_points", "exit_ok", "external_directions", "geometric_ok", "incidence_objective_deg", "is_feasible",
-           "min_edge_length", "perp_bases"]
+           "entry_ok", "entry_points", "exit_ok", "external_directions", "geometric_ok", "incidence_objective_deg",
+           "is_feasible", "min_edge_length", "perp_bases"]
