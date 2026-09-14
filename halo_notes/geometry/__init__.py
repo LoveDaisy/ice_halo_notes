@@ -6,13 +6,13 @@
 :mod:`halo_notes.draw.geometry` 只是兼容 shim（原样 re-export），不再承载实现。
 """
 
-from .core import (BASAL_BOTTOM, BASAL_TOP, PRISM_FACES, Face, HexPrism, Polyhedron, perp_basis, rotation,
+from .core import (BASAL_BOTTOM, BASAL_TOP, N_ICE, PRISM_FACES, Face, HexPrism, Polyhedron, perp_basis, rotation,
                    rotation_between, rotation_from_frames, unit)
 from .pyramid import C_OVER_A_ICE, LOWER_PYRAMID_FACES, UPPER_PYRAMID_FACES, Pyramid, pyramid_face_angle
 from .unfold import fold_matrix, unfold_faces
 
 __all__ = [
-    "BASAL_BOTTOM", "BASAL_TOP", "C_OVER_A_ICE", "Face", "HexPrism", "LOWER_PYRAMID_FACES", "PRISM_FACES",
+    "BASAL_BOTTOM", "BASAL_TOP", "C_OVER_A_ICE", "Face", "HexPrism", "LOWER_PYRAMID_FACES", "N_ICE", "PRISM_FACES",
     "Polyhedron", "Pyramid", "UPPER_PYRAMID_FACES",
     "fold_matrix", "perp_basis", "pyramid_face_angle", "rotation", "rotation_between", "rotation_from_frames",
     "unfold_faces", "unit",

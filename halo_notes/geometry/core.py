@@ -19,6 +19,8 @@ BASAL_TOP = 1
 BASAL_BOTTOM = 2
 PRISM_FACES = (3, 4, 5, 6, 7, 8)
 
+N_ICE = 1.31  # 冰的折射率（可见光中段）；唯一权威定义，draw / feasibility / signature 都从这里取
+
 
 @dataclass(frozen=True)
 class Face:
