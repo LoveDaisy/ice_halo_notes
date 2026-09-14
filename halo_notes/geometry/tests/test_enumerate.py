@@ -8,6 +8,7 @@ from halo_notes.geometry import HexPrism
 from halo_notes.geometry.enumerate import corridor_index_for_path, enumerate_raypaths, enumerate_raypaths_with_stats
 from halo_notes.geometry.feasibility import (LatLonGrid, admissible_directions, corridor_mask, entry_points,
                                              external_directions, is_feasible)
+from halo_notes.geometry.ground_truth import ground_truth_sequences
 from halo_notes.math.reflection_group import ELEMENTS, pbd_orbit
 
 GRID = LatLonGrid(90, 180)      # 2°
@@ -173,21 +174,6 @@ def test_every_record_has_traceable_witnesses(plate_le6):
 # ---- ch3 ground truth 文件 ------------------------------------------------------------------
 
 
-def _ground_truth_sequences() -> dict[tuple[int, ...], str]:
-    out = {}
-    group = None
-    for line in (DATA / "raypath_ground_truth.txt").read_text().splitlines():
-        line = line.strip()
-        if not line:
-            continue
-        if not line.replace(",", "").isdigit():
-            group = line
-            continue
-        nums = [int(x) for x in line.split(",")]
-        out[tuple(nums[2:])] = group
-    return out
-
-
 def _labeled_sequences() -> dict[tuple[int, ...], int]:
     out = {}
     for line in (DATA / "labeled_raypaths_5.csv").read_text().splitlines():
@@ -200,7 +186,7 @@ def test_ch3_ground_truth_all_reachable_on_plate(plate_le6):
     """两份文件各 93 条（同一批面序列，长度 ≤ 5，`render_raypaths.py` 用片晶 0.2 渲染），在 h/a = 0.2 下全部可达。"""
     recs, _ = plate_le6
     have = {r.faces for r in recs}
-    gt, lab = _ground_truth_sequences(), _labeled_sequences()
+    gt, lab = ground_truth_sequences(), _labeled_sequences()
     assert len(gt) == 93 and set(gt) == set(lab)
     unreachable = [f for f in gt if min(pbd_orbit(f)) not in have]
     assert unreachable == []
