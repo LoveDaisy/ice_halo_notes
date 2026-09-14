@@ -5,7 +5,7 @@ import pytest
 
 from halo_notes.draw.raypath import events_for_faces, face_sequence, search_raypath, solve_raypath, trace
 from halo_notes.geometry import HexPrism
-from halo_notes.geometry.enumerate import enumerate_raypaths, enumerate_raypaths_with_stats
+from halo_notes.geometry.enumerate import corridor_index_for_path, enumerate_raypaths, enumerate_raypaths_with_stats
 from halo_notes.geometry.feasibility import (LatLonGrid, admissible_directions, corridor_mask, entry_points,
                                              external_directions, is_feasible)
 from halo_notes.math.reflection_group import ELEMENTS, pbd_orbit
@@ -51,6 +51,17 @@ def test_corridor_mask_is_monotone_in_prefix(faces):
         prev = cur
 
 
+@pytest.mark.parametrize("faces", [(1,), (3,), (1, 3), (3, 4), (1, 3, 2), (3, 1, 5, 7, 4), (1, 2, 3, 5, 1),
+                                   (3, 5, 7, 3, 5)])
+def test_dfs_incremental_corridor_matches_corridor_mask(faces):
+    """a56：DFS 剪枝维护的增量走廊状态（``corridor_index_for_path``，与 ``enumerate.dfs()`` 共用
+    ``_ghost_for``/``_extend_batch`` 两个原语）与独立从头算的 ``corridor_mask`` 必须逐位一致——这是 code review
+    要求的机械核验，不靠「两处代码看起来在做同一件事」的人工审查兜底。"""
+    got = np.sort(corridor_index_for_path(PLATE, faces, GRID))
+    want = np.flatnonzero(corridor_mask(PLATE, faces, GRID))
+    assert np.array_equal(got, want)
+
+
 def test_pruning_uses_corridor_not_admissible_mask(plate_le6):
     """风险 4：3-4 作为完整光路出射不可行（admissible 为空），但它的走廊非空、延伸后的 3-4-5 可行——
     用 admissible 掩码剪枝会把 3-4-5 漏掉。"""
@@ -91,6 +102,10 @@ def test_ch2_plate_length_4_to_6_counts_regression(plate_le6):
     # 与 ch2 的差别全部来自小面积记录：把面积 < 0.003 sr 的细缝去掉后长度 4 / 5 与 ch2 的差 ≤ 3
     solid = {L: sum(r.area_sr >= 3e-3 for r in by[L]) for L in (4, 5, 6)}
     assert abs(solid[4] - CH2_COUNTS[4]) <= 3 and abs(solid[5] - CH2_COUNTS[5]) <= 3
+    # 长度 6：ch2 未发表逐条清单，169 与 solid[6] 差 30 条，远超长度 4/5 的 ≤3 容差，判据不可比（见
+    # progress.md DECISION「长度 6 验证口径降级」）；这里不与 CH2_COUNTS[6] 对比，只把本实现的当前值钉成
+    # 显式回归锁——不是像上一版那样算出来又弃用，而是让它真的参与断言。
+    assert solid[6] == 139
 
 
 def test_records_are_sorted_and_labels_consistent(plate_le6):

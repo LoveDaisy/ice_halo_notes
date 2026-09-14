@@ -27,7 +27,11 @@ SymmetryOrbit = Callable[[Sequence[int]], Iterable[Sequence[int]]]
 
 @dataclass(frozen=True)
 class RaypathRecord:
-    """一条可行光路：面序列、可行方向掩码（网格同序）、可行方向集球面面积、「首尾入（出）射角较大者」的最小值。"""
+    """一条可行光路：面序列、可行方向掩码（网格同序）、可行方向集球面面积、「首尾入（出）射角较大者」的最小值。
+
+    ``area_sr``/``min_incidence_deg`` 的精度取决于产出它的 ``enumerate_raypaths[_with_stats]`` 调用传的
+    ``refine_levels``（默认 0 = 粗网格估计，未做边界自适应细化）；跨模块复用这两个字段前，先确认调用方是否需要
+    显式传 ``refine_levels > 0`` 换取精细值。"""
 
     faces: tuple[int, ...]
     admissible_mask: AdmissibleMask
@@ -61,12 +65,72 @@ class EnumerationStats:
 
 @dataclass
 class _Node:
-    """DFS 节点：面序列、当前幽灵晶体、掩码为 True 的方向的平铺下标、这些方向上的走廊投影交集多边形。"""
+    """DFS 节点：面序列、当前幽灵晶体、掩码为 True 的方向的平铺下标、这些方向上的走廊投影交集多边形。
+
+    ``index``/``batch`` 内部全程是裸 ``np.ndarray``，不套 :data:`~halo_notes.geometry.feasibility.CorridorMask`
+    ``NewType``——后者只标注 :func:`~halo_notes.geometry.feasibility.corridor_mask` 等公开函数签名与
+    :class:`RaypathRecord` 的边界，不覆盖 DFS 内部剪枝这条热路径；这条路径的正确性由
+    ``test_dfs_incremental_corridor_matches_corridor_mask`` 单独兜底。"""
 
     faces: tuple[int, ...]
     body: Polyhedron
     index: np.ndarray
     batch: _PolyBatch
+
+
+def _ghost_for(node: _Node) -> Polyhedron:
+    """节点末面变镜面后的幽灵晶体（入射节点——``faces`` 只有一个面——原样返回原晶体）。"""
+    if len(node.faces) == 1:
+        return node.body
+    return node.body.mirrored(node.body.face(node.faces[-1]))
+
+
+def _extend_batch(ghost: Polyhedron, index: np.ndarray, batch: _PolyBatch, f: int, u_all: np.ndarray,
+                  w_all: np.ndarray, eps: float) -> tuple[np.ndarray, _PolyBatch] | None:
+    """把走廊沿新面 ``f`` 再裁一次：DFS 单步扩展与 :func:`corridor_index_for_path` 共用的唯一实现（a56：
+    走廊只会变窄这一单调剪枝逻辑只在这里写一份）。裁剪后交集全空则返回 ``None``（整棵子树可剪）。"""
+    u, w = u_all[index], w_all[index]
+    face = ghost.face(f)
+    poly = _ensure_ccw(_project(ghost.face_vertices(face), u, w))
+    new_batch = _clip_by_polygon(batch, poly)
+    keep = new_batch.area() > eps
+    if not keep.any():
+        return None
+    return index[keep], new_batch.take(np.flatnonzero(keep))
+
+
+def corridor_index_for_path(crystal: Polyhedron, faces: Sequence[int], grid: LatLonGrid,
+                            eps: float | None = None) -> np.ndarray:
+    """按 DFS 增量剪枝用的同一套原语（:func:`_ghost_for` / :func:`_extend_batch`），独立沿给定的**完整**面序列
+    走一遍，返回走廊（几何 ∧ 入射约束，:data:`~halo_notes.geometry.feasibility.CorridorMask` 语义）仍非空的方向
+    平铺下标集合。
+
+    与 :func:`~halo_notes.geometry.feasibility.corridor_mask` 的关系：两者语义相同（同一 ``eps``、同一入射约束），
+    但 :func:`~halo_notes.geometry.feasibility.corridor_mask` 每次调用都从头展开、投影整条 ``faces``（O(depth) 每
+    调用），本函数复用 DFS 沿路径增量裁剪的批状态（O(1) 每步）——是 DFS 实际剪枝路径为何不直接调用
+    ``corridor_mask`` 的具体原因。两者逐位一致由 ``test_enumerate.py::test_dfs_incremental_corridor_matches_corridor_mask``
+    机械核验，不靠人工审查兜底。
+    """
+    faces = [int(f) for f in faces]
+    eps = area_eps(crystal) if eps is None else eps
+    all_dirs = grid.directions
+    face0 = crystal.face(faces[0])
+    n_a = crystal.normal(face0)
+    if len(faces) == 1:
+        # 与 corridor_mask 的单面分支一致：外反射没有临界角约束，可行集是半球，不是 entry_ok。
+        return np.flatnonzero(-(all_dirs @ n_a) > 0)
+    u_all, w_all = perp_bases(all_dirs)
+    index = np.flatnonzero(entry_ok(n_a, all_dirs))
+    poly = _ensure_ccw(_project(crystal.face_vertices(face0), u_all[index], w_all[index]))
+    node = _Node((faces[0],), crystal, index, _initial_batch(poly))
+    for f in faces[1:]:
+        ghost = _ghost_for(node)
+        ext = _extend_batch(ghost, node.index, node.batch, f, u_all, w_all, eps)
+        if ext is None:
+            return np.array([], dtype=int)
+        idx, batch = ext
+        node = _Node(node.faces + (f,), ghost, idx, batch)
+    return node.index
 
 
 def enumerate_raypaths_with_stats(crystal: Polyhedron, max_len: int, grid: LatLonGrid, *,
@@ -81,7 +145,9 @@ def enumerate_raypaths_with_stats(crystal: Polyhedron, max_len: int, grid: LatLo
     - ``eps``：走廊交集面积阈值，默认 :func:`~halo_notes.geometry.feasibility.area_eps`；
     - ``refine_levels``：emit 前对候选做边界细化的级数（0 = 用粗网格面积与最小入射角，最快）。
 
-    输出按 (长度, 字典序) 排序。
+    输出按 (长度, 字典序) 排序。``max_len`` 语义上是「枚举字长上限」，但每个入射面恒会先产出一条长度 1 的
+    外反射记录（物理上总存在），即使 ``max_len < 1``；只有继续延伸（长度 ≥ 2）才受 ``max_len`` 约束。当前
+    调用点都传 ``max_len ≥ 1``，未覆盖该边界。
     """
     eps = area_eps(crystal) if eps is None else eps
     stats = EnumerationStats()
@@ -114,22 +180,19 @@ def enumerate_raypaths_with_stats(crystal: Polyhedron, max_len: int, grid: LatLo
             return
         last = node.faces[-1]
         # 末面变镜面（入射面除外：[a] → [a, f] 时 f 仍在原晶体上）；所有子节点共用这一个新幽灵
-        ghost = node.body if len(node.faces) == 1 else node.body.mirrored(node.body.face(last))
-        u, w = u_all[node.index], w_all[node.index]
+        ghost = _ghost_for(node)
         for f in faces_all:
             if f == last:
                 continue
             stats.attempted += 1
-            face = ghost.face(f)
-            poly = _ensure_ccw(_project(ghost.face_vertices(face), u, w))
-            batch = _clip_by_polygon(node.batch, poly)
-            keep = batch.area() > eps
-            if not keep.any():
+            ext = _extend_batch(ghost, node.index, node.batch, f, u_all, w_all, eps)
+            if ext is None:
                 stats.pruned += 1
                 continue
-            child = _Node(node.faces + (f,), ghost, node.index[keep], batch.take(np.flatnonzero(keep)))
+            index, batch = ext
+            child = _Node(node.faces + (f,), ghost, index, batch)
             stats.geometric_by_length[len(child.faces)] = stats.geometric_by_length.get(len(child.faces), 0) + 1
-            emit(child.faces, n_a, ghost.normal(face), child.index)
+            emit(child.faces, n_a, ghost.normal(ghost.face(f)), child.index)
             dfs(child, n_a)
 
     for a in entries:
@@ -178,4 +241,5 @@ def enumerate_raypaths(crystal: Polyhedron, max_len: int, grid: LatLonGrid, *,
                                          eps=eps, refine_levels=refine_levels)[0]
 
 
-__all__ = ["EnumerationStats", "RaypathRecord", "SymmetryOrbit", "enumerate_raypaths", "enumerate_raypaths_with_stats"]
+__all__ = ["EnumerationStats", "RaypathRecord", "SymmetryOrbit", "corridor_index_for_path", "enumerate_raypaths",
+           "enumerate_raypaths_with_stats"]

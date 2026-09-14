@@ -37,7 +37,11 @@ from .core import N_ICE, Polyhedron, Vec3
 from .unfold import unfold_faces
 
 CorridorMask = NewType("CorridorMask", np.ndarray)
-"""几何走廊 ∧ 入射光学约束的方向掩码（``(N,) bool``，与网格同序）。DFS 剪枝用它。"""
+"""几何走廊 ∧ 入射光学约束的方向掩码（``(N,) bool``，与网格同序）。DFS 剪枝维护的就是这个语义——但出于性能考虑
+（本函数对应的 :func:`corridor_mask` 每次调用都从头展开+投影整条 ``faces``），DFS
+（:mod:`halo_notes.geometry.enumerate`）不逐节点调用 :func:`corridor_mask`，而是用同一套裁剪原语增量维护等价状态，
+两者逐位一致由 :func:`~halo_notes.geometry.enumerate.corridor_index_for_path` 与对应回归测试机械核验，见该函数
+docstring。"""
 
 AdmissibleMask = NewType("AdmissibleMask", np.ndarray)
 """在 :data:`CorridorMask` 之上再叠加出射光学约束的掩码：以 ``faces`` 为完整光路的可行方向集。"""
@@ -289,7 +293,14 @@ def incidence_objective_deg(n_a: Vec3, n_tilde_b: Vec3, directions: np.ndarray) 
 def corridor_mask(crystal: Polyhedron, faces: Sequence[int], grid: LatLonGrid, parent_mask: np.ndarray | None = None,
                   eps: float | None = None) -> CorridorMask:
     """几何走廊 ∧ 入射约束的方向掩码。``parent_mask`` 给定时只在其为 ``True`` 的方向上重算（前缀走廊只会
-    变窄，父掩码为 ``False`` 处子掩码必为 ``False``）。单面序列（外反射）没有走廊：掩码 = 半球 ``-d·n_a > 0``。"""
+    变窄，父掩码为 ``False`` 处子掩码必为 ``False``）。单面序列（外反射）没有走廊：掩码 = 半球 ``-d·n_a > 0``。
+
+    注意：本函数每次调用都从头对整条 ``faces`` 重新展开（:func:`corridor_polygons` 内部重新调用
+    :func:`~halo_notes.geometry.unfold.unfold_faces`）、重新投影裁剪；``parent_mask`` 只缩小候选方向集合，不复用
+    父节点已裁剪出的走廊交集多边形，是独立于路径长度的「从头算」入口，适合单条路径核验或非 DFS 场景。
+    :mod:`halo_notes.geometry.enumerate` 的 DFS 为避免这一路径每步都重复展开的 O(depth) 开销，维护自己的增量走廊
+    状态（见 :func:`~halo_notes.geometry.enumerate.corridor_index_for_path`），语义与本函数逐位一致，由测试机械
+    核验（``test_enumerate.py::test_dfs_incremental_corridor_matches_corridor_mask``）。"""
     faces = [int(f) for f in faces]
     eps = area_eps(crystal) if eps is None else eps
     n_a = crystal.normal(crystal.face(faces[0]))

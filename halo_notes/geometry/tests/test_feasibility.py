@@ -3,6 +3,7 @@ import math
 import numpy as np
 import pytest
 
+from halo_notes.draw import raypath as raypath_module
 from halo_notes.draw.raypath import events_for_faces, face_sequence, refract, trace
 from halo_notes.geometry import HexPrism, N_ICE, perp_basis
 from halo_notes.geometry import feasibility as fz
@@ -23,6 +24,12 @@ def _batch(*polys2d):
 
 
 SQUARE = [(0, 0), (1, 0), (1, 1), (0, 1)]
+
+
+def test_n_ice_reexport_is_same_object_as_authority():
+    """`draw.raypath.N_ICE` 是 `from ..geometry.core import N_ICE` 的重导出，不是复制的旧值——手滑改成字面量
+    复制会悄悄引入两份权威定义（a56），且不会被任何其它测试捕获（两者当前恰好数值相等）。"""
+    assert raypath_module.N_ICE is N_ICE
 
 
 # ---- Step 1：批量 Sutherland–Hodgman 的红绿对 ----------------------------------------------
