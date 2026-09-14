@@ -41,9 +41,9 @@ obsidian rename file=<旧名> name=<新名>.md   # 重命名 md 必须走 Obsidi
 └── scratchpad/            # 任务管理（不入 git）
 ```
 
-### 当前状态（2026-09-11）
+### 当前状态（2026-09-14）
 
-仍是 2022 年的旧布局：`halo0. Introduction and Motivation` ~ `halo7. Halo Detection by Transform`，图片/代码裸放在章根或 `img/`，代码为 `.m/.nb/.py` 混用。ch0–ch6 已发表，ch7 只有提纲。迁移到目标布局是 scratchpad 第一个任务。
+目标布局已落地。ch0–ch6 published，ch7 draft（正文与 7 图 2 gif 已成，待发表），ch8 outline（骨架 + `check_signature.py` 已建），ch12 outline。`halo_notes/` 已有 `draw` / `math` / `sim` 三包；35 张旧图已重制 34 张（余 6.4 等直接积分项目，后排）。
 
 ### 外部依赖
 

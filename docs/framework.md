@@ -74,6 +74,18 @@ $\tilde{\mathbf n}_b$ 是把内反射全部展开后出射面在展开空间中�
 
 **signature 与穷举 [猜]。** 两条光路方向映射相同 ⇐ $(M,\mathbf n_a,\tilde{\mathbf n}_b)$ 相同；商掉晶体对称后的规范型即 canonical signature。用 ch2 枚举器对每条可达光路算 signature，得到不同 $\Phi$ 的实际类数——这是 ch8 的计算交付，尚未做。逆命题（$\Phi$ 相同 ⇒ signature 相同）一般成立但未证。
 
+**定理 5′（类数上界）[算]。** 商掉的对称群要取 $D_{6h}$（24 元：$R_z(60k)$、6 个竖直镜，各乘 $b$——比定理 1–3 用的 $G=D_{3h}$（12 元）多一倍，因为 signature 要商的是**面法向标号**的对称，不是光路矩阵的对称）。遍历 $M\in G$ 与全部面对 $(a,b)$，按楔角分组算 signature 类数，再对每类用采样指纹核对 $\Phi=\mathcal S_{\mathbf n_b}\circ M\circ\mathcal S_{\mathbf n_a}$ 在 $D_{6h}$ 共轭下是否进一步合并；定义域是 $\Phi$ 身份的一部分——入射须从外侧进面 $a$（$\langle\mathbf d,\mathbf n_a\rangle<0$），出射须无 TIR 且从外侧离开面 $b$（$\langle\mathbf d',\mathbf n_b\rangle>0$），漏掉入射侧判据会把 60° 的 12 类错误并成 6 类。
+
+| 楔角 $A$ | signature 类数 | $\Phi$ 类数 | 意义 |
+|---|---|---|---|
+| 0°（平行） | 14 | 6 | $W=I$，$\Phi=M$；14→6 是因为形状只归 $(M,\text{楔})$，而亮哪一段还看入射面与可达性——signature 保留了后者、$\Phi$ 已经商掉 |
+| 60° | 12 | 12 | 不再合并：22° 族 |
+| 90° | 16 | 16 | 不再合并：46° 族 |
+| 120° | 12 | — | TIR 死角，不透射 |
+| 180° | 14 | — | TIR 死角，不透射 |
+
+可透射（$A<2\arcsin(1/n)\approx99.5°$，$n=1.31$）signature 合计 **42**，$\Phi$ 合计 **34**（$6+12+16$）：**六棱柱任意长度光路的方向映射至多 34 类（带入射面标号则 42 类），分三个半径族 6 / 12 / 16。** 核验：`08-wedge-times-fold/code/check_signature.py`。
+
 ## 3. 锥晶：结构 vs 巧合（ch9）
 
 **设定 [算]。** ice $c/a=1.6288$，$\{10\bar11\}$ 锥面法向与 c 轴夹角 $\arctan\!\big(\tfrac{2}{\sqrt3}\tfrac{c}{a}\big)=62.0°$。20 个面 = 2 底 + 6 侧 + 12 锥；锥面成 ± 对，镜面方向共 1+3+6 = 10 个。
@@ -154,7 +166,7 @@ $$
 ## 7. 未决
 
 - [猜] 定理 4 signature 的完备性（$\Phi$ 相同 ⇒ signature 相同）。
-- [猜] 六棱柱 / 锥晶在字长上限下不同 $\Phi$ 的实际类数（ch8 / ch9 的穷举交付）。
+- [猜] 六棱柱上界 34 已算（定理 5′）；下界（可达类数、随高径比变化）待枚举器。锥晶两端都待做（ch9 的穷举交付）。
 - [猜] 柱晶（$Q$ 二维、三维）下 22° 晕的奇点类型（fold / cusp / pleat）的数值确认。
 - 锥晶的 $\Phi$ 类数是否随字长上限收敛，收敛速度——决定 ch9 穷举的截断。
 - 姿态族 $Q$ 非光滑（Parry 与柱晶混合）时定理 8 内层积分的处理。
@@ -162,6 +174,7 @@ $$
 ## 附：核验脚本
 
 - `07-reflection-group/code/check_group.py` — 定理 1、2、3、5，及「特征值只得 5 类」。
+- `08-wedge-times-fold/code/check_signature.py` — 定理 5′。
 - `docs/checks/check_pyramid.py` — 定理 6、7。
 
 ch7 / ch9 bootstrap 时迁入各章 `code/`。
