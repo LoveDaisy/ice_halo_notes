@@ -8,8 +8,10 @@
 
 from .core import (BASAL_BOTTOM, BASAL_TOP, PRISM_FACES, Face, HexPrism, Polyhedron, perp_basis, rotation,
                    rotation_between, rotation_from_frames, unit)
+from .pyramid import C_OVER_A_ICE, LOWER_PYRAMID_FACES, UPPER_PYRAMID_FACES, Pyramid, pyramid_face_angle
 
 __all__ = [
-    "BASAL_BOTTOM", "BASAL_TOP", "Face", "HexPrism", "PRISM_FACES", "Polyhedron",
-    "perp_basis", "rotation", "rotation_between", "rotation_from_frames", "unit",
+    "BASAL_BOTTOM", "BASAL_TOP", "C_OVER_A_ICE", "Face", "HexPrism", "LOWER_PYRAMID_FACES", "PRISM_FACES",
+    "Polyhedron", "Pyramid", "UPPER_PYRAMID_FACES",
+    "perp_basis", "pyramid_face_angle", "rotation", "rotation_between", "rotation_from_frames", "unit",
 ]
