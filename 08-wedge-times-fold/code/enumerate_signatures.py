@@ -4,7 +4,7 @@
 # 这是 ch8 定理 5′ 上界（34）的下界一侧：framework §2 定理 5″ 的每个数字都从这里的产出文件里来。
 #
 # 口径：
-# - 枚举参数沿用子任务 15.2：entry_faces=(1, 3)、pbd_orbit 去重、LatLonGrid(90, 180)（2° 网格，n_phi 是 6 的倍数，D6h 精确不变）、
+# - 枚举参数沿用子任务 15.2：entry_faces=(1, 3)、pbd_orbit 去重、LatLonGrid(180, 360)（1° 网格，n_phi 是 6 的倍数，D6h 精确不变；15.2/15.4 时为 2°，见 GRID 旁注）、
 #   refine_levels=0（粗网格面积）。PBD = D6 × 上下互换 = D6h，与 signature 商掉的群相同，每条记录代表一个 D6h 轨道；
 # - 「面积」= 该类在该 h/a 下全部 PBD 代表光路的 area_sr 逐条求和（每个对称轨道计一次），不是某一条代表的面积；
 # - 「细缝格」：该格全部光路的「首尾入（出）射角较大者的最小值」都 > 49°（压在临界角 49.8° 下，子任务 15.2 对 1-3-4 等
@@ -29,7 +29,7 @@ from halo_notes.math.signature import PhiRow, phi_class, phi_class_table
 DATA = Path(__file__).resolve().parent.parent / "data"
 RATIOS = (0.2, 0.5, 1.0, 2.0, 5.0)
 MAX_LEN = 8
-GRID = LatLonGrid(90, 180)
+GRID = LatLonGrid(180, 360)   # 1° 网格：2° 时五档共漏判 240 个窄窗口代表（MC 互证发现），1° 全部召回、0.5° 不再多，耗时约 3.5×（主 session 探针 2026-09-15）
 ENTRY_FACES = (1, 3)
 SLIVER_DEG = 49.0            # 细缝格判据：格内全部光路的 min_incidence_deg 都 > 49°
 

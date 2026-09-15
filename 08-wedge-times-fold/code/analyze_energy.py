@@ -232,7 +232,7 @@ def write_md(rows: tuple[PhiRow, ...], results: dict[float, A.AnalysisResult], a
     lines.append("## 互证结论：MC 命中集 ⊆ 精确可达集？")
     lines.append("")
     lines.append("判定按 PBD 代表（`min(pbd_orbit)`）对比，精确侧是 `enumerate_signatures.py` 同一调用（`max_len=8`、`entry_faces=(1, 3)`、"
-                 "`LatLonGrid(90, 180)`）的记录。**违反项非空即为枚举器漏判或判据错**，本脚本不调阈值、不吞行；每个违反项另在 "
+                 "`LatLonGrid(180, 360)`）的记录。**违反项非空即为枚举器漏判或判据错**，本脚本不调阈值、不吞行；每个违反项另在 "
                  f"{RECHECK_STEP_DEG}° 细网格上（同一 `area_eps` / 临界角判据，`halo_notes.sim.analyze.fine_grid_area`）从头复核："
                  "细网格可行 ⇒ 2° 网格分辨率漏判（窗口窄于格距，DFS 在粗网格上被剪掉）；细网格也不可行 ⇒ 另一类问题，须单独归因。")
     lines.append("")
