@@ -1,11 +1,13 @@
-# 产出 ../data/energy_table.md（34 个 Φ 类的蒙特卡洛能量份额表 + 与精确枚举的互证结论）与 ../data/analysis_<ha>.csv
-# （每档 h/a 的 MC 逐行表：面序列 → PBD 代表 → Φ 类，附互证状态）：对 h/a ∈ {0.2, 0.5, 1, 2, 5}（与 enumerate_signatures.py
+# 产出 ../data/energy_table.md（34 个 Φ 类的蒙特卡洛能量份额表 + 与精确枚举的互证结论，入 git）与 ../data/analysis/
+# （每档 h/a 的原始 CSV / lumice.log / provenance.json 落 analysis/<ha>/，MC 逐行表落 analysis/rows_<ha>.csv：面序列 →
+# PBD 代表 → Φ 类，附互证状态；共 ~7 MB 文本，目录被 .gitignore 忽略，打包成 ../data/analysis.zip 走 LFS 入库；
+# 本脚本启动时若本地没有 analysis/ 而有 analysis.zip 就自动解包，跑完全五档后重新打包）：对 h/a ∈ {0.2, 0.5, 1, 2, 5}（与 enumerate_signatures.py
 # 同一组常量）用 Lumice 4.6.x `analyze` 子命令跑随机朝向六棱柱、全天 ROI、`--symmetry none`（归并在 python 侧按 Φ 类做），
 # 再与 enumerate_signatures.py 同一调用的精确枚举对表：MC 命中集 ⊆ 精确可达集（a01 独立证据链）。
 #
 # 口径：
-# - Lumice 本地 build（`LUMICE_BIN`，Ice Halo 仓 main 未发版），config 落 data/analysis_<ha>.lumice.json，原始 CSV /
-#   lumice.log / provenance.json 落 data/analysis_<ha>/；h/a 经 halo_notes.sim.config.hex_prism_height_ratio 换算（Lumice 的 a
+# - Lumice 本地 build（`LUMICE_BIN`，Ice Halo 仓 main 未发版），config 落 data/analysis_<ha>.lumice.json（入 git），原始 CSV /
+#   lumice.log / provenance.json 落 data/analysis/<ha>/（ignored，见上）；h/a 经 halo_notes.sim.config.hex_prism_height_ratio 换算（Lumice 的 a
 #   是底面直径 = 2×边长）；
 # - MC 侧链面数上限 MC_MAX_LEN = 7 < 精确侧 MAX_LEN = 8：Lumice distinct 链驻留表每 worker 只有 16384 槽（seeded run 单
 #   worker），而 h/a=1 的精确可达集展开成 finest 序列后 ≤7 面 13688 条、≤8 面 29212 条——8 面必然溢出进 other 桶、`unseen`
@@ -30,6 +32,8 @@ from halo_notes.math.signature import PhiRow, phi_class, phi_class_table
 from halo_notes.sim import analyze as A
 
 DATA = Path(__file__).resolve().parent.parent / "data"
+CACHE = DATA / "analysis"      # 大体积文本产物（ignored）；打包为 ZIP 走 LFS
+ZIP = DATA / "analysis.zip"
 MC_MAX_LEN = 7                 # 见文件头：16384 槽驻留表 ⇒ finest 全集只在 ≤7 面时放得下
 RAYS = 50_000_000
 SEED = 7
@@ -37,6 +41,31 @@ ROI = "sky"
 SYMMETRY = "none"
 MIN_CLASS_COUNT = 20           # `--rays` 量级准则：34 类里最稀薄类的命中数下限
 RECHECK_STEP_DEG = 0.2         # 违反项归因：细网格复核的格距（枚举器用 2°）
+
+
+def ensure_unpacked() -> None:
+    """本地没有 data/analysis/ 而有 analysis.zip（LFS）时解包，让 --reuse 与读表脚本拿到文本文件。"""
+    import zipfile
+    if CACHE.exists() or not ZIP.exists():
+        return
+    if ZIP.stat().st_size < 1024 and ZIP.read_bytes().startswith(b"version https://git-lfs"):
+        raise RuntimeError(f"{ZIP} 是 LFS 指针，先 `git lfs pull`")
+    with zipfile.ZipFile(ZIP) as zf:
+        zf.extractall(DATA)
+    print(f"已从 {ZIP.name} 解包到 {CACHE.relative_to(DATA.parent)}/")
+
+
+def pack() -> Path:
+    """把 data/analysis/ 确定性打包成 analysis.zip（文件按路径排序、时间戳固定），内容不变则 zip 字节不变。"""
+    import zipfile
+    files = sorted(p for p in CACHE.rglob("*") if p.is_file())
+    with zipfile.ZipFile(ZIP, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
+        for f in files:
+            info = zipfile.ZipInfo(str(f.relative_to(DATA)), date_time=(1980, 1, 1, 0, 0, 0))
+            info.compress_type = zipfile.ZIP_DEFLATED
+            info.external_attr = 0o644 << 16
+            zf.writestr(info, f.read_bytes())
+    return ZIP
 
 
 def exact_area_by_class(ratio: float) -> dict[str, float]:
@@ -50,7 +79,7 @@ def exact_area_by_class(ratio: float) -> dict[str, float]:
 
 def run_one(ratio: float, rays: int, reuse: bool) -> A.AnalysisResult:
     stem = f"analysis_{ha_label(ratio)}"
-    out_dir = DATA / stem
+    out_dir = CACHE / ha_label(ratio)
     cfg = A.analysis_config(ratio, max_len=MC_MAX_LEN, rays=rays)
     if reuse and (out_dir / "provenance.json").exists():
         res = A.load_analysis(out_dir)
@@ -107,7 +136,7 @@ def write_rows_csv(ratio: float, res: A.AnalysisResult, cc: A.CrosscheckResult, 
     crystal = HexPrism.from_ratio(ratio)
     violating = {id(r) for r, _ in cc.violations}
     p = res.provenance
-    path = DATA / f"analysis_{ha_label(ratio)}.csv"
+    path = CACHE / f"rows_{ha_label(ratio)}.csv"
     with path.open("w", newline="") as fp:
         fp.write(f"# h/a={ratio:g} (Lumice height={p['config']['crystal'][0]['shape']['height']}) roi={p['roi']} "
                  f"symmetry={p['symmetry']} rays={p['rays']} seed={p['seed']} max_hits={MC_MAX_LEN} "
@@ -145,7 +174,7 @@ def write_md(rows: tuple[PhiRow, ...], results: dict[float, A.AnalysisResult], a
     lines.append(f"> 产出：`code/analyze_energy.py`（Lumice `analyze`，本地 build，Ice Halo 仓 HEAD `{any_prov['lumice_git_head']}`，"
                  f"二进制 sha256 `{any_prov['lumice_bin_sha256'][:12]}…`；`--roi {ROI} --symmetry {SYMMETRY} --rays {rays} "
                  f"--seed {SEED}`，`max_hits={MC_MAX_LEN}`，单波长 550 nm，随机朝向）；每档 h/a 的 config 在 "
-                 f"`analysis_<ha>.lumice.json`，原始 CSV / provenance 在 `analysis_<ha>/`，MC 逐行表在 `analysis_<ha>.csv`。")
+                 f"`analysis_<ha>.lumice.json`，原始 CSV / provenance 在 `analysis/<ha>/`，MC 逐行表在 `analysis/rows_<ha>.csv`（目录 ignored，打包为 `analysis.zip` 走 LFS；脚本会自动解包）。")
     lines.append("> h/a 是本仓 `HexPrism` 口径（a = 六边形边长）；Lumice `height` = h/a ÷ 2（它的 a 是底面顶点对角线直径），"
                  "换算在 `halo_notes.sim.config.hex_prism_height_ratio`，方向已用判别光路实跑核实。")
     lines.append(f"> MC 侧链面数上限 {MC_MAX_LEN}（精确侧 {MAX_LEN}）：Lumice distinct 链驻留表每 worker 16384 槽，"
@@ -293,9 +322,11 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--rays", type=int, default=RAYS, help=f"每档 --rays（默认 {RAYS}）")
     ap.add_argument("--ratios", type=float, nargs="*", default=list(RATIOS), help="只跑这些 h/a（调试用；正式产出须全五档）")
-    ap.add_argument("--reuse", action="store_true", help="data/analysis_<ha>/ 已有同参数产物时不重跑 Lumice")
+    ap.add_argument("--reuse", action="store_true", help="data/analysis/<ha>/ 已有同参数产物时不重跑 Lumice")
     args = ap.parse_args(argv)
     DATA.mkdir(exist_ok=True)
+    ensure_unpacked()
+    CACHE.mkdir(exist_ok=True)
     rows = phi_class_table(HexPrism.from_ratio(RATIOS[0]))
     assert sum(r.transmittable for r in rows) == 34
     by_cls = {r.phi_class: r for r in rows}
@@ -328,6 +359,7 @@ def main(argv: list[str] | None = None) -> int:
         print("  →", write_rows_csv(ratio, res, cc, by_cls).name)
     if set(args.ratios) == set(RATIOS):
         print("  →", write_md(rows, results, aggs, ccs, areas, exacts, rechecks, args.rays).name)
+        print("  →", pack().name, f"({ZIP.stat().st_size / 1e6:.2f} MB)")
     else:
         print("  （未跑全五档，不写 energy_table.md）")
     for w in warnings:

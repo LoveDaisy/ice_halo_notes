@@ -10,3 +10,6 @@ __pycache__/
 
 # Lumice 二进制下载缓存（halo_notes.sim.fetch），不入 git
 .lumice/
+
+# ch8 光路分析的大体积文本产物（~7 MB CSV）：本地缓存，入库形态是同目录的 analysis.zip（LFS）
+08-wedge-times-fold/data/analysis/
