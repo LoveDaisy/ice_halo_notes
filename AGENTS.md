@@ -41,13 +41,13 @@ obsidian rename file=<旧名> name=<新名>.md   # 重命名 md 必须走 Obsidi
 └── scratchpad/            # 任务管理（不入 git）
 ```
 
-### 当前状态（2026-09-14）
+### 当前状态（2026-09-15）
 
-目标布局已落地。ch0–ch6 published，ch7 draft（正文与 7 图 2 gif 已成，待发表），ch8 outline（骨架 + `check_signature.py` 已建），ch12 outline。`halo_notes/` 已有 `draw` / `math` / `sim` 三包；35 张旧图已重制 34 张（余 6.4 等直接积分项目，后排）。
+目标布局已落地。ch0–ch6 published，ch7 draft（正文与 7 图 2 gif 已成，待发表），ch8 outline（骨架 + `check_signature.py` 已建），ch12 outline。`halo_notes/` 已有 `geometry`（几何单一权威：`Polyhedron` / `HexPrism` / `Pyramid` / `unfold_faces`；`feasibility` 方向扫描 + 凸多边形投影求交的光路可行性判定，`enumerate` DFS 单调剪枝 + PBD 去重的可行光路枚举器——ch2 枚举器的 python 复活；`ground_truth` ch3 光路清单解析）/ `draw` / `math`（含 `signature`：signature 规范型、带定义域的 Φ 指纹、六棱柱 34 类全类表；ch8 `data/signature_table*` 由 `enumerate_signatures.py` 产出，五档 h/a 下界已算）/ `sim`（含 `analyze`：Lumice 4.6.x `analyze` 子命令胶水——随机朝向光路分析 CSV → Φ 类能量份额 / 与枚举器互证；ch8 `data/energy_table.md` 由 `analyze_energy.py` 产出，需本地 build `LUMICE_BIN`）四包；35 张旧图已重制 34 张（余 6.4 等直接积分项目，后排）。
 
 ### 外部依赖
 
-- 仿真器：Lumice（`~/Codes/Ice Halo Simulation`，GitHub `LoveDaisy/ice_halo_sim`）。本仓只放调仿真器 + 画图的胶水代码和参数（`halo_notes/sim/`），**不放仿真器本身**：版本钉在 `halo_notes/sim/fetch.py` 的 `LUMICE_VERSION`，`uv run python -m halo_notes.sim.fetch` 按该版本从 GitHub release 拉 CLI 二进制到 `.lumice/`（gitignore）；`LUMICE_BIN` 环境变量可指向本地 build 做对照，正式出图一律用 release 版。每张仿真图的 config 落 `data/<name>.lumice.json`，原始输出 + `provenance.json` 落 `data/<name>/`。真跑 Lumice CLI 的慢测试标了 `@pytest.mark.slow`，`uv run pytest` 默认跳过，需要真跑时用 `uv run pytest -m slow`（要求能拉到 / 已缓存 `.lumice/` 二进制）。旧脚本 `render_raypaths.py` 依赖的 `IceHaloEndless` 二进制已被仿真器项目删除，该脚本已失效，归 `legacy/`。
+- 仿真器：Lumice（`~/Codes/Ice Halo Simulation`，GitHub `LoveDaisy/ice_halo_sim`）。本仓只放调仿真器 + 画图的胶水代码和参数（`halo_notes/sim/`），**不放仿真器本身**：版本钉在 `halo_notes/sim/fetch.py` 的 `LUMICE_VERSION`，`uv run python -m halo_notes.sim.fetch` 按该版本从 GitHub release 拉 CLI 二进制到 `.lumice/`（gitignore）；`LUMICE_BIN` 环境变量可指向本地 build 做对照，正式出图一律用 release 版；`analyze` 子命令（光路分析）release v4.5.1 还没有，ch8 `analyze_energy.py` 暂靠本地 build（provenance 记 `local_build: true` + Ice Halo 仓 HEAD + 二进制 sha256），4.6.1 发版后切回 `fetch.py`。每张仿真图的 config 落 `data/<name>.lumice.json`，原始输出 + `provenance.json` 落 `data/<name>/`。真跑 Lumice CLI 的慢测试标了 `@pytest.mark.slow`，`uv run pytest` 默认跳过，需要真跑时用 `uv run pytest -m slow`（要求能拉到 / 已缓存 `.lumice/` 二进制）。旧脚本 `render_raypaths.py` 依赖的 `IceHaloEndless` 二进制已被仿真器项目删除，该脚本已失效，归 `legacy/`。
 - 主 vault：`~/Virtual-Jiajie/Jiajie-Knowledge/Obsidian-Vault/`。公开上映版快照在 `Writing/articles/现代冰晕研究漫谈(N)： *.md`，系列 MOC 在 `Writing/series/现代冰晕研究漫谈.md`。
 
 ## 重要约束

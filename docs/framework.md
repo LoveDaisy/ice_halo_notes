@@ -72,7 +72,7 @@ $\tilde{\mathbf n}_b$ 是把内反射全部展开后出射面在展开空间中�
 
 **定理 5（三种楔）[算]。** $G$ 置换面法向集合，故 $\tilde{\mathbf n}_b$ 仍是 8 个面法向之一。遍历 $M\in G$ 与所有面对，$\langle\mathbf n_a,M^{-1}\mathbf n_b\rangle\in\{0,\pm\tfrac12,\pm1\}$，楔角 $A$（$\cos A=-\langle\mathbf n_a,\tilde{\mathbf n}_b\rangle$）$\in\{0°,60°,90°,120°,180°\}$；$n=1.31$ 下可透射上限 $2\arcsin(1/n)\approx99.5°$，有效楔只有 **0° / 60° / 90°**（平行、22° 族、46° 族），120° 全反射死角。故**六棱柱任意长度光路的方向映射 ⊆ 3 种楔 × 12 种折叠**，再商掉晶体对称与不可达组合。
 
-**signature 与穷举 [猜]。** 两条光路方向映射相同 ⇐ $(M,\mathbf n_a,\tilde{\mathbf n}_b)$ 相同；商掉晶体对称后的规范型即 canonical signature。用 ch2 枚举器对每条可达光路算 signature，得到不同 $\Phi$ 的实际类数——这是 ch8 的计算交付，尚未做。逆命题（$\Phi$ 相同 ⇒ signature 相同）一般成立但未证。
+**signature 与穷举 [算]。** 两条光路方向映射相同 ⇐ $(M,\mathbf n_a,\tilde{\mathbf n}_b)$ 相同；商掉晶体对称后的规范型即 canonical signature（`halo_notes.math.signature`）。用枚举器对每条可达光路算 signature 与 $\Phi$ 类的结果见定理 5″。逆命题（$\Phi$ 相同 ⇒ signature 相同）一般成立但未证。
 
 **定理 5′（类数上界）[算]。** 商掉的对称群要取 $D_{6h}$（24 元：$R_z(60k)$、6 个竖直镜，各乘 $b$——比定理 1–3 用的 $G=D_{3h}$（12 元）多一倍，因为 signature 要商的是**面法向标号**的对称，不是光路矩阵的对称）。遍历 $M\in G$ 与全部面对 $(a,b)$，按楔角分组算 signature 类数，再对每类用采样指纹核对 $\Phi=\mathcal S_{\mathbf n_b}\circ M\circ\mathcal S_{\mathbf n_a}$ 在 $D_{6h}$ 共轭下是否进一步合并；定义域是 $\Phi$ 身份的一部分——入射须从外侧进面 $a$（$\langle\mathbf d,\mathbf n_a\rangle<0$），出射须无 TIR 且从外侧离开面 $b$（$\langle\mathbf d',\mathbf n_b\rangle>0$），漏掉入射侧判据会把 60° 的 12 类错误并成 6 类。
 
@@ -85,6 +85,19 @@ $\tilde{\mathbf n}_b$ 是把内反射全部展开后出射面在展开空间中�
 | 180° | 14 | — | TIR 死角，不透射 |
 
 可透射（$A<2\arcsin(1/n)\approx99.5°$，$n=1.31$）signature 合计 **42**，$\Phi$ 合计 **34**（$6+12+16$）：**六棱柱任意长度光路的方向映射至多 34 类（带入射面标号则 42 类），分三个半径族 6 / 12 / 16。** 核验：`08-wedge-times-fold/code/check_signature.py`。
+
+**定理 5″（可达类数）[算]。** 上界 34 是可达的：对高径比 $h/a\in\{0.2,0.5,1,2,5\}$ 用 ch2 枚举器的 python 复活（`halo_notes.geometry.enumerate`，长度 $\le 8$、PBD 代表、2° 方向网格）枚举全部几何 + 光学可行光路，逐条经 `halo_notes.math.signature.phi_class` 归类：
+
+| $h/a$ | 0.2 | 0.5 | 1 | 2 | 5 | 五档并集 |
+|---|---|---|---|---|---|---|
+| 可达 $\Phi$ 类数（0°/60°/90°） | 28（6/12/10） | 34 | 34 | 34 | 34 | **34** |
+| 可行光路（PBD 代表，长度 2–8） | 1143 | 1272 | 1356 | 1408 | 1313 | — |
+
+$h/a\ge0.5$ 时 34 类全部可达，**下界 = 上界**；片晶（0.2）缺 46° 族里「顶面进侧面出（或反之）且折叠为 #1/7/9、#2/8/10、#3/5」的 6 类，另有 2 类（#4/6，`1-3-4-5` 型）只以压在临界角上的细缝可达（格内全部光路最小入射角 $>49°$，面积 0.0046 sr）。每个类的最短代表光路、各档可行方向面积、光路条数见 `08-wedge-times-fold/data/signature_table.md`（34 行主表）与 `signature_table_<h/a>.csv`（42 个 signature 类粒度）；每个 csv 行的最短代表都另经 `draw.raypath.trace` 独立追迹见证（`halo_notes/math/tests/test_signature_data.py`）。**永远空着的格子不存在**——issue 预期的「几何原因」一节为空。
+
+**定理 5″ 的独立复核（蒙特卡洛）[算]。** 用 Lumice `analyze`（随机朝向、全天 ROI、`--symmetry none`、每档 5×10⁷ 条光线、seed 7，本地 build）对同一五档 $h/a$ 记录每条出射光线的面序列（≤ 7 面：Lumice distinct 链驻留表 16384 槽装不下 8 面的 finest 全集），按 PBD 代表与枚举器的可达集对表（`08-wedge-times-fold/code/analyze_energy.py` → `data/energy_table.md`）。结果：(i) 枚举器可达（≤ 7 面）的光路 MC 几乎全部命中——五档只有 1 条未见（$h/a=5$ 的 `1-3-5-7-2-8-3`，面积 0.0009 sr）；(ii) 反向不成立：MC 命中而枚举器判不可达的 PBD 代表五档共 240 个，全部在 0.2° 细网格上可行、面积 $6\times10^{-5}$–$9\times10^{-3}$ sr（多数窄于一个 2° 格）——是 DFS 在 2° 网格上把窄窗口剪掉的**网格分辨率漏判**，不是判据错；它们所属的 $\Phi$ 类全部已在该档可达集内，**上表的类数不变，光路条数与面积是低估**（待枚举器细化网格后更新）。另有 178 个代表每个只命中 1–2 次且落在 TIR 死角类（A120/A180）或细网格也不可行，是追迹的数值边缘产物（与「连续两次打同一面」的链同族），不计。能量份额与可行方向面积按类的 Spearman ρ 为 0.32–0.82：面积是权重的骨架但远非全部（长链的 Fresnel 部分反射把能量压到 $10^{-4}$ 以下，面积不计这一项）。
+
+两个口径提醒（写 ch8 时要交代）：(i) 34 = 6 + 12 + 16 里 0° 的 6 是把 $\Phi=M$ 当**总体映射**按 $M$ 的共轭类数的，不看定义域；60°/90° 的 12/16 则把定义域算进身份（否则时间反演对会并掉）。若对 0° 也带定义域，14 个 signature 类一个都不并，总数变 42。(ii) 晕名粗于 $\Phi$ 类：ch3 ground truth 的 93 条光路（`data/ground_truth_signature.md`）16 组里 14 组内部同一 $\Phi$ 类，「幻日环」「映幻日环」两组各含 60° 楔、$M$ 为 s 型的成员（共 16 条，落在 A60-01/02、A60-04/05/06）——竖直面折射与竖直镜保持仰角、底面镜翻转它，片晶绕 $z$ 旋转后这些光仍落在同一条等仰角圆上，晕名按落点归组没错，$\Phi$ 类是更细的分辨率；另 2 条（`3-5-8-5`、`3-6-3-5`，$M=e$、与 `3-5` 同类）文件里标题按环、标签按幻日，两种归法并存。0° 六组与 ch7 发表的 6 类一一对应。
 
 ## 3. 锥晶：结构 vs 巧合（ch9）
 
@@ -166,7 +179,7 @@ $$
 ## 7. 未决
 
 - [猜] 定理 4 signature 的完备性（$\Phi$ 相同 ⇒ signature 相同）。
-- [猜] 六棱柱上界 34 已算（定理 5′）；下界（可达类数、随高径比变化）待枚举器。锥晶两端都待做（ch9 的穷举交付）。
+- 六棱柱上界 34（定理 5′）与下界（定理 5″：$h/a\ge0.5$ 时 34 类全可达，片晶 28）都已算，MC 互证类数不变。枚举器 2° 网格漏判窄窗口光路（五档 240 个 PBD 代表，见 `data/energy_table.md` 互证小节）：光路条数 / 面积表待枚举器细化（自适应或更细网格）后重算，是 `halo_notes.geometry.enumerate` 的未决。锥晶两端都待做（ch9 的穷举交付；`Pyramid` 长度 ≤ 3 的 smoke 已给 71 个 $\Phi$ 类，见 `enumerate_signatures.py` 末尾）。
 - [猜] 柱晶（$Q$ 二维、三维）下 22° 晕的奇点类型（fold / cusp / pleat）的数值确认。
 - 锥晶的 $\Phi$ 类数是否随字长上限收敛，收敛速度——决定 ch9 穷举的截断。
 - 姿态族 $Q$ 非光滑（Parry 与柱晶混合）时定理 8 内层积分的处理。
@@ -175,6 +188,8 @@ $$
 
 - `07-reflection-group/code/check_group.py` — 定理 1、2、3、5，及「特征值只得 5 类」。
 - `08-wedge-times-fold/code/check_signature.py` — 定理 5′。
+- `08-wedge-times-fold/code/enumerate_signatures.py` — 定理 5″（产出 `data/signature_table*`）；`check_ground_truth_signature.py` — ch3 ground truth 对表（产出 `data/ground_truth_signature.md`）。
+- `08-wedge-times-fold/code/analyze_energy.py` — 定理 5″ 的 MC 独立复核 + 每类能量份额（产出 `data/analysis/`（ignored，打包为 `data/analysis.zip` 走 LFS）、`data/energy_table.md`；需 `LUMICE_BIN` 指向带 `analyze` 子命令的本地 build）。
 - `docs/checks/check_pyramid.py` — 定理 6、7。
 
 ch7 / ch9 bootstrap 时迁入各章 `code/`。

@@ -90,8 +90,23 @@ def parry_axis(zenith_std: Number = 1.0, roll_std: Number = 1.0, roll_mean: Numb
 
 
 def random_axis() -> dict[str, Any]:
-    """完全随机取向：zenith 在球面上均匀（0–180° 均匀 + 面积 Jacobian 由 Lumice 处理），azimuth / roll 省略 = 均匀。"""
+    """完全随机取向：zenith 在球面上均匀（0–180° 均匀 + 面积 Jacobian 由 Lumice 处理），azimuth / roll 省略 = 均匀。
+
+    Lumice ``doc/crystal-orientation-sampling.md`` §4.2：``uniform`` 型 zenith 走 ``kLutInverseCdf`` 路径，对任意
+    zenith 分布都按 ``p_sphere(θ) ∝ p(θ)·sin(θ)`` 做面积加权反演，所以「[0°, 180°] 满宽度均匀」就是真正的球面均匀，
+    不需要凑成 ``width=360``。"""
     return {"zenith": uniform(90, 180)}
+
+
+def hex_prism_height_ratio(ratio: float) -> float:
+    """把本仓 :class:`halo_notes.geometry.HexPrism` 的高径比 ``h/a``（``a`` = 六边形**边长** = 外接圆半径）换算成
+    Lumice ``crystal.shape.height``（``doc/configuration.md:101``：``height = h / a``，``a`` 是 "base diameter"）。
+
+    Lumice ``src/core/geo3d_closedform.cpp:100-104``：六棱柱侧面法向偏移 ``r_side_dist = (√3/4)·face_distance``，
+    ``face_distance`` 默认全 1；正六边形 apothem = R·√3/2，解得 R = 0.5，即 Lumice 的 ``a`` = 顶点对角线直径 = 2R =
+    **2 × 边长**。同一物理晶体两边的比值差一倍：``height = ratio / 2``。2026-09-15 用「ratio=0.4 可达、0.2 不可达」的
+    判别光路 ``1-3-2-1-5`` 实跑 ``analyze`` 双检（Lumice ``height=0.2`` 命中、``0.1`` 不命中），方向无误。"""
+    return float(ratio) / 2.0
 
 
 # ---------- filter ----------
