@@ -18,7 +18,7 @@ from halo_notes.math.signature import phi_batch, phi_class, phi_class_table
 
 DATA = Path(__file__).resolve().parents[3] / "08-wedge-times-fold" / "data"
 RATIOS = (0.2, 0.5, 1.0, 2.0, 5.0)
-GRID = LatLonGrid(90, 180)
+GRID = LatLonGrid(180, 360)   # 必须与 08-wedge-times-fold/code/enumerate_signatures.py 的 GRID 同分辨率：csv 里的最短代表是在那张网格上判可行的
 PLATE = HexPrism.from_ratio(0.2)
 TABLE = {r.id: r for r in phi_class_table(PLATE)}
 BY_CLASS = {r.phi_class: r for r in TABLE.values()}
