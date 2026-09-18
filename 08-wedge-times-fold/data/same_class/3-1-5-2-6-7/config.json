@@ -22,8 +22,10 @@
       "raypath": [
         3,
         1,
+        5,
         2,
-        5
+        6,
+        7
       ],
       "symmetry": "PBD",
       "action": "filter_in"
@@ -56,20 +58,16 @@
     {
       "id": 1,
       "lens": {
-        "type": "globe",
-        "fov": 30
+        "type": "rectangular",
+        "fov": 180
       },
       "resolution": [
-        1400,
-        1400
+        5760,
+        2880
       ],
       "visible": "full",
-      "intensity_factor": 0.5,
+      "intensity_factor": 8.0,
       "ev_mode": "absolute",
-      "view": {
-        "azimuth": 180.0,
-        "elevation": -10.0
-      },
       "background": [
         0,
         0,

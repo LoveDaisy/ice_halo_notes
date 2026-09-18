@@ -5,7 +5,8 @@
 # 的全部代表装进 `complex` 复合过滤器（OR）——ch7 图 6 的教训：单条代表光路只占类总能量 0.4%，不能只放最短代表。
 # 输出形态与 `07-reflection-group/code/_ch7_sim.class_filters` 逐字一致（复合过滤器 id=FILTER_ID、PBD 写在复合过滤器上、
 # 子过滤器各带 PBD），只是数据来源从 `reflection_group.raypaths_of_class` 换成枚举器 + `phi_class`。
-# B1 是两条**单光路**对照（`3-5` vs `3-1-2-5`），走 `single_raypath_filter`，不走 OR。
+# B1 是三条**单光路**对照（A60-10 类内 `3-1-5-2-6-7` / `3-1-5-6-2-7` / `3-1-2-5-6-7`），走 `single_raypath_filter`，不走 OR；
+# 它的子图是 rectangular 全天图裁到反日点一侧的窗口（`rectangular_window`），不走 globe 选帧中心。
 # 晶体口径：本仓 `HexPrism` 的 h/a（a = 六边形边长），Lumice `height` 经 `config.hex_prism_height_ratio` 换算（÷2），
 # 与 `analyze_energy.py` / `data/energy_table.md` 同一口径；ch7 图 6 直接写 Lumice height=2（本仓口径 h/a=4），本篇不沿用那个数。
 # 帧中心机械选取（`choose_center` / `cap_energy_fractions` / `linear_luminance` / `sky_grid`）照抄 ch7 `fig_halos_columns.py`——
@@ -20,7 +21,7 @@ from lumice_integral.geometry.feasibility import LatLonGrid
 from halo_notes.math import reflection_group as rg
 from halo_notes.math.signature import phi_class, phi_class_table
 from halo_notes.sim import config as C
-from halo_notes.sim.projection import GLOBE_CAP_DEG, rectangular_pixel_directions
+from halo_notes.sim.projection import GLOBE_CAP_DEG, project_rectangular, rectangular_pixel_directions
 
 FILTER_ID = 1          # 顶层过滤器的 id（复合或单光路）；scattering entry 引用它
 MAX_LEN = 8            # 与 enumerate_signatures.py 一致
@@ -163,3 +164,23 @@ def sky_energy(image: np.ndarray, render: dict) -> float:
     """参考图（rectangular、absolute 曝光）的全天线性能量（立体角加权），供两条光路的亮度比对。"""
     _, weight = rectangular_pixel_directions(render)
     return float((linear_luminance(image) * weight).sum())
+
+
+def rectangular_window(render: dict, az_range: tuple[float, float], el_range: tuple[float, float]) -> tuple[slice, slice]:
+    """``rectangular`` 图上方位 ``az_range``、仰角 ``el_range``（度，闭区间；方位 0° = 太阳，按 Lumice 约定取值）覆盖的像素窗口，
+    返回 ``(行切片, 列切片)``——B1 三张子图裁到反日点一侧同一窗口用。取像素中心落在范围内的行列，边界经
+    :func:`project_rectangular` 正投影四个角算出（不铺整幅方向网格，5760×2880 的子图也只算 4 个点）；方位区间跨过
+    ±180° 接缝时直接报错而不是静默给一个错窗口。"""
+    w, h = int(render["resolution"][0]), int(render["resolution"][1])
+    uv = project_rectangular([sky(el, az) for el in el_range for az in az_range], render)
+    u_lo, u_hi = float(uv[0, 0]), float(uv[1, 0])            # 同一仰角、方位 az_lo → az_hi
+    v_top, v_bot = float(uv[2, 1]), float(uv[0, 1])          # 仰角 el_hi 在上、el_lo 在下（v 向下）
+    if u_hi <= u_lo:
+        u_hi += w                                            # 方位上限恰落在接缝（如 180°）时 u 折回 0，补一圈
+    if u_hi > w + 1e-6:
+        raise ValueError("方位区间跨过了 ±180° 接缝，窗口不连续")
+    cols = slice(int(np.ceil(u_lo - 0.5)), int(np.floor(u_hi - 0.5)) + 1)
+    rows = slice(int(np.ceil(v_top - 0.5)), int(np.floor(v_bot - 0.5)) + 1)
+    if rows.stop <= rows.start or cols.stop <= cols.start:
+        raise ValueError("范围在这张图上没有像素")
+    return rows, cols

@@ -247,72 +247,87 @@ def test_pose_to_sky_backdrops_share_the_halo_columns_simulation():
         assert prov["config_sha256"] == config_sha256(back) and prov["lumice_version"] == "v4.5.1"
 
 
-# ---- ch8 图 B1 / B2（task-write-ch8）：单光路对照 / Φ 类整类过滤器；config 除过滤器、帧中心、曝光外逐字段相同；帧中心机械可复现；拼图由子图拼成 ----
+# ---- ch8 图 B1 / B2（task-write-ch8 / task-backfill-ch8）：单光路对照 / Φ 类整类过滤器；三份 B1 config 只差过滤器；B1 与 B2 同一 population 与场景；
+# 帧中心 / 裁切窗口机械可复现；拼图由子图拼成 ----
 
 CH8 = "08-wedge-times-fold"
+B1_TAGS = ("3-1-5-2-6-7", "3-1-5-6-2-7", "3-1-2-5-6-7")
 
 
 def _ch8_script(name: str):
     return runpy.run_path(str(ROOT / CH8 / "code" / name))
 
 
-def _strip_filter_view_exposure(cfg: dict) -> dict:
-    cfg = _strip_filter_and_view(cfg)
-    for r in cfg["render"]:
-        r.pop("ev_mode", None)
-        r.pop("intensity_factor", None)
+def _strip_filter(cfg: dict) -> dict:
+    cfg = json.loads(json.dumps(cfg))
+    cfg["filter"] = None
+    for layer in cfg["scene"]["scattering"]:
+        for e in layer["entries"]:
+            e.pop("filter", None)
     return cfg
 
 
-def test_ch8_b_figures_configs_differ_only_by_filter_view_and_exposure():
-    """B1 两张子图（同一绝对曝光）之间只差过滤器与帧中心；B1 与 B2（片晶）之间再差曝光模式；共同点：片晶 h/a=0.2（Lumice height 0.1）、
-    zenith σ=0.5°、Σ=10°、globe fov 30、1400²、经纬网格 30°、max_hits 9。"""
-    b1 = {tag: _cfg(f"{CH8}/data/same_class.{tag}.lumice.json") for tag in ("3-5", "3-1-2-5")}
+def test_ch8_b_figures_configs_share_crystal_and_scene():
+    """B1 三张子图（同一绝对曝光、同一 rectangular 全天镜头）之间**只差过滤器**；B1 与 B2（片晶）的 crystal 段与 scene 段（去掉过滤器）逐字段相同：
+    片晶 h/a=0.2（Lumice height 0.1）、zenith σ=0.5°、Σ=10°、max_hits 9；B1 子图 rectangular 5760×2880、absolute、intensity 8，经纬网格与 B2 相同（30°）。"""
+    mod = _ch8_script("fig_b1_same_class.py")
+    b1 = {tag: _cfg(f"{CH8}/data/same_class.{tag}.lumice.json") for tag in B1_TAGS}
     b2 = _cfg(f"{CH8}/data/unnamed_cell.plate.lumice.json")
-    assert len({json.dumps(_strip_filter_and_view(c), sort_keys=True) for c in b1.values()}) == 1
-    assert len({json.dumps(_strip_filter_view_exposure(c), sort_keys=True) for c in (*b1.values(), b2)}) == 1
-    for r in (c["render"][0] for c in b1.values()):
-        assert r["ev_mode"] == "absolute" and r["intensity_factor"] == 0.5                  # 两张图亮度可直接比
-    assert b2["render"][0]["ev_mode"] == "relative"
+    assert tuple(mod["PATHS"]) == B1_TAGS
+    assert len({json.dumps(_strip_filter(c), sort_keys=True) for c in b1.values()}) == 1
+    assert len({json.dumps((c["crystal"], _strip_filter(c)["scene"]), sort_keys=True) for c in (*b1.values(), b2)}) == 1
     for cfg in (*b1.values(), b2):
         cr = cfg["crystal"][0]
         assert cr["shape"]["height"] == 0.1 and cr["axis"]["zenith"] == {"type": "gauss", "mean": 0, "std": 0.5} and "roll" not in cr["axis"]
         assert cfg["scene"]["light_source"]["altitude"] == 10 and cfg["scene"]["max_hits"] == 9
         assert cfg["scene"]["scattering"][0]["entries"] == [{"crystal": 1, "proportion": 100, "filter": 1}]
-        r = cfg["render"][0]
-        assert r["lens"] == {"type": "globe", "fov": 30} and r["resolution"] == [1400, 1400] and r["visible"] == "full"
+    for r in (c["render"][0] for c in b1.values()):
+        assert r["lens"]["type"] == "rectangular" and r["resolution"] == list(mod["SUB_RESOLUTION"]) == [5760, 2880]
+        assert r["ev_mode"] == "absolute" and r["intensity_factor"] == mod["INTENSITY"] and r["visible"] == "full"   # 三张亮度可直接比
+        assert r["grid"] == b2["render"][0]["grid"]
         assert sorted(g["value"] for g in r["grid"]["elevation"]) == list(range(-60, 90, 30))
         assert sorted(g["value"] for g in r["grid"]["longitude"]) == list(range(0, 360, 30))
+    assert b2["render"][0]["ev_mode"] == "relative" and b2["render"][0]["lens"] == {"type": "globe", "fov": 30}
 
 
-def test_ch8_b1_two_single_paths_share_phi_class_center_and_shape():
-    """B1：过滤器各是一条单光路（PBD），两条同属 Φ 类 A60-12；帧中心由参考图机械复现且两张一致（太阳）；
-    两张子图像素相关 > 0.99（形状相同）、参考图全天能量之比在 0.8–1.2（片晶取向下亮度相当——提纲「暗三个数量级」不成立）。"""
+def test_ch8_b1_three_paths_share_phi_class_and_shape():
+    """B1：过滤器各是一条单光路（PBD），三条同属 Φ 类 A60-10；参考图（rectangular、absolute、不削顶）机械复现：主对照两条
+    （`3-1-5-2-6-7` / `3-1-5-6-2-7`）全天能量之比在 0.9–1.1、窗口内像素相关 > 0.98（同形同亮）；反衬 `3-1-2-5-6-7` 能量比在 0.1–0.3
+    （暗约 5 倍）、相关 < 0.95（只亮一段），且幻日环条带上它落在内侧 142°–150° 的能量占比比主对照高 ≥ 0.1；子图 = 参考窗口的 4× 放大。"""
     import sys
     import numpy as np
     from PIL import Image
     sys.path.insert(0, str(ROOT / CH8 / "code"))
     import _ch8_sim as S
     mod = _ch8_script("fig_b1_same_class.py")
-    centers, energies, grays = {}, {}, {}
+    base, contrast = mod["BASE"], "3-1-2-5-6-7"
+    energies, windows, inner = {}, {}, {}
     for tag, faces in mod["PATHS"].items():
         sub = _cfg(f"{CH8}/data/same_class.{tag}.lumice.json")
         ref = _cfg(f"{CH8}/data/same_class.ref_{tag}.lumice.json")
         assert sub["filter"] == [{"id": 1, "type": "raypath", "raypath": list(faces), "symmetry": "PBD", "action": "filter_in"}]
-        assert S.class_filter_paths(sub["filter"]) == {faces} and S.class_id_of(mod["RATIO"], faces) == "A60-12"
+        assert S.class_filter_paths(sub["filter"]) == {faces} and S.class_id_of(mod["RATIO"], faces) == "A60-10"
         assert ref["crystal"] == sub["crystal"] and ref["filter"] == sub["filter"]
         assert {**ref["scene"], "ray_num": 0} == {**sub["scene"], "ray_num": 0} and ref["scene"]["ray_num"] == mod["REF_RAY_NUM"]
         r = ref["render"][0]
-        assert r["lens"]["type"] == "rectangular" and r["ev_mode"] == "absolute" and r["intensity_factor"] == mod["REF_INTENSITY"]
+        assert r["lens"]["type"] == "rectangular" and r["ev_mode"] == "absolute" and r["intensity_factor"] == mod["REF_INTENSITY"] and "grid" not in r
         image = np.asarray(Image.open(ROOT / CH8 / "data" / "same_class" / f"ref_{tag}" / "img_01.png").convert("RGB"))
         assert image.max() < 255                                                           # 参考图不削顶，能量比才可信
-        centers[tag], _ = S.choose_center(image, r)
-        assert centers[tag] == mod["center_of"](sub)
         energies[tag] = S.sky_energy(image, r)
-        grays[tag] = np.asarray(Image.open(ROOT / CH8 / "img" / f"same_class_{tag}.jpg").convert("L"))
-    assert set(centers.values()) == {"sun"}
-    assert 0.8 < energies["3-1-2-5"] / energies["3-5"] < 1.2, energies
-    assert mod["shape_similarity"](grays["3-5"], grays["3-1-2-5"]) > 0.99
+        windows[tag] = mod["window_luminance"](image, r)
+        prof = mod["strip_profile"](image, r)
+        inner[tag] = prof[(mod["STRIP_BINS"][:-1] >= 142) & (mod["STRIP_BINS"][:-1] < 150)].sum() / prof.sum()
+        rows, cols = S.rectangular_window(sub["render"][0], mod["WINDOW_AZ"], mod["WINDOW_EL"])
+        assert (cols.stop - cols.start, rows.stop - rows.start) == (mod["SUB_W"], mod["SUB_H"]) == (960, 480)
+        rr, rc = S.rectangular_window(r, mod["WINDOW_AZ"], mod["WINDOW_EL"])
+        assert (rows.start, rows.stop, cols.start, cols.stop) == (4 * rr.start, 4 * rr.stop, 4 * rc.start, 4 * rc.stop)
+        assert Image.open(ROOT / CH8 / "img" / f"same_class_{tag}.jpg").size == (960, 480)
+    other = [t for t in B1_TAGS if t not in (base, contrast)][0]
+    assert 0.9 < energies[other] / energies[base] < 1.1, energies
+    assert 0.1 < energies[contrast] / energies[base] < 0.3, energies
+    assert mod["shape_similarity"](windows[base], windows[other]) > 0.98
+    assert mod["shape_similarity"](windows[base], windows[contrast]) < 0.95
+    assert inner[contrast] > inner[base] + 0.1 and inner[contrast] > inner[other] + 0.1, inner
 
 
 def test_ch8_b2_complex_filter_is_exactly_the_phi_class_members():
@@ -369,15 +384,16 @@ def test_ch8_b_figures_are_composed_from_the_sub_images():
     from PIL import Image
     img = ROOT / CH8 / "img"
     b1, b2 = _ch8_script("fig_b1_same_class.py"), _ch8_script("fig_b2_unnamed_cell.py")
-    sky, margin, gap, label = b1["SKY_PX"], b1["MARGIN"], b1["GAP"], b1["LABEL_PX"]
+    w, h, margin, gap, label = b1["SUB_W"], b1["SUB_H"], b1["MARGIN"], b1["GAP"], b1["LABEL_PX"]
     canvas = np.asarray(Image.open(img / "same_class.jpg").convert("L"), float)
-    assert canvas.shape == (b1["HEIGHT"], b1["WIDTH"])
-    for i, tag in enumerate(b1["PATHS"]):
+    assert canvas.shape == (b1["HEIGHT"], b1["WIDTH"]) and tuple(b1["PATHS"]) == B1_TAGS
+    for i, tag in enumerate(b1["PATHS"]):                                                # 三张子图上下叠放，各带一行标签
         s = np.asarray(Image.open(img / f"same_class_{tag}.jpg").convert("L"), float)
-        assert s.shape == (sky, sky)
-        x = margin + i * (sky + gap)
-        region = canvas[margin + label:margin + label + sky, x:x + sky]
-        assert np.abs(region - s).mean() < 2.0 and np.corrcoef(region.ravel(), s.ravel())[0, 1] > 0.95, tag   # 画面大片纯黑，jpg 暗部噪声压低相关（实测 0.97–0.99），均差 < 0.5
+        assert s.shape == (h, w)
+        y = margin + i * (h + label + gap)
+        region = canvas[y + label:y + label + h, margin:margin + w]
+        assert np.abs(region - s).mean() < 2.0 and np.corrcoef(region.ravel(), s.ravel())[0, 1] > 0.95, tag   # 画面大片纯黑，jpg 暗部噪声压低相关，均差 < 0.5
+    sky = b2["SKY_PX"]
     canvas = np.asarray(Image.open(img / "unnamed_cell.jpg").convert("L"), float)
     assert canvas.shape == (b2["HEIGHT"], b2["WIDTH"])
     s = np.asarray(Image.open(img / f"unnamed_cell_{b2['CHOSEN']}.jpg").convert("L"), float)
@@ -386,7 +402,7 @@ def test_ch8_b_figures_are_composed_from_the_sub_images():
 
 
 def test_ch8_b_figures_provenance_present():
-    for name, variants in (("same_class", ("3-5", "3-1-2-5", "ref_3-5", "ref_3-1-2-5")), ("unnamed_cell", ("plate", "ref_plate", "ref_column"))):
+    for name, variants in (("same_class", (*B1_TAGS, *(f"ref_{t}" for t in B1_TAGS))), ("unnamed_cell", ("plate", "ref_plate", "ref_column"))):
         for variant in variants:
             prov = json.loads((ROOT / CH8 / "data" / name / variant / "provenance.json").read_text())
             assert prov["lumice_version"] == "v4.5.1" and prov["wall_clock_s"] > 0
