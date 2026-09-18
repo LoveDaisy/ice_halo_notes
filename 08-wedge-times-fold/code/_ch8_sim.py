@@ -11,6 +11,9 @@
 # 与 `analyze_energy.py` / `data/energy_table.md` 同一口径；ch7 图 6 直接写 Lumice height=2（本仓口径 h/a=4），本篇不沿用那个数。
 # 帧中心机械选取（`choose_center` / `cap_energy_fractions` / `linear_luminance` / `sky_grid`）照抄 ch7 `fig_halos_columns.py`——
 # 跨章复用的代码按 AGENTS.md 应上提到 `halo_notes/`，本任务 plan 划定 `halo_notes/` 只读，先章内复制、上提另起任务（progress 有记）。
+# 太阳高度：B1（图 5）沿用模块默认 `SUN_ALTITUDE`=10°；B2 系列（`fig_b2_unnamed_cell.py`、`fig_cross_section_sensitivity.py`）改太阳 0°
+# （task-revise-ch8：Liljequist 窄峰与 142° 鼓包两层同现需太阳贴地平线），一律经 `scene(..., sun_alt=)` / `candidates_for(sun_alt)` 显式传入，
+# 不改全局常量。幻日环条带方位剖面 `azimuth_profile` 是唯一实现（抽自 scratchpad probe_liljequist_azimuth.py），B1 / B2 / 截面敏感性图都调它。
 from __future__ import annotations
 
 import numpy as np
@@ -106,8 +109,15 @@ def sky(el_deg: float, az_deg: float) -> np.ndarray:
 
 
 # 候选帧中心（天空方向）；Lumice 方位角 0° = +x = 太阳方向。场景关于太阳—反日点竖直面镜像对称，侧向只列 +90°（同 ch7）
-CANDIDATES = {"sun": sky(SUN_ALTITUDE, 0), "anthelic": sky(SUN_ALTITUDE, 180), "side": sky(SUN_ALTITUDE, 90)}
 CENTER_TEXT = {"sun": "帧中心：太阳", "anthelic": "帧中心：反日点", "side": "帧中心：侧向（方位角 90°）"}
+
+
+def candidates_for(sun_alt: float) -> dict[str, np.ndarray]:
+    """太阳高度 ``sun_alt`` 下的三个候选帧中心（都在幻日环高度上）。"""
+    return {"sun": sky(sun_alt, 0), "anthelic": sky(sun_alt, 180), "side": sky(sun_alt, 90)}
+
+
+CANDIDATES = candidates_for(SUN_ALTITUDE)      # B1 与既有单测用的默认（10°）
 
 
 def sky_grid(*, step: int = GRID_STEP, opacity: float = GRID_OPACITY, label: bool = GRID_LABEL) -> dict:
@@ -118,8 +128,10 @@ def sky_grid(*, step: int = GRID_STEP, opacity: float = GRID_OPACITY, label: boo
     return C.grid(elevation=elev, longitude=lon, extra={"label": label})
 
 
-def scene(ray_num: int) -> dict:
-    return C.scene(C.sun(SUN_ALTITUDE), ray_num, [C.entry(1, filter=FILTER_ID)], max_hits=MAX_HITS)
+def scene(ray_num: int, sun_alt: float = SUN_ALTITUDE, *, filtered: bool = True) -> dict:
+    """场景段：太阳 ``sun_alt``、D65；``filtered=False`` 时 entry 不挂过滤器（渲染全部光路，B2 方位剖面的「全部」曲线用）。"""
+    entry = C.entry(1, filter=FILTER_ID) if filtered else C.entry(1)
+    return C.scene(C.sun(sun_alt), ray_num, [entry], max_hits=MAX_HITS)
 
 
 def reference_render(intensity_factor: float = 3.0) -> dict:
@@ -166,6 +178,22 @@ def sky_energy(image: np.ndarray, render: dict) -> float:
     return float((linear_luminance(image) * weight).sum())
 
 
+def azimuth_profile(image: np.ndarray, render: dict, sun_alt: float, *, half_deg: float = 1.5,
+                    edges: np.ndarray | None = None, bin_deg: float = 0.5) -> tuple[np.ndarray, np.ndarray]:
+    """幻日环条带方位剖面：``rectangular`` 参考图上仰角 = ``sun_alt`` ± ``half_deg`` 的条带，线性能量（立体角加权）沿 |方位角|
+    （太阳 = 0°；场景左右镜像对称，两侧合并）按 ``edges``（度，默认 0…180 每 ``bin_deg``）分桶。返回 ``(桶中心, 各桶能量)``。
+    抽自 scratchpad/task-write-ch8/probe_liljequist_azimuth.py::profile，B1 `strip_profile`、B2 三曲线、截面敏感性图共用这一份实现。"""
+    if edges is None:
+        edges = np.arange(0.0, 180.0 + bin_deg, bin_deg)
+    edges = np.asarray(edges, float)
+    dirs, weight = rectangular_pixel_directions(render)
+    el = np.degrees(np.arcsin(np.clip(dirs[..., 2], -1.0, 1.0)))
+    az = np.abs(np.degrees(np.arctan2(dirs[..., 1], dirs[..., 0])))
+    strip = np.abs(el - sun_alt) <= half_deg
+    hist, _ = np.histogram(az[strip], bins=edges, weights=(linear_luminance(image) * weight)[strip])
+    return (edges[:-1] + edges[1:]) / 2, hist
+
+
 def rectangular_window(render: dict, az_range: tuple[float, float], el_range: tuple[float, float]) -> tuple[slice, slice]:
     """``rectangular`` 图上方位 ``az_range``、仰角 ``el_range``（度，闭区间；方位 0° = 太阳，按 Lumice 约定取值）覆盖的像素窗口，
     返回 ``(行切片, 列切片)``——B1 三张子图裁到反日点一侧同一窗口用。取像素中心落在范围内的行列，边界经
@@ -184,3 +212,42 @@ def rectangular_window(render: dict, az_range: tuple[float, float], el_range: tu
     if rows.stop <= rows.start or cols.stop <= cols.start:
         raise ValueError("范围在这张图上没有像素")
     return rows, cols
+
+
+FEATURE_WINDOW = (120.0, 180.0)    # 方位剖面取数窗口：反日点一侧（B2 三曲线与截面敏感性图共用）
+OUTER_FRAC = 0.1                   # 「外缘」= 剖面从峰值降到 10% 处
+
+
+def _crossing(x: np.ndarray, y: np.ndarray, level: float, i: int, step: int) -> float:
+    """从桶 ``i``（y[i] ≥ level）沿 ``step`` 方向走到首个 y < level 的桶，两桶之间线性插值出 y = level 的方位。"""
+    j = i
+    while 0 <= j + step < len(y) and y[j + step] >= level:
+        j += step
+    k = j + step
+    if not 0 <= k < len(y):
+        return float(x[j])
+    t = (y[j] - level) / (y[j] - y[k])
+    return float(x[j] + t * (x[k] - x[j]))
+
+
+def profile_features(centers: np.ndarray, hist: np.ndarray, window: tuple[float, float] | None = None,
+                     outer_frac: float | None = None) -> dict[str, float]:
+    """方位剖面在 ``window`` 内的机械特征：``peak_az``（argmax 桶中心）、``edge_az``（峰值内侧的半高交点——「锐边」位置）、
+    ``rise_deg``（内侧从 10% 爬到 90% 峰值经过的方位跨度——锐边有多「锐」）、``outer_az``（峰值外侧降到 ``outer_frac`` 峰值的交点）、
+    ``fwhm_deg``（半高全宽）、``energy``（窗口内条带能量）。"""
+    window = FEATURE_WINDOW if window is None else window
+    outer_frac = OUTER_FRAC if outer_frac is None else outer_frac
+    m = (centers >= window[0]) & (centers <= window[1])
+    x, y = centers[m], hist[m]
+    if y.max() <= 0:
+        raise ValueError("剖面在窗口内全零")
+    i = int(np.argmax(y))
+    p = float(y[i])
+    return {
+        "peak_az": float(x[i]),
+        "edge_az": _crossing(x, y, 0.5 * p, i, -1),
+        "rise_deg": _crossing(x, y, 0.9 * p, i, -1) - _crossing(x, y, 0.1 * p, i, -1),
+        "outer_az": _crossing(x, y, outer_frac * p, i, +1),
+        "fwhm_deg": _crossing(x, y, 0.5 * p, i, +1) - _crossing(x, y, 0.5 * p, i, -1),
+        "energy": float(y.sum()),
+    }

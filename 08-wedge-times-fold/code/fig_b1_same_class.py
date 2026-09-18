@@ -4,8 +4,9 @@
 # 差别只在定义域（哪些方向的光走得通）：前两条第二次底面反射插在不同位置（`5-2` 之间 / `6-2` 之间），亮度相同——非平凡的原因是
 # 底面翻转 $b$ 与所有侧面反射对易，两个 $b$ 隔多远都抵消；第三条底面 `1-2` 相邻（平凡型），同一条弧只亮靠内侧的一段、暗约 5 倍。
 # 为什么不再用 `3-5` vs `3-1-2-5`（旧版）：底面 1/2 本来平行，相邻互反一次就抵消，太平凡（作者裁定，见 scratchpad author-review §4）。
-# 类里的最短代表 `3-4-5-7` / `3-5-6-7` 在定向片晶里走不通（侧面进、只在侧面间反射的光撑不到下一个侧面就先碰底面，单光路渲染全黑），
-# 随机取向 MC 里它们占类内一半能量，定向片晶里为零——所以片晶下这团光全由长度 6 的成员扛着。
+# 类里的最短代表 `3-4-5-7` / `3-5-6-7` 在定向片晶、太阳 10° 下走不通（单光路渲染全黑）——这是太阳高度的事，不是片晶本身：太阳 0° 时
+# 只有这两条走得通、长度 6 的三条为零，5° 时两边各半（scratchpad/task-write-ch8 probe_b1_sun0.py / probe_b1_sun5.py，task-revise-ch8 记录）。
+# 本图取 10° 正是为了让三条长度 6 的成员同时可见；成员随太阳高度换班是定义域的事，正文不展开（ch11）。
 # 每条光路两次仿真、各自单独存（data/same_class.<tag>.lumice.json + data/same_class/<tag>/）：
 #   ref_<tag>：全天 rectangular 1440×720、1×10⁸ 光线、absolute 低曝光（不削顶），量全天线性能量之比与窗口内像素相关系数（「亮度比 / 形状相同」的机械锚点）；
 #   <tag>：全天 rectangular 5760×2880（1/16°/px）、absolute 正式曝光 + 经纬网格，裁窗口（方位 120°–180°、仰角 −5°…+25°）存子图。
@@ -20,7 +21,6 @@ import numpy as np
 from halo_notes.sim import config as C
 from halo_notes.sim import compose as X
 from halo_notes.sim.figure import img_path, parse_args, sim_figure, with_ray_num
-from halo_notes.sim.projection import rectangular_pixel_directions
 
 CODE_DIR = Path(__file__).resolve().parent
 if str(CODE_DIR) not in sys.path:
@@ -75,13 +75,8 @@ def shape_similarity(a: np.ndarray, b: np.ndarray) -> float:
 
 
 def strip_profile(image: np.ndarray, render: dict, *, half_deg: float = STRIP_HALF_DEG, bins: np.ndarray = STRIP_BINS) -> np.ndarray:
-    """参考图上幻日环条带（仰角 = 太阳高度 ± ``half_deg``）的线性能量沿 |方位角| 分 ``bins``（度）的直方图。"""
-    dirs, weight = rectangular_pixel_directions(render)
-    el = np.degrees(np.arcsin(np.clip(dirs[..., 2], -1.0, 1.0)))
-    az = np.abs(np.degrees(np.arctan2(dirs[..., 1], dirs[..., 0])))
-    strip = np.abs(el - S.SUN_ALTITUDE) <= half_deg
-    hist, _ = np.histogram(az[strip], bins=bins, weights=(S.linear_luminance(image) * weight)[strip])
-    return hist
+    """参考图上幻日环条带（仰角 = 太阳高度 ± ``half_deg``）的线性能量沿 |方位角| 分 ``bins``（度）的直方图（`S.azimuth_profile` 的一份调用）。"""
+    return S.azimuth_profile(image, render, S.SUN_ALTITUDE, half_deg=half_deg, edges=bins)[1]
 
 
 def crop_sub(image: "X.Image.Image", render: dict) -> "X.Image.Image":
