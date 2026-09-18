@@ -233,8 +233,8 @@ def _crossing(x: np.ndarray, y: np.ndarray, level: float, i: int, step: int) -> 
 def profile_features(centers: np.ndarray, hist: np.ndarray, window: tuple[float, float] | None = None,
                      outer_frac: float | None = None) -> dict[str, float]:
     """方位剖面在 ``window`` 内的机械特征：``peak_az``（argmax 桶中心）、``edge_az``（峰值内侧的半高交点——「锐边」位置）、
-    ``rise_deg``（内侧从 10% 爬到 90% 峰值经过的方位跨度——锐边有多「锐」）、``outer_az``（峰值外侧降到 ``outer_frac`` 峰值的交点）、
-    ``fwhm_deg``（半高全宽）、``energy``（窗口内条带能量）。"""
+    ``edge_width_deg``（内侧从 10% 峰值爬到半高经过的方位跨度——锐边有多「锐」；A60-10 约 1°，A0-02 窄峰的内坡约 4°）、
+    ``outer_az``（峰值外侧降到 ``outer_frac`` 峰值的交点）、``fwhm_deg``（半高全宽）、``energy``（窗口内条带能量）。"""
     window = FEATURE_WINDOW if window is None else window
     outer_frac = OUTER_FRAC if outer_frac is None else outer_frac
     m = (centers >= window[0]) & (centers <= window[1])
@@ -246,7 +246,7 @@ def profile_features(centers: np.ndarray, hist: np.ndarray, window: tuple[float,
     return {
         "peak_az": float(x[i]),
         "edge_az": _crossing(x, y, 0.5 * p, i, -1),
-        "rise_deg": _crossing(x, y, 0.9 * p, i, -1) - _crossing(x, y, 0.1 * p, i, -1),
+        "edge_width_deg": _crossing(x, y, 0.5 * p, i, -1) - _crossing(x, y, 0.1 * p, i, -1),
         "outer_az": _crossing(x, y, outer_frac * p, i, +1),
         "fwhm_deg": _crossing(x, y, 0.5 * p, i, +1) - _crossing(x, y, 0.5 * p, i, -1),
         "energy": float(y.sum()),

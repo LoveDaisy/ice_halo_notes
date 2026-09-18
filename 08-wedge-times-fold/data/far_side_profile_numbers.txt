@@ -1,0 +1,10 @@
+ref_A60-10: 61.8 s, ray_num=100,000,000, sun 0°, paths 59, max_px 25, sky energy 27.79 @intensity 0.03
+  strip profile 120–180°: peak @150.75°, inner half-max (edge) @142.56°, edge width 10%→half 0.86°, outer 0.1×peak @161.42°, FWHM 15.54°, energy 25.534
+  spots: centroid az ±150.85° el 0.00°, 5° 圆内能量 0.643
+ref_A0-02: 83.0 s, ray_num=100,000,000, sun 0°, paths 108, max_px 61, sky energy 183.43 @intensity 0.03
+  strip profile 120–180°: peak @153.75°, inner half-max (edge) @152.00°, edge width 10%→half 5.89°, outer 0.1×peak @162.27°, FWHM 6.50°, energy 37.889
+ref_all: 26.3 s, ray_num=100,000,000, sun 0°, paths all, max_px 255, sky energy 1051.61 @intensity 0.03
+  strip profile 120–180°: peak @153.75°, inner half-max (edge) @150.07°, edge width 10%→half 17.12°, outer 0.1×peak @179.75°, FWHM 8.73°, energy 97.696
+A0-02 peak − A60-10 edge = 11.19°; strip energy ratio A0-02/A60-10 = 1.484
+globe: 125.4 s, ray_num=200,000,000, frame center offset from anthelic 25°
+rect: 131.5 s, ray_num=200,000,000, max_px 206 @intensity 1.5, window az (120.0, 180.0) el (-10.0, 20.0) → 960×480

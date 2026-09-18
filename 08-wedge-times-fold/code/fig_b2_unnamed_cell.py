@@ -1,15 +1,18 @@
-# 产出 ../img/unnamed_cell.jpg（图 B2「无名格子」候选）：Φ 类 A60-10（最短代表 `3-4-5-7`，22° 楔 + 120° 旋转折叠）**整类**的 Lumice
-# 球面外视图——过滤器装该类在该 h/a 下枚举出的**全部**可行光路（PBD 代表，OR 复合过滤器；片晶 h/a=0.2 共 59 条），不只放最短代表。
-# 取向：片晶（h/a=0.2，zenith σ=0.5°）。issue 要求片晶 / 柱晶各看一眼、明显更好看的只出一张：探针（4×10⁶ 光线、rectangular、absolute）
-# 片晶下能量集中在反日点一侧、是两个紧凑亮斑（幻日环上离太阳约 ±152°、仰角≈太阳高度，两个 5° 圆内装下 66% 的全天能量）；
-# 柱晶（h/a=2）下是穿过反日点的两条宽弧（类似反日弧的 X 形），总能量约为片晶的一半但摊得很开（5° 圆内 0%），峰值面亮度只有片晶
-# 亮斑的约 1/12，参考图要把曝光拉高 100× 才看得见——所以正式图只出片晶，柱晶只留一张全天参考图（data/unnamed_cell/ref_column/）作证据。
-# 「无名」是提纲的说法，渲染结果表明它有名字：作者 ch3 光路清单把 `3-4-5-7` 标为「142 幻日(环)」（data/ground_truth_signature.md），
-# 文献里 150–160° 处幻日环上的亮斑叫 Liljequist 幻日，主要光路 `3-5-6-7`（同属 A60-10）；正文措辞由作者裁定，文件名沿 plan 不改。
-# 其余参数与图 B1 相同（Σ=10°、D65、globe fov 30、经纬网格 30°），config 除过滤器 / render.view / 曝光模式外与 B1 逐字段相同（有单测）。
-# 帧中心机械选取（同 ch7 / B1）：全天参考图上 75.5° 球冠能量占比最大的候选（实测：反日点 1.00）。
-# 机械锚点（review 要求的量化辅助）：脚本打印参考图上两个亮斑的质心方位 / 仰角与 5° 圆内能量占比（紧凑度）、全天能量（与 B1 的 `3-5`
-# 参考图同一绝对曝光，可直接比）——目视裁定「成立」以这些数字为佐证，记录见 scratchpad progress。
+# 产出图 6 的三张分立文件（task-revise-ch8，作者 2026-09-19 终审第 7 条；拼版与美化留后续绘图任务）：
+#   ../img/unnamed_cell_globe.jpg  globe 斜视定位图：Φ 类 A60-10（最短代表 `3-4-5-7`，60° 楔 + 120° 旋转折叠）**整类**，相机方位偏离反日点
+#                                  GLOBE_OFFSET_DEG（不正对反日点，能同时看到两个亮斑与它们相对反日点 / 地平线的位置）；
+#   ../img/unnamed_cell_rect.jpg   rectangular 局部图：同一场景全天 5760×2880（1/16°/px）裁到反日点一侧窗口（方位 120°–180°、仰角 −10°…+20°）；
+#   ../img/far_side_profile.png    幻日环方位剖面曲线（临时 matplotlib）：A60-10 整类 / A0-02 整类 / 全部光路三条，对数纵轴；
+#                                  数据 ../data/far_side_profile.csv，机械提取的数字 tee 到 ../data/far_side_profile_numbers.txt。
+# 太阳高度 **0°**（`S.scene(..., sun_alt=SUN_ALT)`，不改 `_ch8_sim.SUN_ALTITUDE`——图 5 仍是 10°）：A60-10 的 142° 锐边鼓包与 A0-02 的
+# Liljequist 窄峰（`3-5-6-7-3` 一族，与 `1-3-2` 同 Φ、定义域窄）两层同现要太阳贴地平线；10° 时窄峰几乎消失（探针 probe_liljequist_azimuth.py）。
+# 取向：片晶（h/a=0.2，zenith σ=0.5°）。上一轮的柱晶对照分支已删（片晶 / 柱晶的取向裁定在 task-write-ch8 已定，与太阳高度无关；旧 ref_column
+# 产物在 git 历史 `6431f8b` 可查）。过滤器装该类在该 h/a 下枚举出的**全部**可行光路（PBD 代表，OR 复合过滤器；A60-10 59 条、A0-02 108 条）。
+# 三张参考图（rectangular 1440×720、absolute、同一 intensity、REF_RAY_NUM 光线）只用于取数，不入正文：
+#   锐边 / 峰值 / 外缘方位（`S.profile_features`：峰值 = 剖面 argmax；锐边 = 内侧半高交点；外缘 = 外侧降到峰值 OUTER_FRAC 的交点；
+#   都在 0.5° 桶上线性插值）、两个亮斑质心与 5° 圆内能量占比（`spot_stats`，沿上一轮）、A0-02 窄峰的峰位与半高全宽。
+# 其余参数沿图 B1 / ch7（D65、globe fov 30、经纬网格 30°、max_hits 9）；config 与 B1 共用 crystal 段（有单测）。
+import csv
 import sys
 from pathlib import Path
 
@@ -26,41 +29,61 @@ if str(CODE_DIR) not in sys.path:
 import _ch8_sim as S  # noqa: E402
 
 NAME = "unnamed_cell"
+PROFILE_NAME = "far_side_profile"
 CHAPTER = CODE_DIR.parent
 CLASS_ID = "A60-10"
-ORIENTATIONS = {"plate": 0.2, "column": 2.0}   # 取向 → h/a（本仓口径）；两档都出参考图
-CHOSEN = "plate"                               # 正式图只出这一档（理由见文件头）
+LILJEQUIST_ID = "A0-02"                        # 窄峰所属的格子（0° 楔平行族、`3-5-6-7-3` 一族），只进曲线，不单独出图
+RATIO, ORIENTATION = 0.2, "plate"
+SUN_ALT = 0.0                                  # 本图系列太阳高度（图 5 仍用 S.SUN_ALTITUDE=10°）
 RAY_NUM = 200_000_000
-REF_RAY_NUM = 20_000_000
-REF_INTENSITY = {"plate": 0.03, "column": 3.0}  # 片晶与 fig_b1_same_class.REF_INTENSITY 相同（能量可直接比）；柱晶太暗，曝光拉高 100×
-                                                # 才看得见它弥散在哪（探针：0.03 下峰值像素 1、全天能量 0.00），比能量时除回 100
+REF_RAY_NUM = 100_000_000
+REF_INTENSITY = 0.03                           # 参考图曝光（absolute，与上一轮片晶参考图相同；A60-10 峰值像素 ≈ 27/255，不削顶）
+INTENSITY = 1.5                                # rectangular 局部正式图曝光（absolute；2×10⁷ 光线冒烟 @2.5：15 px 盒均值最亮 211/255、940 px 削顶，降到 1.5 留余量）
+SUB_RESOLUTION = (5760, 2880)                  # 1/16°/px：窗口 60°×30° → 960×480 像素（同 B1）
+WINDOW_AZ, WINDOW_EL = (120.0, 180.0), (-10.0, 20.0)   # 反日点一侧；太阳 0° 时亮斑骑在地平线上，上下各留 10°/20°
+SUB_W, SUB_H = 960, 480
+GLOBE_OFFSET_DEG = 25.0                        # globe 帧中心方位 = 180° − 25° = 155°（作者：偏离反日点 20–30°，不要正对）
+GLOBE_CENTER = S.sky(SUN_ALT, 180.0 - GLOBE_OFFSET_DEG)
 SPOT_RADIUS_DEG = 5.0                          # 紧凑度锚点：亮斑质心周围 5° 圆
-GAP, MARGIN, LABEL_PX = 80, 40, 100
-SKY_PX = S.SKY_PX
-WIDTH, HEIGHT = SKY_PX + 2 * MARGIN, SKY_PX + 2 * MARGIN + LABEL_PX
+PROFILE_HALF_DEG, PROFILE_BIN_DEG = 1.5, 0.5   # 幻日环条带 ±1.5°、方位 0.5° 桶（同探针）
+FEATURE_WINDOW, OUTER_FRAC = S.FEATURE_WINDOW, S.OUTER_FRAC   # 取数窗口 / 「外缘」阈值（与截面敏感性图共用，定义在 _ch8_sim）
+CURVES = {CLASS_ID: CLASS_ID, LILJEQUIST_ID: LILJEQUIST_ID, "all": None}   # 曲线名 → Φ 类 id（None = 全部光路）
 
 
-def population_and_scene(orientation: str, ray_num: int = RAY_NUM) -> tuple[list[dict], list[dict], dict]:
-    ratio = ORIENTATIONS[orientation]
-    return [S.crystal(ratio, orientation)], S.phi_class_filters(CLASS_ID, ratio), S.scene(ray_num)
+def crystals() -> list[dict]:
+    return [S.crystal(RATIO, ORIENTATION)]
 
 
-def build_reference(orientation: str) -> dict:
-    crystals, flts, sc = population_and_scene(orientation, REF_RAY_NUM)
-    return C.build_config(crystals, flts, sc, [S.reference_render(REF_INTENSITY[orientation])])
+def filters_and_scene(class_id: str | None, ray_num: int) -> tuple[list[dict], dict]:
+    if class_id is None:
+        return [], S.scene(ray_num, SUN_ALT, filtered=False)
+    return S.phi_class_filters(class_id, RATIO), S.scene(ray_num, SUN_ALT)
 
 
-def build(orientation: str, center: str) -> dict:
-    crystals, flts, sc = population_and_scene(orientation)
-    return C.build_config(crystals, flts, sc, [S.globe_render(globe_view_for(S.CANDIDATES[center]))])
+def build_reference(class_id: str | None, ray_num: int = REF_RAY_NUM) -> dict:
+    flts, sc = filters_and_scene(class_id, ray_num)
+    return C.build_config(crystals(), flts, sc, [S.reference_render(REF_INTENSITY)])
 
 
-def center_of(config: dict) -> str:
+def build_globe(ray_num: int = RAY_NUM) -> dict:
+    flts, sc = filters_and_scene(CLASS_ID, ray_num)
+    return C.build_config(crystals(), flts, sc, [S.globe_render(globe_view_for(GLOBE_CENTER))])
+
+
+def build_rect(ray_num: int = RAY_NUM) -> dict:
+    flts, sc = filters_and_scene(CLASS_ID, ray_num)
+    render = C.render_unit(1, C.lens("rectangular"), list(SUB_RESOLUTION), visible="full", background=[0, 0, 0],
+                           ev_mode="absolute", intensity_factor=INTENSITY, grid=S.sky_grid())
+    return C.build_config(crystals(), flts, sc, [render])
+
+
+def globe_offset_of(config: dict) -> float:
+    """globe config 的帧中心相对反日点方向的方位偏离（度），单测用。"""
     c = frame_center(config["render"][0])
-    for name, v in S.CANDIDATES.items():
-        if np.linalg.norm(c - v) < 1e-6:
-            return name
-    raise ValueError("render.view 的帧中心不是任何候选中心")
+    az = float(np.degrees(np.arctan2(c[1], c[0])))
+    el = float(np.degrees(np.arcsin(np.clip(c[2], -1, 1))))
+    assert abs(el - SUN_ALT) < 1e-6, el
+    return 180.0 - abs(az)
 
 
 def spot_stats(image: np.ndarray, render: dict, radius_deg: float = SPOT_RADIUS_DEG) -> dict[str, float]:
@@ -85,38 +108,97 @@ def spot_stats(image: np.ndarray, render: dict, radius_deg: float = SPOT_RADIUS_
     return out
 
 
-def compose_single(sub: Path, center: str, out: Path) -> Path:
-    fig, ax = X.pixel_canvas(WIDTH, HEIGHT, "black")
-    X.paste_image(ax, sub, (MARGIN, MARGIN + LABEL_PX, SKY_PX, SKY_PX))
-    X.add_text(ax, (MARGIN + 20, MARGIN + 30), f"{CLASS_ID}  (3-4-5-7 …)", size_px=56, color="white", ha="left",
-               family=("DejaVu Sans Mono",))
-    X.add_text(ax, (MARGIN + 20, MARGIN + 82), S.CENTER_TEXT[center], size_px=30, color="#BBBBBB", ha="left", family=X.CJK_SANS)
-    return X.save_canvas(fig, out)
+def profile(image: np.ndarray, render: dict) -> tuple[np.ndarray, np.ndarray]:
+    return S.azimuth_profile(image, render, SUN_ALT, half_deg=PROFILE_HALF_DEG, bin_deg=PROFILE_BIN_DEG)
+
+
+def crop_sub(image: "X.Image.Image", render: dict) -> "X.Image.Image":
+    rows, cols = S.rectangular_window(render, WINDOW_AZ, WINDOW_EL)
+    out = image.crop((cols.start, rows.start, cols.stop, rows.stop))
+    assert out.size == (SUB_W, SUB_H), out.size
+    return out
+
+
+def plot_profiles(centers: np.ndarray, hists: dict[str, np.ndarray], features: dict[str, dict[str, float]], out: Path, ray_num: int) -> Path:
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    fig, ax = plt.subplots(figsize=(9, 4.5))
+    labels = {CLASS_ID: f"{CLASS_ID} class (3-4-5-7 …)", LILJEQUIST_ID: f"{LILJEQUIST_ID} class (1-3-2, 3-5-6-7-3 …)", "all": "all raypaths"}
+    for name, h in hists.items():
+        ax.plot(centers, h, lw=1.2, label=labels[name])
+    f = features[CLASS_ID]
+    for x, ls in ((f["edge_az"], "--"), (f["peak_az"], ":"), (f["outer_az"], "--")):
+        ax.axvline(x, color="gray", lw=0.6, ls=ls)
+    ax.axvline(features[LILJEQUIST_ID]["peak_az"], color="tab:orange", lw=0.6, ls=":")
+    ax.set_yscale("log")
+    ax.set_xlim(120, 180)
+    ax.set_xlabel("azimuth from sun (deg)")
+    ax.set_ylabel(f"linear energy / {PROFILE_BIN_DEG:g}° bin")
+    ax.set_title(f"plate h/a={RATIO}, sun {SUN_ALT:g}°, parhelic-circle strip |el−sun| ≤ {PROFILE_HALF_DEG:g}°, {ray_num:,} rays each")
+    ax.legend()
+    fig.tight_layout()
+    fig.savefig(out, dpi=150)
+    plt.close(fig)
+    return out
 
 
 def main(argv=None) -> Path:
     args = parse_args(argv, default_ray_num=RAY_NUM, description=NAME)
     ref_ray = min(args.ray_num, REF_RAY_NUM)
-    centers: dict[str, str] = {}
-    for orientation in ORIENTATIONS:
-        ref = sim_figure(NAME, CHAPTER, with_ray_num(build_reference(orientation), ref_ray), out_root=args.out,
-                         variant=f"ref_{orientation}", workers=args.workers, backend=args.backend)
+    lines: list[str] = []
+
+    def say(msg: str) -> None:
+        print(msg)
+        lines.append(msg)
+
+    hists: dict[str, np.ndarray] = {}
+    features: dict[str, dict[str, float]] = {}
+    centers = None
+    for name, cid in CURVES.items():
+        cfg = with_ray_num(build_reference(cid), ref_ray)
+        ref = sim_figure(NAME, CHAPTER, cfg, out_root=args.out, variant=f"ref_{name}", workers=args.workers, backend=args.backend)
         image = np.asarray(X.Image.open(ref.images[0]).convert("RGB"))
-        render = build_reference(orientation)["render"][0]
-        centers[orientation], fr = S.choose_center(image, render)
-        st = spot_stats(image, render)
-        print(f"ref_{orientation}: {ref.wall_clock_s:.1f} s, ray_num={ref_ray:,}, {len(build_reference(orientation)['filter']) - 1} paths; "
-              f"cap energy " + ", ".join(f"{n}={v:.3f}" for n, v in fr.items()) + f" -> {centers[orientation]}; "
-              f"sky energy {S.sky_energy(image, render):.2f} @intensity {REF_INTENSITY[orientation]:g}, max_px {image.max()}; spots az ±{st['az_deg']:.1f}° el {st['el_deg']:.1f}°, "
-              f"{SPOT_RADIUS_DEG:g}° 圆内能量 {st['within_frac']:.3f}")
-    res = sim_figure(NAME, CHAPTER, with_ray_num(build(CHOSEN, centers[CHOSEN]), args.ray_num), out_root=args.out, variant=CHOSEN,
+        render = cfg["render"][0]
+        centers, hists[name] = profile(image, render)
+        features[name] = S.profile_features(centers, hists[name])
+        n_paths = len(cfg["filter"]) - 1 if cfg["filter"] else "all"
+        say(f"ref_{name}: {ref.wall_clock_s:.1f} s, ray_num={ref_ray:,}, sun {cfg['scene']['light_source']['altitude']:g}°, paths {n_paths}, "
+            f"max_px {image.max()}, sky energy {S.sky_energy(image, render):.2f} @intensity {REF_INTENSITY:g}")
+        fe = features[name]
+        say(f"  strip profile {FEATURE_WINDOW[0]:g}–{FEATURE_WINDOW[1]:g}°: peak @{fe['peak_az']:.2f}°, inner half-max (edge) @{fe['edge_az']:.2f}°, "
+            f"edge width 10%→half {fe['edge_width_deg']:.2f}°, outer {OUTER_FRAC:g}×peak @{fe['outer_az']:.2f}°, FWHM {fe['fwhm_deg']:.2f}°, energy {fe['energy']:.3f}")
+        if cid == CLASS_ID:
+            st = spot_stats(image, render)
+            say(f"  spots: centroid az ±{st['az_deg']:.2f}° el {st['el_deg']:.2f}°, {SPOT_RADIUS_DEG:g}° 圆内能量 {st['within_frac']:.3f}")
+    a, b = features[CLASS_ID], features[LILJEQUIST_ID]
+    say(f"{LILJEQUIST_ID} peak − {CLASS_ID} edge = {b['peak_az'] - a['edge_az']:.2f}°; strip energy ratio {LILJEQUIST_ID}/{CLASS_ID} = {b['energy'] / a['energy']:.3f}")
+
+    data_dir = (args.out or CHAPTER) / "data"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    with (data_dir / f"{PROFILE_NAME}.csv").open("w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["az_deg", *CURVES])
+        for i, c in enumerate(centers):
+            w.writerow([f"{c:.2f}"] + [f"{hists[n][i]:.6f}" for n in CURVES])
+    curve = plot_profiles(centers, hists, features, img_path(PROFILE_NAME, CHAPTER, "png", args.out), ref_ray)
+
+    res = sim_figure(NAME, CHAPTER, with_ray_num(build_globe(), args.ray_num), out_root=args.out, variant="globe",
                      workers=args.workers, backend=args.backend)
-    sub = img_path(f"unnamed_cell_{CHOSEN}", CHAPTER, "jpg", args.out)
-    X.Image.open(res.images[0]).convert("RGB").save(sub, quality=95)
-    print(f"{CHOSEN}: {res.wall_clock_s:.1f} s, ray_num={args.ray_num:,}")
-    out = compose_single(sub, centers[CHOSEN], img_path(NAME, CHAPTER, "jpg", args.out))
-    print(out)
-    return out
+    globe = img_path(f"{NAME}_globe", CHAPTER, "jpg", args.out)
+    X.Image.open(res.images[0]).convert("RGB").save(globe, quality=95)
+    say(f"globe: {res.wall_clock_s:.1f} s, ray_num={args.ray_num:,}, frame center offset from anthelic {globe_offset_of(build_globe()):g}°")
+    cfg = with_ray_num(build_rect(), args.ray_num)
+    res = sim_figure(NAME, CHAPTER, cfg, out_root=args.out, variant="rect", workers=args.workers, backend=args.backend)
+    rect = img_path(f"{NAME}_rect", CHAPTER, "jpg", args.out)
+    full = X.Image.open(res.images[0]).convert("RGB")
+    crop_sub(full, cfg["render"][0]).save(rect, quality=95)
+    say(f"rect: {res.wall_clock_s:.1f} s, ray_num={args.ray_num:,}, max_px {np.asarray(full).max()} @intensity {INTENSITY:g}, "
+        f"window az {WINDOW_AZ} el {WINDOW_EL} → {SUB_W}×{SUB_H}")
+    (data_dir / f"{PROFILE_NAME}_numbers.txt").write_text("\n".join(lines) + "\n")
+    for p in (globe, rect, curve):
+        print(p)
+    return rect
 
 
 if __name__ == "__main__":
