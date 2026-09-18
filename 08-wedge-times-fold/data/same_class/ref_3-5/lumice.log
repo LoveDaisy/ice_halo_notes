@@ -1,0 +1,18 @@
+$ /Users/zhangjiajie/Codes/ice-halo-notes-wt-17/.lumice/v4.5.1/Lumice -f /Users/zhangjiajie/Codes/ice-halo-notes-wt-17/08-wedge-times-fold/data/same_class/ref_3-5/config.json -o /Users/zhangjiajie/Codes/ice-halo-notes-wt-17/08-wedge-times-fold/data/same_class/ref_3-5 --format png
+--- stdout ---
+2026-09-18 20:19:02.710 [I] ServerImpl: gpu_route=false worker_count=10 (preferred_backend=0)
+2026-09-18 20:19:02.723 [I] CommitConfig: restart took 12.3ms (Stop 0.0ms + rebuild 12.3ms + Start 0.0ms)
+2026-09-18 20:19:02.723 [I] GenerateScene: first batch enqueued at 0.0ms after start
+2026-09-18 20:19:02.748 [I] ConsumeData: first batch consumed (2432 ray segments)
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-17/08-wedge-times-fold/data/same_class/ref_3-5/img_01.png (1440x720)
+Stats: sim_rays=5305600, crystals=1, orientations=5305600
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-17/08-wedge-times-fold/data/same_class/ref_3-5/img_01.png (1440x720)
+Stats: sim_rays=10832896, crystals=1, orientations=10832896
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-17/08-wedge-times-fold/data/same_class/ref_3-5/img_01.png (1440x720)
+Stats: sim_rays=16393472, crystals=1, orientations=16393472
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-17/08-wedge-times-fold/data/same_class/ref_3-5/img_01.png (1440x720)
+Stats: sim_rays=20000000, crystals=1, orientations=20000000
+2026-09-18 20:19:06.716 [I] Consume profile: 156250 batches, avg 0.4us (proj 0.3us 76% + accum 0.1us 24%)
+
+--- stderr ---
+
