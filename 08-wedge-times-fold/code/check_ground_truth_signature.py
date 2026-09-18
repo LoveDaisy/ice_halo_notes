@@ -8,8 +8,8 @@ from pathlib import Path
 
 import numpy as np
 
-from halo_notes.geometry import HexPrism, fold_matrix
-from halo_notes.geometry.ground_truth import GroundTruthRow, ground_truth_groups
+from lumice_integral.geometry import HexPrism, fold_matrix
+from halo_notes.math.ground_truth import GroundTruthRow, ground_truth_groups
 from halo_notes.math import reflection_group as rg
 from halo_notes.math.signature import PhiRow, phi_batch, phi_class, phi_class_table
 

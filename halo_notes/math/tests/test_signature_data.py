@@ -10,9 +10,9 @@ import numpy as np
 import pytest
 
 from halo_notes.draw.raypath import events_for_faces, face_sequence, trace
-from halo_notes.geometry import HexPrism, fold_matrix
-from halo_notes.geometry.feasibility import LatLonGrid, admissible_directions, entry_points, external_directions
-from halo_notes.geometry.ground_truth import ground_truth_groups
+from lumice_integral.geometry import HexPrism, fold_matrix
+from lumice_integral.geometry.feasibility import LatLonGrid, admissible_directions, entry_points, external_directions
+from halo_notes.math.ground_truth import ground_truth_groups
 from halo_notes.math import reflection_group as rg
 from halo_notes.math.signature import phi_batch, phi_class, phi_class_table
 

@@ -20,7 +20,7 @@ from typing import Sequence
 
 import numpy as np
 
-from halo_notes.geometry import Polyhedron, unfold_faces, unit
+from lumice_integral.geometry import Polyhedron, unfold_faces, unit
 
 from .raypath import N_ICE, EventKind, RayEvent, RayPath, SegmentKind, face_sequence, verify_path
 
@@ -41,7 +41,7 @@ def _endpoint_events(events: Sequence[RayEvent]) -> tuple[RayEvent, RayEvent]:
 def unfold(crystal: Polyhedron, raypath: RayPath) -> list[Polyhedron]:
     """返回光路 ``raypath`` 在 ``crystal`` 内每次内反射对应的幽灵晶体（级联镜像）。
 
-    无内反射时返回空列表。镜像逻辑只在 :func:`halo_notes.geometry.unfold_faces` 一份：这里只把
+    无内反射时返回空列表。镜像逻辑只在 :func:`lumice_integral.geometry.unfold_faces` 一份：这里只把
     ``RayPath`` 的入射 / 内反射 / 出射事件抽成面序列再委托过去。
     """
     ev_in, ev_out = _endpoint_events(raypath.events)

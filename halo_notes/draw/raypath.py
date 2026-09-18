@@ -17,7 +17,7 @@ from typing import Callable, Iterator, Sequence
 
 import numpy as np
 
-from ..geometry.core import N_ICE  # noqa: F401  权威定义在 geometry.core；这里 re-export 保持旧 import 路径
+from lumice_integral.geometry.core import N_ICE  # noqa: F401  权威定义在 geometry.core；这里 re-export 保持旧 import 路径
 from .geometry import Polyhedron, perp_basis, unit
 from .projection import Camera
 

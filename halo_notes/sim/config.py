@@ -99,7 +99,7 @@ def random_axis() -> dict[str, Any]:
 
 
 def hex_prism_height_ratio(ratio: float) -> float:
-    """把本仓 :class:`halo_notes.geometry.HexPrism` 的高径比 ``h/a``（``a`` = 六边形**边长** = 外接圆半径）换算成
+    """把本仓 :class:`lumice_integral.geometry.HexPrism` 的高径比 ``h/a``（``a`` = 六边形**边长** = 外接圆半径）换算成
     Lumice ``crystal.shape.height``（``doc/configuration.md:101``：``height = h / a``，``a`` 是 "base diameter"）。
 
     Lumice ``src/core/geo3d_closedform.cpp:100-104``：六棱柱侧面法向偏移 ``r_side_dist = (√3/4)·face_distance``，

@@ -1,5 +1,5 @@
 # 产出 ../data/signature_table.md（34 个 Φ 类的可达性主表）与 ../data/signature_table_<ha>.csv（42 个 signature 类粒度，
-# 每个高径比一份）：对 h/a ∈ {0.2, 0.5, 1, 2, 5} 用 halo_notes.geometry.enumerate 枚举长度 ≤ 8 的全部可行光路（PBD 代表），
+# 每个高径比一份）：对 h/a ∈ {0.2, 0.5, 1, 2, 5} 用 lumice_integral.geometry.enumerate 枚举长度 ≤ 8 的全部可行光路（PBD 代表），
 # 每条经 halo_notes.math.signature 落到 signature 类 / Φ 类，按类聚合可达 h/a、光路条数、可行方向面积之和、最短代表。
 # 这是 ch8 定理 5′ 上界（34）的下界一侧：framework §2 定理 5″ 的每个数字都从这里的产出文件里来。
 #
@@ -20,9 +20,9 @@ from pathlib import Path
 
 import numpy as np
 
-from halo_notes.geometry import HexPrism, Pyramid, fold_matrix
-from halo_notes.geometry.enumerate import RaypathRecord, enumerate_raypaths_with_stats
-from halo_notes.geometry.feasibility import LatLonGrid
+from lumice_integral.geometry import HexPrism, Pyramid, fold_matrix
+from lumice_integral.geometry.enumerate import RaypathRecord, enumerate_raypaths_with_stats
+from lumice_integral.geometry.feasibility import LatLonGrid
 from halo_notes.math import reflection_group as rg
 from halo_notes.math.signature import PhiRow, phi_class, phi_class_table
 

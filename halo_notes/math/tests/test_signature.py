@@ -3,9 +3,9 @@ import itertools
 import numpy as np
 import pytest
 
-from halo_notes.geometry import Face, HexPrism, Polyhedron, Pyramid, fold_matrix
-from halo_notes.geometry.enumerate import enumerate_raypaths
-from halo_notes.geometry.feasibility import LatLonGrid, external_directions
+from lumice_integral.geometry import Face, HexPrism, Polyhedron, Pyramid, fold_matrix
+from lumice_integral.geometry.enumerate import enumerate_raypaths
+from lumice_integral.geometry.feasibility import LatLonGrid, external_directions
 from halo_notes.math import reflection_group as rg
 from halo_notes.math.signature import (A_MAX_DEG, D6H, PhiClass, canonical_signature, face_of, family,
                                        fold_fingerprint, phi, phi_class, phi_class_table, phi_fingerprint,

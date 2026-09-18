@@ -3,5 +3,5 @@
 （:mod:`reflection_group`）、光路 signature 规范型与方向映射 Φ 的分类（:mod:`signature`）。
 
 与 :mod:`halo_notes.draw` 无依赖关系：draw 管几何与渲染，这里只管数字。:mod:`signature` 依赖
-:mod:`halo_notes.geometry`（面法向与光学判据），方向是 math → geometry，反向不允许（见该模块 docstring）。
+:mod:`lumice_integral.geometry`（面法向与光学判据），方向是 math → geometry，反向不允许（见该模块 docstring）。
 """

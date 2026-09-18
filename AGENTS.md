@@ -43,7 +43,7 @@ obsidian rename file=<旧名> name=<新名>.md   # 重命名 md 必须走 Obsidi
 
 ### 当前状态（2026-09-15）
 
-目标布局已落地。ch0–ch6 published，ch7 draft（正文与 7 图 2 gif 已成，待发表），ch8 outline（骨架 + `check_signature.py` 已建），ch12 outline。`halo_notes/` 已有 `geometry`（几何单一权威：`Polyhedron` / `HexPrism` / `Pyramid` / `unfold_faces`；`feasibility` 方向扫描 + 凸多边形投影求交的光路可行性判定，`enumerate` DFS 单调剪枝 + PBD 去重的可行光路枚举器——ch2 枚举器的 python 复活；`ground_truth` ch3 光路清单解析）/ `draw` / `math`（含 `signature`：signature 规范型、带定义域的 Φ 指纹、六棱柱 34 类全类表；ch8 `data/signature_table*` 由 `enumerate_signatures.py` 产出，五档 h/a 下界已算）/ `sim`（含 `analyze`：Lumice 4.6.x `analyze` 子命令胶水——随机朝向光路分析 CSV → Φ 类能量份额 / 与枚举器互证；ch8 `data/energy_table.md` 由 `analyze_energy.py` 产出，需本地 build `LUMICE_BIN`）四包；35 张旧图已重制 34 张（余 6.4 等直接积分项目，后排）。
+目标布局已落地。ch0–ch6 published，ch7 draft（正文与 7 图 2 gif 已成，待发表），ch8 outline（骨架 + `check_signature.py` 已建），ch12 outline。几何本体（`Polyhedron` / `HexPrism` / `Pyramid` / `unfold_faces`；`feasibility` 方向扫描 + 凸多边形投影求交的光路可行性判定，`enumerate` DFS 单调剪枝 + 调用方注入对称轨道去重的可行光路枚举器——ch2 枚举器的 python 复活）自 2026-09-18 起**由 `lumice_integral.geometry` 提供**（Lumice Integral 仓，本仓以本地 path 依赖引入，`halo_notes/geometry/` 副本已删除，`draw/geometry.py` 是其 re-export shim；LI 正式发布后切 git tag 另立任务）。`halo_notes/` 现有 `draw` / `math`（含 `ground_truth` ch3 光路清单解析；`signature`：signature 规范型、带定义域的 Φ 指纹、六棱柱 34 类全类表；ch8 `data/signature_table*` 由 `enumerate_signatures.py` 产出，五档 h/a 下界已算）/ `sim`（含 `analyze`：Lumice 4.6.x `analyze` 子命令胶水——随机朝向光路分析 CSV → Φ 类能量份额 / 与枚举器互证；ch8 `data/energy_table.md` 由 `analyze_energy.py` 产出，需本地 build `LUMICE_BIN`）四包；35 张旧图已重制 34 张（余 6.4 等直接积分项目，后排）。
 
 ### 外部依赖
 
