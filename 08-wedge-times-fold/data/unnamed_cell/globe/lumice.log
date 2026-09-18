@@ -1,0 +1,190 @@
+$ /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/.lumice/v4.5.1/Lumice -f /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/config.json -o /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe --format png
+--- stdout ---
+2026-09-19 04:47:57.604 [I] ServerImpl: gpu_route=false worker_count=10 (preferred_backend=0)
+2026-09-19 04:47:57.742 [I] CommitConfig: restart took 136.3ms (Stop 0.0ms + rebuild 136.2ms + Start 0.0ms)
+2026-09-19 04:47:57.742 [I] GenerateScene: first batch enqueued at 0.0ms after start
+2026-09-19 04:47:57.767 [I] ConsumeData: first batch consumed (2432 ray segments)
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=2038144, crystals=1, orientations=2038144
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=4287616, crystals=1, orientations=4287616
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=6522624, crystals=1, orientations=6522624
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=8788736, crystals=1, orientations=8788736
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=11035904, crystals=1, orientations=11035904
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=13292928, crystals=1, orientations=13292928
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=15534208, crystals=1, orientations=15534208
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=17762176, crystals=1, orientations=17762176
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=20006272, crystals=1, orientations=20006272
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=22236544, crystals=1, orientations=22236544
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=24438528, crystals=1, orientations=24438528
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=26682240, crystals=1, orientations=26682240
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=28965376, crystals=1, orientations=28965376
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=31218304, crystals=1, orientations=31218304
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=33455616, crystals=1, orientations=33455616
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=35710464, crystals=1, orientations=35710464
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=37894016, crystals=1, orientations=37894016
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=40126208, crystals=1, orientations=40126208
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=42383360, crystals=1, orientations=42383360
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=44644992, crystals=1, orientations=44644992
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=46892672, crystals=1, orientations=46892672
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=49165696, crystals=1, orientations=49165696
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=51405824, crystals=1, orientations=51405824
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=53639936, crystals=1, orientations=53639936
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=55892992, crystals=1, orientations=55892992
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=58142976, crystals=1, orientations=58142976
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=60401024, crystals=1, orientations=60401024
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=62662912, crystals=1, orientations=62662912
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=64910080, crystals=1, orientations=64910080
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=67124608, crystals=1, orientations=67124608
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=69347072, crystals=1, orientations=69347072
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=71598976, crystals=1, orientations=71598976
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=73858304, crystals=1, orientations=73858304
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=76121344, crystals=1, orientations=76121344
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=78350080, crystals=1, orientations=78350080
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=80554240, crystals=1, orientations=80554240
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=82787584, crystals=1, orientations=82787584
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=85026432, crystals=1, orientations=85026432
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=87275904, crystals=1, orientations=87275904
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=89519360, crystals=1, orientations=89519360
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=91782016, crystals=1, orientations=91782016
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=94033280, crystals=1, orientations=94033280
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=96309120, crystals=1, orientations=96309120
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=98556416, crystals=1, orientations=98556416
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=100792192, crystals=1, orientations=100792192
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=103036544, crystals=1, orientations=103036544
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=105269888, crystals=1, orientations=105269888
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=107532800, crystals=1, orientations=107532800
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=109796224, crystals=1, orientations=109796224
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=112044288, crystals=1, orientations=112044288
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=114271616, crystals=1, orientations=114271616
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=116500992, crystals=1, orientations=116500992
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=118741632, crystals=1, orientations=118741632
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=120968320, crystals=1, orientations=120968320
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=123208704, crystals=1, orientations=123208704
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=125456640, crystals=1, orientations=125456640
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=127710336, crystals=1, orientations=127710336
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=129956608, crystals=1, orientations=129956608
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=132217088, crystals=1, orientations=132217088
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=134461056, crystals=1, orientations=134461056
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=136718592, crystals=1, orientations=136718592
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=138946560, crystals=1, orientations=138946560
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=141211264, crystals=1, orientations=141211264
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=143448320, crystals=1, orientations=143448320
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=145706880, crystals=1, orientations=145706880
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=147960320, crystals=1, orientations=147960320
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=150194304, crystals=1, orientations=150194304
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=152456448, crystals=1, orientations=152456448
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=154699648, crystals=1, orientations=154699648
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=156971008, crystals=1, orientations=156971008
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=159203968, crystals=1, orientations=159203968
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=161446784, crystals=1, orientations=161446784
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=163660032, crystals=1, orientations=163660032
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=165882112, crystals=1, orientations=165882112
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=168103040, crystals=1, orientations=168103040
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=170363392, crystals=1, orientations=170363392
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=172611712, crystals=1, orientations=172611712
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=174832768, crystals=1, orientations=174832768
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=177096320, crystals=1, orientations=177096320
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=179336832, crystals=1, orientations=179336832
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=181590912, crystals=1, orientations=181590912
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=183827456, crystals=1, orientations=183827456
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=186050560, crystals=1, orientations=186050560
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=188276352, crystals=1, orientations=188276352
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=190555136, crystals=1, orientations=190555136
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=192803968, crystals=1, orientations=192803968
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=195028736, crystals=1, orientations=195028736
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=197311616, crystals=1, orientations=197311616
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=199562240, crystals=1, orientations=199562240
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/unnamed_cell/globe/img_01.png (1400x1400)
+Stats: sim_rays=200000000, crystals=1, orientations=200000000
+2026-09-19 04:50:02.960 [I] Consume profile: 1562500 batches, avg 1.8us (proj 1.2us 65% + accum 0.6us 35%)
+
+--- stderr ---
+

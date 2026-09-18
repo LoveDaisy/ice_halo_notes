@@ -1,0 +1,68 @@
+$ /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/.lumice/v4.5.1/Lumice -f /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10/config.json -o /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10 --format png
+--- stdout ---
+2026-09-19 05:01:41.038 [I] ServerImpl: gpu_route=false worker_count=10 (preferred_backend=0)
+2026-09-19 05:01:41.053 [I] CommitConfig: restart took 13.5ms (Stop 0.0ms + rebuild 13.4ms + Start 0.0ms)
+2026-09-19 05:01:41.053 [I] GenerateScene: first batch enqueued at 0.0ms after start
+2026-09-19 05:01:41.078 [I] ConsumeData: first batch consumed (2432 ray segments)
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10/img_01.png (1440x720)
+Stats: sim_rays=1695232, crystals=1, orientations=1695232
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10/img_01.png (1440x720)
+Stats: sim_rays=3457920, crystals=1, orientations=3457920
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10/img_01.png (1440x720)
+Stats: sim_rays=5250304, crystals=1, orientations=5250304
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10/img_01.png (1440x720)
+Stats: sim_rays=7047680, crystals=1, orientations=7047680
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10/img_01.png (1440x720)
+Stats: sim_rays=8819072, crystals=1, orientations=8819072
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10/img_01.png (1440x720)
+Stats: sim_rays=10635776, crystals=1, orientations=10635776
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10/img_01.png (1440x720)
+Stats: sim_rays=12399104, crystals=1, orientations=12399104
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10/img_01.png (1440x720)
+Stats: sim_rays=14217728, crystals=1, orientations=14217728
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10/img_01.png (1440x720)
+Stats: sim_rays=16023808, crystals=1, orientations=16023808
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10/img_01.png (1440x720)
+Stats: sim_rays=17818368, crystals=1, orientations=17818368
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10/img_01.png (1440x720)
+Stats: sim_rays=19597184, crystals=1, orientations=19597184
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10/img_01.png (1440x720)
+Stats: sim_rays=21374080, crystals=1, orientations=21374080
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10/img_01.png (1440x720)
+Stats: sim_rays=23178624, crystals=1, orientations=23178624
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10/img_01.png (1440x720)
+Stats: sim_rays=24955136, crystals=1, orientations=24955136
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10/img_01.png (1440x720)
+Stats: sim_rays=26751488, crystals=1, orientations=26751488
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10/img_01.png (1440x720)
+Stats: sim_rays=28558464, crystals=1, orientations=28558464
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10/img_01.png (1440x720)
+Stats: sim_rays=30343808, crystals=1, orientations=30343808
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10/img_01.png (1440x720)
+Stats: sim_rays=32135680, crystals=1, orientations=32135680
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10/img_01.png (1440x720)
+Stats: sim_rays=33911424, crystals=1, orientations=33911424
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10/img_01.png (1440x720)
+Stats: sim_rays=35693056, crystals=1, orientations=35693056
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10/img_01.png (1440x720)
+Stats: sim_rays=37495552, crystals=1, orientations=37495552
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10/img_01.png (1440x720)
+Stats: sim_rays=39266304, crystals=1, orientations=39266304
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10/img_01.png (1440x720)
+Stats: sim_rays=41052416, crystals=1, orientations=41052416
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10/img_01.png (1440x720)
+Stats: sim_rays=42848768, crystals=1, orientations=42848768
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10/img_01.png (1440x720)
+Stats: sim_rays=44637056, crystals=1, orientations=44637056
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10/img_01.png (1440x720)
+Stats: sim_rays=46430848, crystals=1, orientations=46430848
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10/img_01.png (1440x720)
+Stats: sim_rays=48241664, crystals=1, orientations=48241664
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10/img_01.png (1440x720)
+Stats: sim_rays=50000000, crystals=1, orientations=50000000
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10/img_01.png (1440x720)
+Stats: sim_rays=50000000, crystals=1, orientations=50000000
+2026-09-19 05:02:11.811 [I] Consume profile: 390625 batches, avg 1.9us (proj 1.6us 85% + accum 0.3us 15%)
+
+--- stderr ---
+
