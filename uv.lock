@@ -179,7 +179,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "lumice-integral", editable = "../Lumice Integral" },
+    { name = "lumice-integral", git = "file:///Users/zhangjiajie/Codes/Lumice%20Integral?rev=102c904" },
     { name = "matplotlib" },
     { name = "numpy" },
 ]
@@ -359,24 +359,12 @@ wheels = [
 [[package]]
 name = "lumice-integral"
 version = "0.1.0"
-source = { editable = "../Lumice Integral" }
+source = { git = "file:///Users/zhangjiajie/Codes/Lumice%20Integral?rev=102c904#102c904b5531fb9c3452fd29035e312869fe1785" }
 dependencies = [
     { name = "jax" },
     { name = "numpy" },
     { name = "scipy" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "jax", specifier = ">=0.7,<1" },
-    { name = "jax", extras = ["cuda13"], marker = "extra == 'cuda13'", specifier = ">=0.7,<1" },
-    { name = "numpy", specifier = ">=2,<3" },
-    { name = "scipy", specifier = ">=1.15,<2" },
-]
-provides-extras = ["cuda13"]
-
-[package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=8,<10" }]
 
 [[package]]
 name = "matplotlib"

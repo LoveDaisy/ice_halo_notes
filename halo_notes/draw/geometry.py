@@ -1,6 +1,6 @@
 """兼容 shim：几何本体已迁移至 :mod:`lumice_integral.geometry`（单一权威），本模块只原样 re-export
 同名符号，让 ``halo_notes.draw.geometry`` / ``from .geometry import ...`` 两条旧 import 路径继续可用。
-**请勿在此新增实现**——新逻辑一律写到 ``Lumice Integral 仓 ``src/lumice_integral/geometry/````，否则会重新制造两份几何实现。
+**请勿在此新增实现**——新逻辑一律写到 Lumice Integral 仓的 ``src/lumice_integral/geometry/``，否则会重新制造两份几何实现。
 """
 
 from lumice_integral.geometry import (BASAL_BOTTOM, BASAL_TOP, PRISM_FACES, Face, HexPrism, Polyhedron, perp_basis,
