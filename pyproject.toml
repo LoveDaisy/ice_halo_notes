@@ -6,8 +6,13 @@ build-backend = "hatchling.build"
 name = "halo-notes"
 version = "0.1.0"
 description = "《现代冰晕研究漫谈》系列的画图 / 仿真胶水代码（系列级共享包）"
-requires-python = ">=3.10"
-dependencies = ["numpy", "matplotlib"]
+requires-python = ">=3.12"
+dependencies = ["numpy", "matplotlib", "lumice-integral"]
+
+# 晶体几何（Polyhedron / unfold / feasibility / enumerate）由 Lumice Integral 提供，本仓不再持有副本。
+# 过渡形态：本地 path 依赖（绝对路径，uv.lock 随之不可跨机复现）；LI 正式发版后另立任务切到 git tag。
+[tool.uv.sources]
+lumice-integral = { path = "/Users/zhangjiajie/Codes/Lumice Integral", editable = true }
 
 # 开发依赖走 PEP 735 dependency group：`uv sync` 默认装 dev 组，`uv run pytest` 直接可用
 [dependency-groups]
