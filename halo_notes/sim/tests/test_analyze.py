@@ -10,9 +10,9 @@ from pathlib import Path
 
 import pytest
 
-from halo_notes.geometry import HexPrism
-from halo_notes.geometry.enumerate import RaypathRecord, enumerate_raypaths
-from halo_notes.geometry.feasibility import LatLonGrid
+from lumice_integral.geometry import HexPrism
+from lumice_integral.geometry.enumerate import RaypathRecord, enumerate_raypaths
+from lumice_integral.geometry.feasibility import LatLonGrid
 from halo_notes.math import reflection_group as rg
 from halo_notes.math.signature import phi_class_table
 from halo_notes.sim import analyze as A
@@ -285,7 +285,7 @@ def test_fine_grid_area_recovers_coarse_grid_miss():
     """h/a=1 的 `3-6-3-6-4`：2° 网格判不可达（枚举器口径），0.5° 细网格上有可行格（2026-09-15 互证违反项归因样例）；
     宽窗口的 `3-5` 两边都可行；单面序列拒绝。"""
     crystal = HexPrism.from_ratio(1.0)
-    from halo_notes.geometry.feasibility import is_feasible
+    from lumice_integral.geometry.feasibility import is_feasible
     assert not is_feasible(crystal, [3, 6, 3, 6, 4], LatLonGrid(90, 180))
     area, n = A.fine_grid_area(crystal, [3, 6, 3, 6, 4], step_deg=0.5)
     assert n > 0 and 0 < area < 0.01

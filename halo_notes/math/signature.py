@@ -1,22 +1,22 @@
 """光路 signature $(M,\\mathbf n_a,M^{-1}\\mathbf n_b)$ 的规范型与方向映射 $\\Phi$ 的采样指纹（ch8「三种楔子、十二种
 折叠」）：原 ``08-wedge-times-fold/code/check_signature.py`` 内联的算法上提到此，该脚本改为薄封装调库；枚举器
-（:mod:`halo_notes.geometry.enumerate`）吐出的每条可行光路经 :func:`phi_class` 落到同一套类里，「上界怎么数的」与
+（:mod:`lumice_integral.geometry.enumerate`）吐出的每条可行光路经 :func:`phi_class` 落到同一套类里，「上界怎么数的」与
 「下界怎么判到哪一类」共用这一份规范化代码。
 
-约定：光路 ``faces = [a, m_1..m_k, b]``，``M`` 为内反射镜面连乘（:func:`halo_notes.geometry.unfold.fold_matrix`），
-``a``/``b`` 为入射 / 出射面编号；面法向**只从传入的** ``crystal``（:class:`halo_notes.geometry.Polyhedron`）取，
+约定：光路 ``faces = [a, m_1..m_k, b]``，``M`` 为内反射镜面连乘（:func:`lumice_integral.geometry.unfold.fold_matrix`），
+``a``/``b`` 为入射 / 出射面编号；面法向**只从传入的** ``crystal``（:class:`lumice_integral.geometry.Polyhedron`）取，
 本模块不读任何模块级面表常量，锥晶等更一般的多面体走同一条路。商掉的对称群默认 :data:`D6H`（六方晶系点群，24 元，
 元素矩阵由 :mod:`halo_notes.math.reflection_group` 的 ``Rz``/``sxy``/``B`` 拼出，不另写一份）——它必须是
 ``crystal`` 的对称群（把面法向集合映到自身），否则 :func:`face_of` 抛 ``ValueError``。
 
 $\\Phi=\\mathcal S_{\\mathbf n_b}\\circ M\\circ\\mathcal S_{\\mathbf n_a}$ 的**定义域是判据的一部分**：入射须从外侧进面 $a$
 （$\\langle\\mathbf d,\\mathbf n_a\\rangle<0$），出射须无 TIR 且从外侧离开面 $b$。定义域判据与可行性判定
-（:func:`halo_notes.geometry.feasibility.entry_ok` / :func:`~halo_notes.geometry.feasibility.exit_ok`）是同一份实现：
+（:func:`lumice_integral.geometry.feasibility.entry_ok` / :func:`~lumice_integral.geometry.feasibility.exit_ok`）是同一份实现：
 两者都作用在**晶体内**方向上，$\\tilde{\\mathbf n}_b=M^{-1}\\mathbf n_b$。漏掉入射侧判据会把 60° 的 12 个 signature 类
 错并成 6 个（一条光路与其时间反演在指纹上无法区分）。
 
-依赖方向：``halo_notes.math.signature → halo_notes.geometry.feasibility``（math → geometry）是有意为之，已用
-``grep`` 静态核验当前无环（``halo_notes.geometry`` 的生产代码不 import ``halo_notes.math``）。若未来 geometry 侧需要
+依赖方向：``halo_notes.math.signature → lumice_integral.geometry.feasibility``（math → geometry）是有意为之，已用
+``grep`` 静态核验当前无环（``lumice_integral.geometry`` 的生产代码不 import ``halo_notes.math``）。若未来 geometry 侧需要
 引用本模块（例如对 ``RaypathRecord`` 直接分类），会构成循环依赖——届时应把共享的 snell / 临界角判据下沉到两者都能
 安全依赖的更底层位置，而不是两侧各写一份判据。
 """
@@ -29,8 +29,8 @@ from typing import Sequence
 
 import numpy as np
 
-from halo_notes.geometry.core import N_ICE, Polyhedron
-from halo_notes.geometry.feasibility import entry_ok, exit_ok
+from lumice_integral.geometry.core import N_ICE, Polyhedron
+from lumice_integral.geometry.feasibility import entry_ok, exit_ok
 from halo_notes.math import reflection_group as rg
 
 A_MAX_DEG = 2 * math.degrees(math.asin(1 / N_ICE))
@@ -120,8 +120,8 @@ def canonical_signature(crystal: Polyhedron, M: np.ndarray, a: int, b: int,
 def _refract(d: np.ndarray, n: np.ndarray, ratio: float) -> np.ndarray:
     """Snell 折射的向量形式（批量，``d (N, 3)``，``n`` 为界面外法向，``ratio = n_1/n_2``），只算方向、不判定义域：
     $\\mathbf d' = r\\mathbf d + (rc - \\sqrt{1 - r^2(1-c^2)})\\,\\mathbf n$，$c=-\\langle\\mathbf n,\\mathbf d\\rangle$。
-    根号内为负（TIR）的行给 ``NaN``。定义域由调用方用 :func:`~halo_notes.geometry.feasibility.entry_ok` /
-    :func:`~halo_notes.geometry.feasibility.exit_ok` 判。"""
+    根号内为负（TIR）的行给 ``NaN``。定义域由调用方用 :func:`~lumice_integral.geometry.feasibility.entry_ok` /
+    :func:`~lumice_integral.geometry.feasibility.exit_ok` 判。"""
     c = -(d @ n)
     k = 1.0 - ratio * ratio * (1.0 - c * c)
     root = np.sqrt(np.where(k >= 0, k, np.nan))

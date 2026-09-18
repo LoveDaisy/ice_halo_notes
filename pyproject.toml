@@ -6,8 +6,17 @@ build-backend = "hatchling.build"
 name = "halo-notes"
 version = "0.1.0"
 description = "《现代冰晕研究漫谈》系列的画图 / 仿真胶水代码（系列级共享包）"
-requires-python = ">=3.10"
-dependencies = ["numpy", "matplotlib"]
+requires-python = ">=3.12"
+dependencies = ["numpy", "matplotlib", "lumice-integral"]
+
+# 晶体几何（Polyhedron / unfold / feasibility / enumerate）由 Lumice Integral 提供，本仓不再持有副本。
+# 过渡形态：指向本机 LI 仓的 git 源（file:// 绝对 URL）并钉住 rev——uv.lock 里 path 依赖会被规范化成相对路径，
+# 主仓（~/Codes/Writing-Lab/…）与 worktree（~/Codes/…-wt-N）到 LI 的相对深度不同，两处 `uv sync` 会互相改写 uv.lock；
+# git 源在 lock 里按 URL+sha 记录，与 checkout 位置无关。代价：不是 editable，LI 侧改动要先 commit 再在这里 bump rev。
+# 跨机不可复现（URL 是本机路径）；LI 正式发版后另立任务把 URL 换成 GitHub + tag。
+# bump rev 前先 `git -C ~/Codes/Lumice\ Integral log --oneline -3` 核对目标 commit 已在 LI main，rev 写完整 sha。
+[tool.uv.sources]
+lumice-integral = { git = "file:///Users/zhangjiajie/Codes/Lumice%20Integral", rev = "102c904b5531fb9c3452fd29035e312869fe1785" }
 
 # 开发依赖走 PEP 735 dependency group：`uv sync` 默认装 dev 组，`uv run pytest` 直接可用
 [dependency-groups]

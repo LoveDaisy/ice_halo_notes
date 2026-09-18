@@ -11,7 +11,7 @@ import itertools
 
 import numpy as np
 
-from halo_notes.geometry import HexPrism
+from lumice_integral.geometry import HexPrism
 from halo_notes.math import reflection_group as rg
 from halo_notes.math.signature import A_MAX_DEG, D6H, canonical_signature, phi_fingerprint, wedge_angle
 

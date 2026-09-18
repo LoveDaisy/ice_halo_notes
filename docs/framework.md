@@ -86,7 +86,7 @@ $\tilde{\mathbf n}_b$ 是把内反射全部展开后出射面在展开空间中�
 
 可透射（$A<2\arcsin(1/n)\approx99.5°$，$n=1.31$）signature 合计 **42**，$\Phi$ 合计 **34**（$6+12+16$）：**六棱柱任意长度光路的方向映射至多 34 类（带入射面标号则 42 类），分三个半径族 6 / 12 / 16。** 核验：`08-wedge-times-fold/code/check_signature.py`。
 
-**定理 5″（可达类数）[算]。** 上界 34 是可达的：对高径比 $h/a\in\{0.2,0.5,1,2,5\}$ 用 ch2 枚举器的 python 复活（`halo_notes.geometry.enumerate`，长度 $\le 8$、PBD 代表、1° 方向网格——2° 时 MC 互证查出五档共 240 个窄窗口代表漏判，1° 全部召回而 0.5° 不再多，耗时约 3.5×）枚举全部几何 + 光学可行光路，逐条经 `halo_notes.math.signature.phi_class` 归类：
+**定理 5″（可达类数）[算]。** 上界 34 是可达的：对高径比 $h/a\in\{0.2,0.5,1,2,5\}$ 用 ch2 枚举器的 python 复活（`lumice_integral.geometry.enumerate`，原 `halo_notes.geometry.enumerate`，长度 $\le 8$、PBD 代表、1° 方向网格——2° 时 MC 互证查出五档共 240 个窄窗口代表漏判，1° 全部召回而 0.5° 不再多，耗时约 3.5×）枚举全部几何 + 光学可行光路，逐条经 `halo_notes.math.signature.phi_class` 归类：
 
 | $h/a$ | 0.2 | 0.5 | 1 | 2 | 5 | 五档并集 |
 |---|---|---|---|---|---|---|

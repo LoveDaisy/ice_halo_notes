@@ -30,8 +30,8 @@ from typing import Any, Iterable, Mapping, Sequence
 
 import numpy as np
 
-from ..geometry import Polyhedron, fold_matrix
-from ..geometry.enumerate import RaypathRecord
+from lumice_integral.geometry import Polyhedron, fold_matrix
+from lumice_integral.geometry.enumerate import RaypathRecord
 from ..math import reflection_group as rg
 from ..math.signature import PhiClass, phi_class
 from . import config as C
@@ -50,7 +50,7 @@ def analysis_config(ratio: float, *, max_len: int, rays: int, sun_altitude: floa
                     wavelength: float = 550.0) -> dict[str, Any]:
     """随机朝向单六棱柱、单波长、无多次散射的 ``analyze`` 场景。
 
-    ``ratio`` 是本仓 :class:`~halo_notes.geometry.HexPrism` 口径的 h/a（边长），经 :func:`~.config.hex_prism_height_ratio`
+    ``ratio`` 是本仓 :class:`~lumice_integral.geometry.HexPrism` 口径的 h/a（边长），经 :func:`~.config.hex_prism_height_ratio`
     换算；``max_len`` 是链面数上限（= Lumice ``max_hits``）；``rays`` 写进 ``scene.ray_num``，:func:`run_analysis` 默认
     从这里取 ``--rays``（一个数只写一处）。随机朝向下太阳高度不影响结果，固定一个值记进 config 即可；单波长使
     ``--rays`` 与跨波长总数一致。``render`` 段留空（实测 ``analyze`` 接受）。"""
@@ -396,8 +396,8 @@ def fine_grid_area(crystal: Polyhedron, faces: Sequence[int], *, step_deg: float
 
     互证违反项的归因工具：枚举器（``LatLonGrid(90, 180)``，2°）判不可达而 MC 命中的链，若在细网格上有可行格，就是
     **网格分辨率漏判**（窗口窄于粗网格格距，DFS 在粗网格上被剪掉）而非判据错；若细网格上也没有，才是另一类问题。
-    只用 :mod:`halo_notes.geometry.feasibility` 的原语（同一 ``area_eps`` / 临界角判据），不改枚举器。"""
-    from ..geometry.feasibility import area_eps, corridor_polygons, entry_ok, exit_ok, geometric_ok
+    只用 :mod:`lumice_integral.geometry.feasibility` 的原语（同一 ``area_eps`` / 临界角判据），不改枚举器。"""
+    from lumice_integral.geometry.feasibility import area_eps, corridor_polygons, entry_ok, exit_ok, geometric_ok
 
     faces = [int(f) for f in faces]
     if len(faces) < 2:

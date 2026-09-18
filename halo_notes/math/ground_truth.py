@@ -3,7 +3,7 @@
 ``序号,标签,面序列…``（逗号分隔；``标签`` 是 ch3 当年按渲染结果给的 1–14 类标签，与 ``labeled_raypaths_5.csv`` 首列同义），
 空行分隔。
 
-:mod:`halo_notes.geometry.tests.test_enumerate`（可达性核验）与 ``08-wedge-times-fold/code/check_ground_truth_signature.py``
+Lumice Integral 仓的 ``tests/test_geometry_enumerate.py``（可达性核验）与 ``08-wedge-times-fold/code/check_ground_truth_signature.py``
 （Φ 类分组一致性）都从这里取数，文件格式若变只改这一处。
 """
 
