@@ -194,6 +194,21 @@ def azimuth_profile(image: np.ndarray, render: dict, sun_alt: float, *, half_deg
     return (edges[:-1] + edges[1:]) / 2, hist
 
 
+def strip_max(image: np.ndarray, render: dict, sun_alt: float, *, half_deg: float = 1.5,
+             az_range: tuple[float, float] | None = None) -> int:
+    """幻日环条带（仰角 ``sun_alt`` ± ``half_deg``）内、``|方位角|`` 落在 ``az_range``（默认不限）的像素峰值（0–255）。
+    只看真正喂进 :func:`azimuth_profile` / :func:`profile_features` 取数的那部分像素是否削顶——不检查整幅图：未过滤
+    （全部光路）曲线在近日点方向本就很亮，那里削顶不影响反日点一侧（``FEATURE_WINDOW``）的锐边/峰值/外缘/能量取数，
+    不该被判定为需要修的问题。"""
+    dirs, _ = rectangular_pixel_directions(render)
+    el = np.degrees(np.arcsin(np.clip(dirs[..., 2], -1.0, 1.0)))
+    az = np.abs(np.degrees(np.arctan2(dirs[..., 1], dirs[..., 0])))
+    mask = np.abs(el - sun_alt) <= half_deg
+    if az_range is not None:
+        mask &= (az >= az_range[0]) & (az <= az_range[1])
+    return int(np.asarray(image)[mask].max())
+
+
 def rectangular_window(render: dict, az_range: tuple[float, float], el_range: tuple[float, float]) -> tuple[slice, slice]:
     """``rectangular`` 图上方位 ``az_range``、仰角 ``el_range``（度，闭区间；方位 0° = 太阳，按 Lumice 约定取值）覆盖的像素窗口，
     返回 ``(行切片, 列切片)``——B1 三张子图裁到反日点一侧同一窗口用。取像素中心落在范围内的行列，边界经

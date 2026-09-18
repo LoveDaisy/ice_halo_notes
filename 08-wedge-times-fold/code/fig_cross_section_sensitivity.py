@@ -116,9 +116,11 @@ def main(argv=None) -> Path:
             cfg = with_ray_num(build(d, cid), args.ray_num)
             res = sim_figure(NAME, CHAPTER, cfg, out_root=args.out, variant=variant(d, cid), workers=args.workers, backend=args.backend)
             image = np.asarray(X.Image.open(res.images[0]).convert("RGB"))
+            window_max = S.strip_max(image, cfg["render"][0], SUN_ALT, half_deg=PROFILE_HALF_DEG, az_range=S.FEATURE_WINDOW)
+            assert window_max < 255, f"d={d:g} {cid} saturated within FEATURE_WINDOW: max_px={window_max}"
             centers, profiles[(d, cid)] = S.azimuth_profile(image, cfg["render"][0], SUN_ALT, half_deg=PROFILE_HALF_DEG, bin_deg=PROFILE_BIN_DEG)
             fe = features[(d, cid)] = S.profile_features(centers, profiles[(d, cid)])
-            print(f"d={d:g} {cid}: {res.wall_clock_s:.1f} s, ray_num={args.ray_num:,}, max_px {image.max()}; strip energy {fe['energy']:.3f}, "
+            print(f"d={d:g} {cid}: {res.wall_clock_s:.1f} s, ray_num={args.ray_num:,}, max_px {image.max()} (in-window {window_max}); strip energy {fe['energy']:.3f}, "
                   f"peak @{fe['peak_az']:.2f}°, edge @{fe['edge_az']:.2f}°, FWHM {fe['fwhm_deg']:.2f}°, outer @{fe['outer_az']:.2f}°")
     data_dir = (args.out or CHAPTER) / "data"
     data_dir.mkdir(parents=True, exist_ok=True)

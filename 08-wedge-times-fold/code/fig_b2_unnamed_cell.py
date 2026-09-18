@@ -160,11 +160,13 @@ def main(argv=None) -> Path:
         ref = sim_figure(NAME, CHAPTER, cfg, out_root=args.out, variant=f"ref_{name}", workers=args.workers, backend=args.backend)
         image = np.asarray(X.Image.open(ref.images[0]).convert("RGB"))
         render = cfg["render"][0]
+        window_max = S.strip_max(image, render, SUN_ALT, half_deg=PROFILE_HALF_DEG, az_range=FEATURE_WINDOW)
+        assert window_max < 255, f"ref_{name} saturated within FEATURE_WINDOW: max_px={window_max} @intensity {REF_INTENSITY:g}"
         centers, hists[name] = profile(image, render)
         features[name] = S.profile_features(centers, hists[name])
         n_paths = len(cfg["filter"]) - 1 if cfg["filter"] else "all"
         say(f"ref_{name}: {ref.wall_clock_s:.1f} s, ray_num={ref_ray:,}, sun {cfg['scene']['light_source']['altitude']:g}°, paths {n_paths}, "
-            f"max_px {image.max()}, sky energy {S.sky_energy(image, render):.2f} @intensity {REF_INTENSITY:g}")
+            f"max_px {image.max()} (in-window {window_max}), sky energy {S.sky_energy(image, render):.2f} @intensity {REF_INTENSITY:g}")
         fe = features[name]
         say(f"  strip profile {FEATURE_WINDOW[0]:g}–{FEATURE_WINDOW[1]:g}°: peak @{fe['peak_az']:.2f}°, inner half-max (edge) @{fe['edge_az']:.2f}°, "
             f"edge width 10%→half {fe['edge_width_deg']:.2f}°, outer {OUTER_FRAC:g}×peak @{fe['outer_az']:.2f}°, FWHM {fe['fwhm_deg']:.2f}°, energy {fe['energy']:.3f}")

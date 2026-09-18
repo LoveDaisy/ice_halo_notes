@@ -400,10 +400,10 @@ def test_ch8_b2_globe_offset_window_and_profile_numbers_are_reproducible():
     for name in mod["CURVES"]:
         r = b2[f"ref_{name}"]["render"][0]
         image = np.asarray(Image.open(ROOT / CH8 / "data" / "unnamed_cell" / f"ref_{name}" / "img_01.png").convert("RGB"))
+        assert S.strip_max(image, r, mod["SUN_ALT"], half_deg=mod["PROFILE_HALF_DEG"], az_range=mod["FEATURE_WINDOW"]) < 255, name
         centers, hists[name] = mod["profile"](image, r)
         features[name] = S.profile_features(centers, hists[name])
         if name == "A60-10":
-            assert image.max() < 255
             st = mod["spot_stats"](image, r)
             assert 140 < st["az_deg"] < 165 and abs(st["el_deg"]) < 3 and st["within_frac"] > 0.5, st
     a, b = features["A60-10"], features["A0-02"]
@@ -479,6 +479,7 @@ def test_ch8_cross_section_sensitivity_configs_and_trends():
             assert cfg["filter"] == b2[f"ref_{cid}"]["filter"] and _no_ray_num(cfg["scene"]) == _no_ray_num(b2[f"ref_{cid}"]["scene"])
             assert cfg["render"][0] == b2[f"ref_{cid}"]["render"][0]
             image = np.asarray(Image.open(ROOT / CH8 / "data" / "cross_section" / v / "img_01.png").convert("RGB"))
+            assert S.strip_max(image, cfg["render"][0], mod["SUN_ALT"], half_deg=mod["PROFILE_HALF_DEG"], az_range=S.FEATURE_WINDOW) < 255, (d, cid)
             centers, hist = S.azimuth_profile(image, cfg["render"][0], mod["SUN_ALT"], half_deg=mod["PROFILE_HALF_DEG"], bin_deg=mod["PROFILE_BIN_DEG"])
             fe = S.profile_features(centers, hist)
             assert all(abs(fe[k] - summary[(d, cid)][k]) < 1e-3 for k in ("energy", "peak_az", "edge_az", "fwhm_deg")), (d, cid)
