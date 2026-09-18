@@ -1,0 +1,23 @@
+{
+  "lumice_version": "v4.5.1",
+  "lumice_bin": "/Users/zhangjiajie/Codes/ice-halo-notes-wt-18/.lumice/v4.5.1/Lumice",
+  "lumice_bin_sha256": "ebd04c8cba8258bf178dea24dd59b335eb6b6da3fb4b66d8d1f06ef06f791a6a",
+  "config_sha256": "345410f99097aea7142f380908fafd273bf1facfc632b78b3059c30d2da128d8",
+  "wall_clock_s": 30.789,
+  "platform": "Darwin 23.6.0 arm64",
+  "workers": null,
+  "backend": null,
+  "format": "png",
+  "cli_args": [
+    "-f",
+    "/Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10/config.json",
+    "-o",
+    "/Users/zhangjiajie/Codes/ice-halo-notes-wt-18/08-wedge-times-fold/data/cross_section/d1.4_A60-10",
+    "--format",
+    "png"
+  ],
+  "images": [
+    "img_01.png"
+  ],
+  "ray_num": 50000000
+}
