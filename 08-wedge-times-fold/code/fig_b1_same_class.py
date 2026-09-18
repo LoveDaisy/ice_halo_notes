@@ -106,6 +106,7 @@ def main(argv=None) -> Path:
     args = parse_args(argv, default_ray_num=RAY_NUM, description=NAME)
     for tag, faces in PATHS.items():
         assert S.class_id_of(RATIO, faces) == CLASS_ID, (tag, faces)
+    assert set(SUB_TEXT) == set(PATHS), (set(SUB_TEXT), set(PATHS))
     ref_ray = min(args.ray_num, REF_RAY_NUM)
     energies: dict[str, float] = {}
     windows: dict[str, np.ndarray] = {}
@@ -129,10 +130,11 @@ def main(argv=None) -> Path:
         print(f"  {tag}: " + " | ".join(f"{v:.2f}" for v in profiles[tag]))
     subs: dict[str, Path] = {}
     for tag in PATHS:
-        res = sim_figure(NAME, CHAPTER, with_ray_num(build(tag), args.ray_num), out_root=args.out, variant=tag,
+        cfg = build(tag)
+        res = sim_figure(NAME, CHAPTER, with_ray_num(cfg, args.ray_num), out_root=args.out, variant=tag,
                          workers=args.workers, backend=args.backend)
         subs[tag] = img_path(f"same_class_{tag}", CHAPTER, "jpg", args.out)
-        crop_sub(X.Image.open(res.images[0]).convert("RGB"), build(tag)["render"][0]).save(subs[tag], quality=95)
+        crop_sub(X.Image.open(res.images[0]).convert("RGB"), cfg["render"][0]).save(subs[tag], quality=95)
         print(f"{tag}: {res.wall_clock_s:.1f} s, ray_num={args.ray_num:,}")
     out = compose_stack(subs, img_path(NAME, CHAPTER, "jpg", args.out))
     print(out)
