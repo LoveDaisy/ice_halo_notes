@@ -77,6 +77,6 @@
 | `signature` | $(M,\mathbf n_a,M^{-1}\mathbf n_b)$ 的规范型（商掉晶体对称）——**已交付** `halo_notes.math.signature`（规范型 / 带定义域的 $\Phi$ 指纹 / 六棱柱全类表，面法向从传入的多面体取，锥晶可直接用） | ch8、ch9 |
 | `geometry.polyhedron` | 一般凸多面体晶体的面法向、面相交可达性、光路枚举（ch2 枚举器的 python 复活，从硬编码六棱柱升级）——**已交付** `halo_notes.geometry`（`Polyhedron`/`HexPrism`/`Pyramid`、`feasibility`、`enumerate`；ch8 已用它出可达性表，锥晶只跑过 smoke） | ch8、ch9（最贵的前置） |
 | `math` | SO(3) / S² / S³ 采样与分布；$SO(3)$ 上的分布族与群卷积；$D_P(\mathbf u)$ 及 Jacobian；姿态空间离散化 | ch5 / ch6 重制、ch10、ch11、反向问题、番外 |
-| （不在本仓） | **直接积分**：独立项目，与 Ice Halo 并列；ch6 的直接积分条带与状态空间图等它 | ch6 重制（后排） |
+| （不在本仓） | **直接积分**：独立项目 Lumice Integral（`~/Codes/Lumice Integral`），与 Ice Halo 并列；**本仓将直接依赖它**（task 16 `geometry-depend-on-lumice-integral`：几何单一权威迁过去、本仓副本删除）。它按本表的需求排近期计划（其 `docs/roadmap.md` §3.5）：每像素成本 → 缺陷②（晶体高径比约定 + 尾段）→ 光路类为渲染单位（ch7–9）→ Phase II 晕图 $D_P$/$DF$/caustic（ch10）→ 姿态密度族（ch11）；ch6 的 6.4 用其 figure-data v3（W2），6.5 条带等缺陷②修完重渲 | ch6 重制（后排）、ch10、ch11 |
 
 重制插图的逐张盘点在 `scratchpad/figures-manifest.md`（不入 git）。
