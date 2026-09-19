@@ -356,7 +356,7 @@ def test_ch8_b1_three_paths_share_phi_class_and_shape():
         assert (cols.stop - cols.start, rows.stop - rows.start) == (mod["SUB_W"], mod["SUB_H"]) == (960, 480)
         rr, rc = S.rectangular_window(r, mod["WINDOW_AZ"], mod["WINDOW_EL"])
         assert (rows.start, rows.stop, cols.start, cols.stop) == (4 * rr.start, 4 * rr.stop, 4 * rc.start, 4 * rc.stop)
-        assert Image.open(ROOT / CH8 / "img" / f"same_class_{tag}.jpg").size == (960, 480)
+        assert Image.open(ROOT / CH8 / "data" / "same_class" / tag / "crop.jpg").size == (960, 480)
     other = [t for t in B1_TAGS if t not in (base, contrast)][0]
     assert 0.9 < energies[other] / energies[base] < 1.1, energies
     assert 0.1 < energies[contrast] / energies[base] < 0.3, energies
@@ -433,7 +433,7 @@ def test_ch8_b1_figure_is_composed_from_the_sub_images():
     canvas = np.asarray(Image.open(img / "same_class.jpg").convert("L"), float)
     assert canvas.shape == (b1["HEIGHT"], b1["WIDTH"]) and tuple(b1["PATHS"]) == B1_TAGS
     for i, tag in enumerate(b1["PATHS"]):                                                # 三张子图上下叠放，各带一行标签
-        s = np.asarray(Image.open(img / f"same_class_{tag}.jpg").convert("L"), float)
+        s = np.asarray(Image.open(ROOT / CH8 / "data" / "same_class" / tag / "crop.jpg").convert("L"), float)
         assert s.shape == (h, w)
         y = margin + i * (h + label + gap)
         region = canvas[y + label:y + label + h, margin:margin + w]
