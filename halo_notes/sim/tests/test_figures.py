@@ -92,7 +92,7 @@ def test_provenance_sidecars_present():
     (f"{CH7}/code/fig_halos_columns.py", "img/halos_3_vs_2.jpg"),
     (f"{CH7}/code/sim_pose_to_sky_backdrop.py", "data/pose_to_sky_backdrop/col_2/img_01.png"),
     ("08-wedge-times-fold/code/fig_b1_same_class.py", "img/same_class.jpg"),
-    ("08-wedge-times-fold/code/fig_b2_unnamed_cell.py", "img/unnamed_cell_rect.jpg"),
+    ("08-wedge-times-fold/code/fig_b2_unnamed_cell.py", "img/unnamed_cell.png"),
     ("08-wedge-times-fold/code/fig_cross_section_sensitivity.py", "img/cross_section_sensitivity.png"),
 ])
 def test_fig_scripts_run_small(tmp_path, script, out_name):
@@ -288,8 +288,8 @@ def _b2_cfgs() -> dict[str, dict]:
 def test_ch8_b_figures_configs_share_crystal_and_differ_in_sun_altitude():
     """B1 三张子图（同一绝对曝光、同一 rectangular 全天镜头）之间**只差过滤器**；B1 与 B2 全部五份 config 的 crystal 段逐字段相同（片晶 h/a=0.2 =
     Lumice height 0.1、zenith σ=0.5°、无 roll），max_hits 9；太阳高度 **B1 = 10°、B2 系列 = 0°**（task-revise-ch8：两层同现需太阳贴地平线），
-    B2 五份之间 scene 段（去掉过滤器、光线数）逐字段相同；B1 子图与 B2 rect 都是 rectangular 5760×2880、absolute、同一套 30° 经纬网格；
-    B2 globe 是 globe fov 30、relative。"""
+    B2 五份之间 scene 段（去掉过滤器、光线数）逐字段相同；B1 子图与 B2 rect 都是 rectangular 5760×2880、absolute；B1 子图带 30° 经纬网格，
+    B2 rect 不带（拼版时由坐标轴给参考）；B2 globe 是 globe fov 30、relative、带同一套 30° 网格。"""
     b1m, b2m = _ch8_script("fig_b1_same_class.py"), _ch8_script("fig_b2_unnamed_cell.py")
     b1 = {tag: _cfg(f"{CH8}/data/same_class.{tag}.lumice.json") for tag in B1_TAGS}
     b2 = _b2_cfgs()
@@ -308,14 +308,18 @@ def test_ch8_b_figures_configs_share_crystal_and_differ_in_sun_altitude():
         entries = cfg["scene"]["scattering"][0]["entries"]
         assert entries == ([{"crystal": 1, "proportion": 100}] if v == "ref_all" else [{"crystal": 1, "proportion": 100, "filter": 1}]), v
     rect = b2["rect"]["render"][0]
+    b1_grid = b1[B1_TAGS[0]]["render"][0]["grid"]
     for r in (*(c["render"][0] for c in b1.values()), rect):
         assert r["lens"]["type"] == "rectangular" and r["resolution"] == [5760, 2880] == list(b1m["SUB_RESOLUTION"]) == list(b2m["SUB_RESOLUTION"])
-        assert r["ev_mode"] == "absolute" and r["visible"] == "full" and r["grid"] == rect["grid"]
+        assert r["ev_mode"] == "absolute" and r["visible"] == "full"
+    for r in (c["render"][0] for c in b1.values()):
+        assert r["grid"] == b1_grid
         assert sorted(g["value"] for g in r["grid"]["elevation"]) == list(range(-60, 90, 30))
         assert sorted(g["value"] for g in r["grid"]["longitude"]) == list(range(0, 360, 30))
+    assert "grid" not in rect
     assert b1[B1_TAGS[0]]["render"][0]["intensity_factor"] == b1m["INTENSITY"] and rect["intensity_factor"] == b2m["INTENSITY"]
     globe = b2["globe"]["render"][0]
-    assert globe["ev_mode"] == "relative" and globe["lens"] == {"type": "globe", "fov": 30} and globe["grid"] == rect["grid"]
+    assert globe["ev_mode"] == "relative" and globe["lens"] == {"type": "globe", "fov": 30} and globe["grid"] == b1_grid
     for v in ("ref_A60-10", "ref_A0-02", "ref_all"):
         r = b2[v]["render"][0]
         assert r["lens"]["type"] == "rectangular" and r["resolution"] == [1440, 720] and r["ev_mode"] == "absolute" and "grid" not in r
@@ -382,7 +386,8 @@ def test_ch8_b2_complex_filters_are_exactly_the_phi_class_members():
 
 
 def test_ch8_b2_globe_offset_window_and_profile_numbers_are_reproducible():
-    """B2 三件套的机械锚点：globe 帧中心在幻日环高度上、方位偏离反日点 GLOBE_OFFSET_DEG=25°（作者：20–30°，不正对）；rect 裁切窗口
+    """B2 三件套的机械锚点：globe 帧中心在幻日环高度上、方位偏离反日点 GLOBE_OFFSET_DEG=10°（作者：不正对；25° 时远侧亮斑压球缘，
+    2026-09-19 试渲 10/15/25 后收到 10°）；rect 裁切窗口
     方位 120°–180°、仰角 −10°…+20° → 960×480；A60-10 参考图两个亮斑质心方位 ±140–165°、仰角 ≈ 0°、5° 圆内 > 50% 全天能量；
     剖面（±1.5° 条带、0.5° 桶，`S.azimuth_profile`）特征：A60-10 锐边（内侧半高）141–144°、峰值 148–153°、外缘（10% 峰值）159–164°、
     锐边宽度（10%→半高）< 1.5°；A0-02 窄峰 152–156°、FWHM < 8°、峰位在 A60-10 锐边外侧 ≥ 8°；`far_side_profile.csv` == 从参考图重算的三条曲线。"""
@@ -392,7 +397,7 @@ def test_ch8_b2_globe_offset_window_and_profile_numbers_are_reproducible():
     S = _ch8_sim()
     mod = _ch8_script("fig_b2_unnamed_cell.py")
     b2 = _b2_cfgs()
-    assert abs(mod["globe_offset_of"](b2["globe"]) - mod["GLOBE_OFFSET_DEG"]) < 1e-6 and mod["GLOBE_OFFSET_DEG"] == 25.0 and 20 <= mod["GLOBE_OFFSET_DEG"] <= 30
+    assert abs(mod["globe_offset_of"](b2["globe"]) - mod["GLOBE_OFFSET_DEG"]) < 1e-6 and mod["GLOBE_OFFSET_DEG"] == 10.0
     rows, cols = S.rectangular_window(b2["rect"]["render"][0], mod["WINDOW_AZ"], mod["WINDOW_EL"])
     assert (mod["WINDOW_AZ"], mod["WINDOW_EL"]) == ((120.0, 180.0), (-10.0, 20.0))
     assert (cols.stop - cols.start, rows.stop - rows.start) == (mod["SUB_W"], mod["SUB_H"]) == (960, 480)
@@ -434,24 +439,26 @@ def test_ch8_b1_figure_is_composed_from_the_sub_images():
         assert np.abs(region - s).mean() < 2.0 and np.corrcoef(region.ravel(), s.ravel())[0, 1] > 0.95, tag   # 画面大片纯黑，jpg 暗部噪声压低相关，均差 < 0.5
 
 
-def test_ch8_b2_three_standalone_figures_are_the_renders_themselves():
-    """B2 本轮不拼版：`unnamed_cell_globe.jpg` = globe 渲染原图（1400×1400）、`unnamed_cell_rect.jpg` = rect 渲染按窗口裁出的 960×480、
-    `far_side_profile.png` 存在；jpg 与 png 原图逐像素均差 < 2、相关 > 0.95。"""
+def test_ch8_b2_composite_figure_and_rect_without_grid():
+    """B2 拼版（图 6）：正式图只有一张 `unnamed_cell.png`（2100×1050：左 globe 反相定位 + 右上 rect 局部 + 右下方位剖面），旧的三张
+    分立文件不再存在；rect 渲染 config 不带 Lumice 网格（拼版时由坐标轴给参考，网格线会压在骑地平线的亮斑上），globe 仍带 30° 网格；
+    `crop_sub` 从 rect 原图裁出的窗口仍是 960×480；`--replot` 只从 data/ 重画不跑 Lumice。"""
     import numpy as np
     from PIL import Image
-    S = _ch8_sim()
     mod = _ch8_script("fig_b2_unnamed_cell.py")
     img, data = ROOT / CH8 / "img", ROOT / CH8 / "data" / "unnamed_cell"
-    globe = np.asarray(Image.open(img / "unnamed_cell_globe.jpg").convert("L"), float)
-    raw = np.asarray(Image.open(data / "globe" / "img_01.png").convert("L"), float)
-    assert globe.shape == raw.shape == (S.SKY_PX, S.SKY_PX) == (1400, 1400)
-    assert np.abs(globe - raw).mean() < 2.0 and np.corrcoef(globe.ravel(), raw.ravel())[0, 1] > 0.95
-    rect = np.asarray(Image.open(img / "unnamed_cell_rect.jpg").convert("L"), float)
+    for old in ("unnamed_cell_globe.jpg", "unnamed_cell_rect.jpg", "far_side_profile.png"):
+        assert not (img / old).exists(), old
+    composite = Image.open(img / "unnamed_cell.png")
+    assert composite.size == (2100, 1050)
+    b2 = _b2_cfgs()
+    assert "grid" not in b2["rect"]["render"][0] and "grid" in b2["globe"]["render"][0]
     full = Image.open(data / "rect" / "img_01.png").convert("RGB")
-    crop = np.asarray(mod["crop_sub"](full, _cfg(f"{CH8}/data/unnamed_cell.rect.lumice.json")["render"][0]).convert("L"), float)
-    assert rect.shape == crop.shape == (480, 960)
-    assert np.abs(rect - crop).mean() < 2.0 and np.corrcoef(rect.ravel(), crop.ravel())[0, 1] > 0.95
-    assert (img / "far_side_profile.png").exists() and (img / "cross_section_sensitivity.png").exists()
+    crop = mod["crop_sub"](full, b2["rect"]["render"][0])
+    assert crop.size == (960, 480)
+    assert np.asarray(Image.open(data / "globe" / "img_01.png").convert("L")).shape == (1400, 1400)
+    assert (img / "cross_section_sensitivity.png").exists()
+    assert set(mod["STEPS"]) == {"refs", "globe", "rect", "compose"}
 
 
 def test_ch8_cross_section_sensitivity_configs_and_trends():

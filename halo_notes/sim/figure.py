@@ -14,12 +14,14 @@ from typing import Any, Mapping, Sequence
 from .run import RenderResult, render
 
 
-def parse_args(argv: Sequence[str] | None, *, default_ray_num: int, description: str) -> argparse.Namespace:
+def parse_args(argv: Sequence[str] | None, *, default_ray_num: int, description: str, replot: bool = False) -> argparse.Namespace:
     p = argparse.ArgumentParser(description=description)
     p.add_argument("--ray-num", type=int, default=default_ray_num, help=f"全波长总光线数（默认 {default_ray_num:,}）")
     p.add_argument("--out", type=Path, default=None, help="输出根目录（默认章目录：data/ 与 img/ 落在其下）；单测用临时目录")
     p.add_argument("--workers", type=int, default=None)
     p.add_argument("--backend", default=None)
+    if replot:
+        p.add_argument("--replot", action="store_true", help="不跑 Lumice，只从 data/ 里已有的仿真产物重画正式图（改版式用）")
     return p.parse_args(argv)
 
 
