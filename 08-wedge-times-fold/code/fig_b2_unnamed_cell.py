@@ -1,7 +1,7 @@
 # 产出图 6 的三张分立文件（task-revise-ch8，作者 2026-09-19 终审第 7 条；拼版与美化留后续绘图任务）：
 #   ../img/unnamed_cell_globe.jpg  globe 斜视定位图：Φ 类 A60-10（最短代表 `3-4-5-7`，60° 楔 + 120° 旋转折叠）**整类**，相机方位偏离反日点
 #                                  GLOBE_OFFSET_DEG（不正对反日点，能同时看到两个亮斑与它们相对反日点 / 地平线的位置）；
-#   rect 局部（拼版右上）：**全部光路**、全天 5760×2880（1/16°/px）裁到反日点一侧窗口（方位 120°–180°、仰角 −10°…+20°）——肉眼所见；
+#   rect 局部（拼版右上）：**全部光路**、全天 5760×2880（1/16°/px）裁到反日点一侧窗口（方位 125°–180°、仰角 −8°…+12°）——肉眼所见；
 #   ../img/far_side_profile.png    幻日环方位剖面曲线（临时 matplotlib）：A60-10 整类 / A0-02 整类 / 全部光路三条，对数纵轴；
 #                                  数据 ../data/far_side_profile.csv，机械提取的数字 tee 到 ../data/far_side_profile_numbers.txt。
 # 太阳高度 **0°**（`S.scene(..., sun_alt=SUN_ALT)`，不改 `_ch8_sim.SUN_ALTITUDE`——图 5 仍是 10°）：A60-10 的 142° 锐边鼓包与 A0-02 的
@@ -43,8 +43,9 @@ REF_INTENSITY = 0.03                           # 参考图曝光（absolute，�
 INTENSITY = 0.35                               # rectangular 局部正式图曝光（absolute）：局部图自 2026-09-19 起画**全部光路**（肉眼所见，下方曲线再拆分），
                                                # 全光路在窗口里比单格亮约 4×（剖面 all/A60-10 峰值比 ≈ 3.8），单格时 1.5 不削顶；2×10⁷ 光线冒烟 @0.4：窗口 99.9% 像素 202、2 个噪声饱和点，正式取 0.35 留余量
 SUB_RESOLUTION = (5760, 2880)                  # 1/16°/px：窗口 60°×30° → 960×480 像素（同 B1）
-WINDOW_AZ, WINDOW_EL = (120.0, 180.0), (-10.0, 20.0)   # 反日点一侧；太阳 0° 时亮斑骑在地平线上，上下各留 10°/20°
-SUB_W, SUB_H = 960, 480
+WINDOW_AZ, WINDOW_EL = (125.0, 180.0), (-8.0, 12.0)    # 反日点一侧；方位从 125° 起把 120° 幻日整个排除在外（正文不讨论它，2026-09-19 作者），
+                                                        # 太阳 0° 时亮斑骑在地平线上，上下各留 8°/12°
+SUB_W, SUB_H = 880, 320
 GLOBE_OFFSET_DEG = 10.0                        # globe 帧中心方位 = 180° − 10° = 170°（作者：不正对反日点；25° 时远侧亮斑压在球缘，2026-09-19 试渲 10°/15°/25° 后收到 10°）
 GLOBE_CENTER = S.sky(SUN_ALT, 180.0 - GLOBE_OFFSET_DEG)
 SPOT_RADIUS_DEG = 5.0                          # 紧凑度锚点：亮斑质心周围 5° 圆
@@ -157,9 +158,15 @@ def compose(globe_png: Path, rect_png: Path, rect_render: dict, globe_render: di
     rect = crop_sub(X.Image.open(rect_png).convert("RGB"), rect_render)
     (a0, a1), (e0, e1) = WINDOW_AZ, WINDOW_EL
 
-    fig = plt.figure(figsize=(14, 7.0))
-    gs = fig.add_gridspec(2, 2, width_ratios=[1.0, 1.0], height_ratios=[1.0, 0.9], left=0.02, right=0.98, bottom=0.09, top=0.97,
-                          wspace=0.12, hspace=0.32)
+    fig_w, fig_h = 14.0, 7.0
+    left, right, bottom, top, wspace, hspace = 0.02, 0.98, 0.09, 0.97, 0.12, 0.3
+    # 右上 rect 面板要方位 / 仰角同比例（1° = 1°），又要与下面的剖面共用整条方位轴：按列宽反推它该占的高度，剩下的给剖面
+    col_w = (right - left) * fig_w / (2 + wspace)
+    h_rect = col_w * (WINDOW_EL[1] - WINDOW_EL[0]) / (WINDOW_AZ[1] - WINDOW_AZ[0])
+    h_total = (top - bottom) * fig_h / (1 + hspace / 2)
+    fig = plt.figure(figsize=(fig_w, fig_h))
+    gs = fig.add_gridspec(2, 2, width_ratios=[1.0, 1.0], height_ratios=[h_rect, h_total - h_rect], left=left, right=right, bottom=bottom,
+                          top=top, wspace=wspace, hspace=hspace)
     ax_g = fig.add_subplot(gs[:, 0])
     ax_r = fig.add_subplot(gs[0, 1])
     ax_p = fig.add_subplot(gs[1, 1], sharex=ax_r)
@@ -181,10 +188,11 @@ def compose(globe_png: Path, rect_png: Path, rect_render: dict, globe_render: di
                   fontsize=12, arrowprops=dict(arrowstyle="-", color=P.PAL["ink"], lw=0.9, shrinkA=0, shrinkB=2))
 
     # ---- 右上：rect 局部，方位 / 仰角刻度 ----
-    ax_r.imshow(rect, extent=(a0, a1, e0, e1), interpolation="bilinear", aspect="auto")
+    ax_r.imshow(rect, extent=(a0, a1, e0, e1), interpolation="bilinear", aspect="auto")    # 面板高度已按 1°=1° 算好，auto 只是不再缩框
     ax_r.set_ylim(e0, e1)
-    ax_r.set_yticks([-10, 0, 10, 20])
-    ax_r.set_yticklabels([P.deg(v) for v in (-10, 0, 10, 20)])
+    yticks = [v for v in range(-30, 31, 10) if e0 <= v <= e1]
+    ax_r.set_yticks(yticks)
+    ax_r.set_yticklabels([P.deg(v) for v in yticks])
     ax_r.set_ylabel("仰角")
     ax_r.text(0.015, 0.95, "全部光路（肉眼所见的这片天）", transform=ax_r.transAxes, ha="left", va="top", fontsize=10, color="#BBBBBB")
     ax_r.tick_params(axis="x", labelbottom=False)

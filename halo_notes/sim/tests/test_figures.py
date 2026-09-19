@@ -389,7 +389,7 @@ def test_ch8_b2_complex_filters_are_exactly_the_phi_class_members():
 def test_ch8_b2_globe_offset_window_and_profile_numbers_are_reproducible():
     """B2 三件套的机械锚点：globe 帧中心在幻日环高度上、方位偏离反日点 GLOBE_OFFSET_DEG=10°（作者：不正对；25° 时远侧亮斑压球缘，
     2026-09-19 试渲 10/15/25 后收到 10°）；rect 裁切窗口
-    方位 120°–180°、仰角 −10°…+20° → 960×480；A60-10 参考图两个亮斑质心方位 ±140–165°、仰角 ≈ 0°、5° 圆内 > 50% 全天能量；
+    方位 125°–180°、仰角 −8°…+12° → 880×320；A60-10 参考图两个亮斑质心方位 ±140–165°、仰角 ≈ 0°、5° 圆内 > 50% 全天能量；
     剖面（±1.5° 条带、0.5° 桶，`S.azimuth_profile`）特征：A60-10 锐边（内侧半高）141–144°、峰值 148–153°、外缘（10% 峰值）159–164°、
     锐边宽度（10%→半高）< 1.5°；A0-02 窄峰 152–156°、FWHM < 8°、峰位在 A60-10 锐边外侧 ≥ 8°；`far_side_profile.csv` == 从参考图重算的三条曲线。"""
     import csv
@@ -400,8 +400,8 @@ def test_ch8_b2_globe_offset_window_and_profile_numbers_are_reproducible():
     b2 = _b2_cfgs()
     assert abs(mod["globe_offset_of"](b2["globe"]) - mod["GLOBE_OFFSET_DEG"]) < 1e-6 and mod["GLOBE_OFFSET_DEG"] == 10.0
     rows, cols = S.rectangular_window(b2["rect"]["render"][0], mod["WINDOW_AZ"], mod["WINDOW_EL"])
-    assert (mod["WINDOW_AZ"], mod["WINDOW_EL"]) == ((120.0, 180.0), (-10.0, 20.0))
-    assert (cols.stop - cols.start, rows.stop - rows.start) == (mod["SUB_W"], mod["SUB_H"]) == (960, 480)
+    assert (mod["WINDOW_AZ"], mod["WINDOW_EL"]) == ((125.0, 180.0), (-8.0, 12.0))     # 125° 起：把 120° 幻日整个排除在窗口外
+    assert (cols.stop - cols.start, rows.stop - rows.start) == (mod["SUB_W"], mod["SUB_H"]) == (880, 320)
     hists, features = {}, {}
     for name in mod["CURVES"]:
         r = b2[f"ref_{name}"]["render"][0]
@@ -443,7 +443,7 @@ def test_ch8_b1_figure_is_composed_from_the_sub_images():
 def test_ch8_b2_composite_figure_and_rect_without_grid():
     """B2 拼版（图 6）：正式图只有一张 `unnamed_cell.png`（2100×1050：左 globe 反相定位 + 右上 rect 局部 + 右下方位剖面），旧的三张
     分立文件不再存在；rect 渲染 config 不带 Lumice 网格（拼版时由坐标轴给参考，网格线会压在骑地平线的亮斑上），globe 仍带 30° 网格；
-    rect 不装过滤器（全部光路，肉眼所见），globe 装本格过滤器；`crop_sub` 从 rect 原图裁出的窗口仍是 960×480；`--replot` 只从 data/ 重画不跑 Lumice。"""
+    rect 不装过滤器（全部光路，肉眼所见），globe 装本格过滤器；`crop_sub` 从 rect 原图裁出的窗口是 880×320；`--replot` 只从 data/ 重画不跑 Lumice。"""
     import numpy as np
     from PIL import Image
     mod = _ch8_script("fig_b2_unnamed_cell.py")
@@ -457,7 +457,7 @@ def test_ch8_b2_composite_figure_and_rect_without_grid():
     assert not b2["rect"].get("filter") and b2["globe"]["filter"]
     full = Image.open(data / "rect" / "img_01.png").convert("RGB")
     crop = mod["crop_sub"](full, b2["rect"]["render"][0])
-    assert crop.size == (960, 480)
+    assert crop.size == (880, 320)
     assert np.asarray(Image.open(data / "globe" / "img_01.png").convert("L")).shape == (1400, 1400)
     assert (img / "cross_section_sensitivity.png").exists()
     assert set(mod["STEPS"]) == {"refs", "globe", "rect", "compose"}
