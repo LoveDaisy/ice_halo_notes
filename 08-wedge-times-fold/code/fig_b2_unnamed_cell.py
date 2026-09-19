@@ -1,7 +1,7 @@
 # 产出图 6 的三张分立文件（task-revise-ch8，作者 2026-09-19 终审第 7 条；拼版与美化留后续绘图任务）：
 #   ../img/unnamed_cell_globe.jpg  globe 斜视定位图：Φ 类 A60-10（最短代表 `3-4-5-7`，60° 楔 + 120° 旋转折叠）**整类**，相机方位偏离反日点
 #                                  GLOBE_OFFSET_DEG（不正对反日点，能同时看到两个亮斑与它们相对反日点 / 地平线的位置）；
-#   ../img/unnamed_cell_rect.jpg   rectangular 局部图：同一场景全天 5760×2880（1/16°/px）裁到反日点一侧窗口（方位 120°–180°、仰角 −10°…+20°）；
+#   rect 局部（拼版右上）：**全部光路**、全天 5760×2880（1/16°/px）裁到反日点一侧窗口（方位 120°–180°、仰角 −10°…+20°）——肉眼所见；
 #   ../img/far_side_profile.png    幻日环方位剖面曲线（临时 matplotlib）：A60-10 整类 / A0-02 整类 / 全部光路三条，对数纵轴；
 #                                  数据 ../data/far_side_profile.csv，机械提取的数字 tee 到 ../data/far_side_profile_numbers.txt。
 # 太阳高度 **0°**（`S.scene(..., sun_alt=SUN_ALT)`，不改 `_ch8_sim.SUN_ALTITUDE`——图 5 仍是 10°）：A60-10 的 142° 锐边鼓包与 A0-02 的
@@ -40,7 +40,8 @@ SUN_ALT = 0.0                                  # 本图系列太阳高度（图 
 RAY_NUM = 200_000_000
 REF_RAY_NUM = 100_000_000
 REF_INTENSITY = 0.03                           # 参考图曝光（absolute，与上一轮片晶参考图相同；A60-10 峰值像素 ≈ 27/255，不削顶）
-INTENSITY = 1.5                                # rectangular 局部正式图曝光（absolute；2×10⁷ 光线冒烟 @2.5：15 px 盒均值最亮 211/255、940 px 削顶，降到 1.5 留余量）
+INTENSITY = 0.35                               # rectangular 局部正式图曝光（absolute）：局部图自 2026-09-19 起画**全部光路**（肉眼所见，下方曲线再拆分），
+                                               # 全光路在窗口里比单格亮约 4×（剖面 all/A60-10 峰值比 ≈ 3.8），单格时 1.5 不削顶；2×10⁷ 光线冒烟 @0.4：窗口 99.9% 像素 202、2 个噪声饱和点，正式取 0.35 留余量
 SUB_RESOLUTION = (5760, 2880)                  # 1/16°/px：窗口 60°×30° → 960×480 像素（同 B1）
 WINDOW_AZ, WINDOW_EL = (120.0, 180.0), (-10.0, 20.0)   # 反日点一侧；太阳 0° 时亮斑骑在地平线上，上下各留 10°/20°
 SUB_W, SUB_H = 960, 480
@@ -73,7 +74,8 @@ def build_globe(ray_num: int = RAY_NUM) -> dict:
 
 
 def build_rect(ray_num: int = RAY_NUM) -> dict:
-    flts, sc = filters_and_scene(CLASS_ID, ray_num)
+    """rect 局部图：**全部光路**（不装过滤器）——右上是肉眼看到的那片天，两个格子各自的贡献由右下曲线拆分；globe 定位图仍只画本格。"""
+    flts, sc = filters_and_scene(None, ray_num)
     # 不画 Lumice 网格：拼版时局部图带方位 / 仰角坐标轴，网格线（尤其地平线）只会压在骑在地平线上的亮斑上
     render = C.render_unit(1, C.lens("rectangular"), list(SUB_RESOLUTION), visible="full", background=[0, 0, 0],
                            ev_mode="absolute", intensity_factor=INTENSITY)
@@ -146,8 +148,9 @@ def _window_outline(n: int = 60) -> list[tuple[float, float]]:
 
 def compose(globe_png: Path, rect_png: Path, rect_render: dict, globe_render: dict, centers: np.ndarray, hists: dict[str, np.ndarray],
             features: dict[str, dict[str, float]], out: Path) -> Path:
-    """拼版（ch6 图 6.5 的样式）：左 globe 反相定位图（白底、标反日点 / 地平线、红框圈出局部窗口），右上 rect 局部（黑底、带方位 / 仰角刻度），
-    右下沿幻日环的方位剖面曲线；右侧两栏共用方位轴，142° 锐边与窄峰的参考线贯穿两栏。"""
+    """拼版（ch6 图 6.5 的样式）：左 globe 反相定位图（只画本格；白底、标反日点 / 地平线、红框圈出局部窗口），右上 rect 局部（全部光路，
+    黑底、带方位 / 仰角刻度），右下沿幻日环的方位剖面曲线把这片天拆成本格 / 幻日环格 / 全部三条；右侧两栏共用方位轴，142° 锐边与窄峰的
+    参考线贯穿两栏。"""
     import matplotlib.pyplot as plt
     P.apply_style()
     globe = X.invert(globe_png)
@@ -183,6 +186,7 @@ def compose(globe_png: Path, rect_png: Path, rect_render: dict, globe_render: di
     ax_r.set_yticks([-10, 0, 10, 20])
     ax_r.set_yticklabels([P.deg(v) for v in (-10, 0, 10, 20)])
     ax_r.set_ylabel("仰角")
+    ax_r.text(0.015, 0.95, "全部光路（肉眼所见的这片天）", transform=ax_r.transAxes, ha="left", va="top", fontsize=10, color="#BBBBBB")
     ax_r.tick_params(axis="x", labelbottom=False)
     for sp in ("top", "right"):
         ax_r.spines[sp].set_visible(False)

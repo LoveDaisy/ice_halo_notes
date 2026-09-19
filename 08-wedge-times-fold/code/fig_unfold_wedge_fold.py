@@ -42,14 +42,14 @@ def draw_edge(ax, a, b, style: LineStyle) -> None:
     ax.plot([a[0], b[0]], [a[1], b[1]], solid_capstyle="round", zorder=6, **PRESET.line_kwargs(style))
 
 
-def draw_normal(ax, foot, n, length: float, label: str, *, side: float = 1.0) -> None:
-    """从 ``foot`` 沿外法向 ``n`` 画一支法向箭头并在旁边写标签。"""
+def draw_normal(ax, foot, n, length: float, label: str, *, side: float = 1.0, pad: float = 0.22) -> None:
+    """从 ``foot`` 沿外法向 ``n`` 画一支法向箭头并在旁边写标签（标签在箭头尖旁、``side`` 一侧偏 ``pad``）。"""
     tip = foot + n * length
     kw = PRESET.line_kwargs(NORMAL)
     ax.plot([foot[0], tip[0]], [foot[1], tip[1]], solid_capstyle="round", zorder=7, **kw)
     draw_arrowhead(ax, tip, n, length=PRESET.geom.arrow2d_length, width=PRESET.geom.arrow2d_width, color=kw["color"], z=8)
     p = np.array([-n[1], n[0]]) * side
-    annotate_2d(ax, label, tip + n * 0.12 + p * 0.22, preset=PRESET, ha="center", va="center")
+    annotate_2d(ax, label, tip + n * 0.12 + p * pad, preset=PRESET, ha="center", va="center")
 
 
 def main() -> None:
@@ -83,7 +83,7 @@ def main() -> None:
     wedge = float(np.degrees(np.arccos(np.clip(-(n_a @ n_b_unfolded), -1, 1))))
     assert np.isclose(wedge, WEDGE_DEG, atol=1e-9), wedge
     draw_normal(ax, (a + b) / 2, n_a, 0.9, r"$\mathbf{n}_a$", side=1.0)
-    draw_normal(ax, (c + d) / 2, n_b_unfolded, 0.9, r"$M^{-1}\mathbf{n}_b$", side=-1.0)
+    draw_normal(ax, (c + d) / 2, n_b_unfolded, 0.9, r"$M^{-1}\mathbf{n}_b$", side=1.0, pad=0.55)   # 标签放在远离蓝色出射线的一侧
 
     # 两面延长到楔顶 + 楔角弧
     e1, e2 = unit(b - a), unit(d - c)
@@ -111,7 +111,7 @@ def main() -> None:
     rot = float((angle_of(d_real) - angle_of(d_unfolded)) % 360)
     assert np.isclose(min(rot, 360 - rot), FOLD_DEG, atol=1e-9), rot
     pts = np.vstack([section.vertices, *[g.vertices for g in corridor.ghosts], path.points, straight.points, apex[None, :]])
-    origin = np.array([section.vertices[:, 0].max() + 3.6, corridor.ghosts[-1].vertices[:, 1].mean() + 0.3])
+    origin = np.array([section.vertices[:, 0].max() + 5.0, corridor.ghosts[-1].vertices[:, 1].mean() - 0.2])   # 离楔角标签远一点，文字不打架
     L = 1.3
     for dvec, style in ((d_unfolded, LineStyle("accent_cool", linewidth=1.6)), (d_real, LineStyle("accent_warm", linewidth=1.6))):
         kw = PRESET.line_kwargs(style)

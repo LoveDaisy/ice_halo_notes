@@ -289,7 +289,7 @@ def test_ch8_b_figures_configs_share_crystal_and_differ_in_sun_altitude():
     """B1 三张子图（同一绝对曝光、同一 rectangular 全天镜头）之间**只差过滤器**；B1 与 B2 全部五份 config 的 crystal 段逐字段相同（片晶 h/a=0.2 =
     Lumice height 0.1、zenith σ=0.5°、无 roll），max_hits 9；太阳高度 **B1 = 10°、B2 系列 = 0°**（task-revise-ch8：两层同现需太阳贴地平线），
     B2 五份之间 scene 段（去掉过滤器、光线数）逐字段相同；B1 子图与 B2 rect 都是 rectangular 5760×2880、absolute；B1 子图带 30° 经纬网格，
-    B2 rect 不带（拼版时由坐标轴给参考）；B2 globe 是 globe fov 30、relative、带同一套 30° 网格。"""
+    B2 rect 不带（拼版时由坐标轴给参考）且不装过滤器（全部光路）；B2 globe 是 globe fov 30、relative、带同一套 30° 网格。"""
     b1m, b2m = _ch8_script("fig_b1_same_class.py"), _ch8_script("fig_b2_unnamed_cell.py")
     b1 = {tag: _cfg(f"{CH8}/data/same_class.{tag}.lumice.json") for tag in B1_TAGS}
     b2 = _b2_cfgs()
@@ -306,7 +306,8 @@ def test_ch8_b_figures_configs_share_crystal_and_differ_in_sun_altitude():
     for v, cfg in b2.items():
         assert cfg["scene"]["light_source"]["altitude"] == 0 == b2m["SUN_ALT"], v
         entries = cfg["scene"]["scattering"][0]["entries"]
-        assert entries == ([{"crystal": 1, "proportion": 100}] if v == "ref_all" else [{"crystal": 1, "proportion": 100, "filter": 1}]), v
+        # rect 局部图与 ref_all 一样不装过滤器（2026-09-19 作者：右上画肉眼所见的全部光路，由右下曲线拆分）；globe 与两张类参考图装过滤器
+        assert entries == ([{"crystal": 1, "proportion": 100}] if v in ("ref_all", "rect") else [{"crystal": 1, "proportion": 100, "filter": 1}]), v
     rect = b2["rect"]["render"][0]
     b1_grid = b1[B1_TAGS[0]]["render"][0]["grid"]
     for r in (*(c["render"][0] for c in b1.values()), rect):
@@ -365,15 +366,15 @@ def test_ch8_b1_three_paths_share_phi_class_and_shape():
 
 
 def test_ch8_b2_complex_filters_are_exactly_the_phi_class_members():
-    """B2：A60-10 参考图 / globe / rect 三份过滤器段相同 = 一个 complex（id 1，PBD，OR 全部子过滤器）+ 每条代表一个 raypath 子过滤器，子光路集合 ==
+    """B2：A60-10 参考图 / globe 两份过滤器段相同 = 一个 complex（id 1，PBD，OR 全部子过滤器）+ 每条代表一个 raypath 子过滤器，子光路集合 ==
     枚举器在 h/a=0.2 下落入 A60-10 的全部 PBD 代表（59 条，与 signature_table.md「光路条数」表一致，含 `3-4-5-7` / `3-5-6-7`）；A0-02 参考图同形态、
-    108 条（含幻日环主光路 `1-3-2` 与 Liljequist 窄峰光路 `3-5-6-7-3`）；「全部」参考图不带过滤器。"""
+    108 条（含幻日环主光路 `1-3-2` 与 Liljequist 窄峰光路 `3-5-6-7-3`）；「全部」参考图与 rect 局部图（全部光路）不带过滤器。"""
     from halo_notes.sim import config as C
     S = _ch8_sim()
     mod = _ch8_script("fig_b2_unnamed_cell.py")
     b2 = _b2_cfgs()
-    assert b2["ref_all"]["filter"] == [] and mod["CURVES"] == {"A60-10": "A60-10", "A0-02": "A0-02", "all": None}
-    assert b2["globe"]["filter"] == b2["rect"]["filter"] == b2["ref_A60-10"]["filter"]
+    assert b2["ref_all"]["filter"] == [] == b2["rect"]["filter"] and mod["CURVES"] == {"A60-10": "A60-10", "A0-02": "A0-02", "all": None}
+    assert b2["globe"]["filter"] == b2["ref_A60-10"]["filter"]
     for cid, expected_n, must in (("A60-10", 59, {(3, 4, 5, 7), (3, 5, 6, 7)}), ("A0-02", 108, {(1, 3, 2), (3, 5, 6, 7, 3)})):
         cfg = b2[f"ref_{cid}"]
         top = cfg["filter"][0]
@@ -442,7 +443,7 @@ def test_ch8_b1_figure_is_composed_from_the_sub_images():
 def test_ch8_b2_composite_figure_and_rect_without_grid():
     """B2 拼版（图 6）：正式图只有一张 `unnamed_cell.png`（2100×1050：左 globe 反相定位 + 右上 rect 局部 + 右下方位剖面），旧的三张
     分立文件不再存在；rect 渲染 config 不带 Lumice 网格（拼版时由坐标轴给参考，网格线会压在骑地平线的亮斑上），globe 仍带 30° 网格；
-    `crop_sub` 从 rect 原图裁出的窗口仍是 960×480；`--replot` 只从 data/ 重画不跑 Lumice。"""
+    rect 不装过滤器（全部光路，肉眼所见），globe 装本格过滤器；`crop_sub` 从 rect 原图裁出的窗口仍是 960×480；`--replot` 只从 data/ 重画不跑 Lumice。"""
     import numpy as np
     from PIL import Image
     mod = _ch8_script("fig_b2_unnamed_cell.py")
@@ -453,6 +454,7 @@ def test_ch8_b2_composite_figure_and_rect_without_grid():
     assert composite.size == (2100, 1050)
     b2 = _b2_cfgs()
     assert "grid" not in b2["rect"]["render"][0] and "grid" in b2["globe"]["render"][0]
+    assert not b2["rect"].get("filter") and b2["globe"]["filter"]
     full = Image.open(data / "rect" / "img_01.png").convert("RGB")
     crop = mod["crop_sub"](full, b2["rect"]["render"][0])
     assert crop.size == (960, 480)
