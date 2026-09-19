@@ -1,4 +1,4 @@
-# 产出 ../img/same_class.jpg（图 B1「同类异路」）与三张子图 ../img/same_class_<光路>.jpg：Φ 类 A60-10 里三条长度 6 的**单光路**
+# 产出 ../img/same_class.jpg（图 B1「同类异路」）；三张裁好的子图是拼版的中间产物，落 ../data/same_class/<光路>/crop.jpg（不进 img/）：Φ 类 A60-10 里三条长度 6 的**单光路**
 # `3-1-5-2-6-7` / `3-1-5-6-2-7` / `3-1-2-5-6-7` 各自单独仿真（不是整类），rectangular 全天图裁到反日点一侧同一窗口后上下叠放——
 # 三条光路同一组面、都是两次底面反射，$b^2=e$，折叠与楔相同 ⇒ 方向映射 $\Phi$ 逐点相同，画出来是幻日环上离太阳约 150° 的同一团光；
 # 差别只在定义域（哪些方向的光走得通）：前两条第二次底面反射插在不同位置（`5-2` 之间 / `6-2` 之间），亮度相同——非平凡的原因是
@@ -128,7 +128,7 @@ def main(argv=None) -> Path:
         cfg = build(tag)
         res = sim_figure(NAME, CHAPTER, with_ray_num(cfg, args.ray_num), out_root=args.out, variant=tag,
                          workers=args.workers, backend=args.backend)
-        subs[tag] = img_path(f"same_class_{tag}", CHAPTER, "jpg", args.out)
+        subs[tag] = res.images[0].parent / "crop.jpg"          # 子图是中间产物，与该光路的 Lumice 原图放一起
         crop_sub(X.Image.open(res.images[0]).convert("RGB"), cfg["render"][0]).save(subs[tag], quality=95)
         print(f"{tag}: {res.wall_clock_s:.1f} s, ray_num={args.ray_num:,}")
     out = compose_stack(subs, img_path(NAME, CHAPTER, "jpg", args.out))
