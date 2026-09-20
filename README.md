@@ -17,6 +17,7 @@
 | 6 | `06-monte-carlo-vs-integration/` | [蒙特卡洛 vs. 直接积分](06-monte-carlo-vs-integration/蒙特卡洛%20vs.%20直接积分.md) | published | [p/536772578](https://zhuanlan.zhihu.com/p/536772578) | `[[现代冰晕研究漫谈(6)： 蒙特卡洛 vs. 直接积分]]` |
 | 7 | `07-reflection-group/` | [为什么恰好是十二个](07-reflection-group/为什么恰好是十二个.md) | published | [p/2082646907952821740](https://zhuanlan.zhihu.com/p/2082646907952821740) | `[[现代冰晕研究漫谈(7)： 十二种矩阵背后的数学结构]]` |
 | 8 | `08-wedge-times-fold/` | [三种楔子、十二种折叠](08-wedge-times-fold/三种楔子-十二种折叠.md) | published | [p/2084963224814990674](https://zhuanlan.zhihu.com/p/2084963224814990674) | `[[现代冰晕研究漫谈(8)： 楔角光路]]` |
+| 9 | `09-pyramid/` | [锥晶：结构还是巧合](09-pyramid/锥晶-结构还是巧合.md) | outline | — | — |
 | 番外 | `ex-tape-vs-matrix/` | [Tape 光点法与矩阵法](ex-tape-vs-matrix/Tape光点法与矩阵法.md) | outline | — | — |
 | 12 | `12-halo-detection/` | [变换法探测冰晕](12-halo-detection/变换法探测冰晕.md) | outline | — | — |
 

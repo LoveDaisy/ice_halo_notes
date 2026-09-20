@@ -26,11 +26,14 @@ import subprocess
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Iterable, Mapping, Sequence
+from typing import TYPE_CHECKING, Any, Iterable, Mapping, Sequence
 
 import numpy as np
 
 from lumice_integral.geometry import Polyhedron, fold_matrix
+
+if TYPE_CHECKING:
+    from lumice_integral.geometry import Pyramid
 from lumice_integral.geometry.enumerate import RaypathRecord
 from ..math import reflection_group as rg
 from ..math.signature import PhiClass, phi_class
@@ -57,6 +60,23 @@ def analysis_config(ratio: float, *, max_len: int, rays: int, sun_altitude: floa
     if max_len < 1:
         raise ValueError(f"max_len 必须 ≥ 1，收到 {max_len}")
     crystal = C.prism_crystal(1, height=C.hex_prism_height_ratio(ratio), axis=C.random_axis())
+    light = C.sun(sun_altitude, spectrum=[{"wavelength": float(wavelength), "weight": 1.0}])
+    sc = C.scene(light, int(rays), [C.entry(1)], max_hits=int(max_len))
+    return C.build_config([crystal], [], sc, [])
+
+
+def pyramid_analysis_config(pyramid: "Pyramid", *, max_len: int, rays: int, sun_altitude: float = 20.0,
+                            wavelength: float = 550.0) -> dict[str, Any]:
+    """随机朝向单**锥晶**、单波长、无多次散射的 ``analyze`` 场景（:func:`analysis_config` 的锥晶版，六棱柱路径零改动）。
+
+    晶体经 :func:`~.config.pyramid_crystal_from_geometry` 换算（``prism_h`` / ``upper_h`` / ``lower_h`` / Miller 指数，取证见该函数
+    docstring）；其余口径同 :func:`analysis_config`。2026-09-20 smoke（本地 build，``Pyramid()`` 默认，seed 7）：CSV 含 13–18 /
+    23–28 面的行，``classify_rows(Pyramid(), rows)`` 可直接归 Φ 类（``pbd_orbit`` / ``group.apply`` 已按环带扩到锥面号）。
+    **驻留表上限**：``max_len=3`` 1656 行、``4`` 7580 行（均无溢出）、``5`` 16385 行 + ``record_full_hits`` 20374（300k 光线）/
+    78983（1M）、``other`` 桶 0.7–0.8% 能量——锥晶 finest 链在 5 面就超过 16384 槽，比六棱柱早得多。"""
+    if max_len < 1:
+        raise ValueError(f"max_len 必须 ≥ 1，收到 {max_len}")
+    crystal = C.pyramid_crystal_from_geometry(1, pyramid, axis=C.random_axis())
     light = C.sun(sun_altitude, spectrum=[{"wavelength": float(wavelength), "weight": 1.0}])
     sc = C.scene(light, int(rays), [C.entry(1)], max_hits=int(max_len))
     return C.build_config([crystal], [], sc, [])
@@ -455,4 +475,4 @@ def spearman_rho(x: Sequence[float], y: Sequence[float]) -> float:
 
 __all__ = ["AggregatedClass", "AnalysisHeader", "AnalysisResult", "AnalysisRow", "CSV_NAME", "CrosscheckResult",
            "analysis_config", "classify_rows", "crosscheck", "fine_grid_area", "has_adjacent_repeat", "load_analysis",
-           "parse_analysis_csv", "parse_raypath", "run_analysis", "spearman_rho", "usable_rows"]
+           "parse_analysis_csv", "parse_raypath", "pyramid_analysis_config", "run_analysis", "spearman_rho", "usable_rows"]

@@ -208,3 +208,13 @@ def test_class_sizes_are_stable():
     """枚举规模（长度 ≤ 6）：#3 类 864 条 / 36 代表，#2 类 1278 / 88，#11 类 330 / 22——改动枚举规则时这里先响。"""
     assert {n: (len(rg.raypaths_of_class(n)), len(rg.representatives_under_pbd(rg.raypaths_of_class(n))))
             for n in (3, 2, 11)} == {3: (864, 36), 2: (1278, 88), 11: (330, 22)}
+
+
+def test_pbd_orbit_on_pyramid_faces():
+    """锥晶面号：B 把 13+i ↔ 23+i、1 ↔ 2；D6 逐环带作用；轨道大小 = 24 / 稳定子；六棱柱面号的轨道不受影响。"""
+    orbit = rg.pbd_orbit((13, 26))
+    assert (23, 16) in orbit and (16, 23) in orbit and (14, 27) in orbit
+    assert all(f in range(13, 19) or f in range(23, 29) for path in orbit for f in path)
+    assert len(orbit) == 12                       # 13-26 是"上锥进对面下锥出"，稳定子阶 2（B∘R3 保持）
+    assert (2, 23, 13) in rg.pbd_orbit((1, 13, 23)) and (1, 14, 24) in rg.pbd_orbit((1, 13, 23))
+    assert rg.pbd_orbit((3, 5)) == rg.pbd_orbit((5, 3)) and len(rg.pbd_orbit((1, 3, 2, 1, 5))) == 24

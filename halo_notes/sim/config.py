@@ -6,12 +6,16 @@
 - ``axis`` 整体缺省 = 固定取向 ``zenith=azimuth=roll=0``；写了 ``axis`` 但省略 ``azimuth`` / ``roll`` = 该轴 0–360° 均匀
 - ``scene.ray_num`` 是**全部波长的总数**（不是每波长各发一份）；``scattering[].prob`` 必填
 - ``filter.symmetry``：``"P"`` C6 旋转、``"B"`` 水平镜面、``"D"`` 垂直镜面，任意组合，默认 ``""``
-- ``raypath`` 面编号：basal = 1/2，prism = 3–8
+- ``raypath`` 面编号：basal = 1/2，prism = 3–8；锥晶再加上锥面 13–18、下锥面 23–28（与 ``lumice_integral.geometry.Pyramid`` 同号）
 """
 
 from __future__ import annotations
 
-from typing import Any, Mapping, Sequence
+import math
+from typing import TYPE_CHECKING, Any, Mapping, Sequence
+
+if TYPE_CHECKING:
+    from lumice_integral.geometry import Pyramid
 
 Number = int | float
 Dist = Number | Mapping[str, Any]
@@ -107,6 +111,152 @@ def hex_prism_height_ratio(ratio: float) -> float:
     **2 × 边长**。同一物理晶体两边的比值差一倍：``height = ratio / 2``。2026-09-15 用「ratio=0.4 可达、0.2 不可达」的
     判别光路 ``1-3-2-1-5`` 实跑 ``analyze`` 双检（Lumice ``height=0.2`` 命中、``0.1`` 不命中），方向无误。"""
     return float(ratio) / 2.0
+
+
+LUMICE_ICE_C = 1.629
+"""Lumice 写死的冰 c/a（``src/core/geo3d.hpp:91`` ``kIceCrystalC = 1.629f``），Miller 指数 → 锥面倾角只经它换算；与本仓
+``lumice_integral.geometry.pyramid.C_OVER_A_ICE = 1.6288`` 差 1.2e-4（{10-11} 锥面法向倾角 62.003° vs 62.005°）。"""
+
+MILLER_MAX_INDEX = 6
+
+
+def _check_miller(name: str, indices: Sequence[int]) -> list[int]:
+    """Lumice ``ConvertMillerIndexToWedgeAngle``（``src/core/miller_wedge.cpp``）的拒绝规则前移：恰好三个整数、``k == 0``、
+    ``h`` / ``l`` 非负——Lumice 侧只 warning 并回退到 28°，这里直接报错。"""
+    idx = list(indices)
+    if len(idx) != 3 or any(isinstance(i, bool) or not isinstance(i, int) for i in idx):
+        raise ValueError(f"{name} 必须是三个整数 (h, k, l)（三指数形式，不是 GUI 的四指数 {{h,k,i,l}}），收到 {indices!r}")
+    if idx[1] != 0:
+        raise ValueError(f"{name} 的 k 必须为 0（锥面只能从棱柱棱上起），收到 {indices!r}")
+    if idx[0] < 0 or idx[2] < 0:
+        raise ValueError(f"{name} 的 h / l 必须非负，收到 {indices!r}")
+    return idx
+
+
+def pyramid_wedge_angle(indices: Sequence[int]) -> float:
+    """Miller 指数 ``(i1, 0, i4)`` 在 Lumice 里对应的楔角 α（锥面与 c 轴夹角，度）：``atan((√3/2)·i4/(i1·1.629))``
+    （``src/core/geo3d.cpp:346-354`` ``MillerIndexToWedgeAngleDeg``）；``i1 == 0`` 是"这一侧没有锥"，返回 0。
+    锥面**法向**与 c 轴夹角 = 90° − α（``[1,0,1]`` ⇒ α = 28.0°、法向 62.0°）。"""
+    h, _, l = _check_miller("indices", indices)
+    if h == 0:
+        return 0.0
+    return float(math.degrees(math.atan(math.sqrt(3.0) / 2.0 * l / h / LUMICE_ICE_C)))
+
+
+def pyramid_miller_indices(c_over_a: float, *, rel_tol: float = 1e-3, max_index: int = MILLER_MAX_INDEX) -> list[int]:
+    """本仓 :class:`~lumice_integral.geometry.Pyramid` 的 ``c_over_a``（理论锥高 ``H = a·c_over_a``）→ Lumice ``upper_indices`` /
+    ``lower_indices``。Lumice 的理论锥高（``geo3d_closedform.cpp:1444`` ``a1 = i1·c/(2·i4)``，长度单位 = 2×边长）换成 LI 单位是
+    ``a·1.629·i1/i4``，所以只有 ``c_over_a ≈ 1.629·i1/i4`` 的值可表达：在 ``1..max_index`` 里找相对误差最小的整数比，超
+    ``rel_tol`` 直接报错（不静默近似）。默认 ``C_OVER_A_ICE = 1.6288`` ⇒ ``[1, 0, 1]``（相对误差 1.2e-4）。"""
+    if c_over_a <= 0:
+        raise ValueError(f"c_over_a 必须为正，收到 {c_over_a}")
+    best, best_err = None, math.inf
+    for i4 in range(1, max_index + 1):
+        for i1 in range(1, max_index + 1):
+            if math.gcd(i1, i4) != 1:
+                continue
+            err = abs(LUMICE_ICE_C * i1 / i4 - c_over_a) / c_over_a
+            if err < best_err:
+                best, best_err = [i1, 0, i4], err
+    if best is None or best_err > rel_tol:
+        raise ValueError(f"c_over_a={c_over_a} 不能用 ≤{max_index} 的整数比表示为 1.629·i1/i4（最近 {best}，相对误差 {best_err:.2e} > {rel_tol}）")
+    return best
+
+
+def pyramid_crystal(
+    id: int,
+    *,
+    prism_h: Dist,
+    upper_h: Dist = 0.0,
+    lower_h: Dist = 0.0,
+    upper_indices: Sequence[int] = (1, 0, 1),
+    lower_indices: Sequence[int] = (1, 0, 1),
+    axis: Mapping[str, Dist] | None = None,
+    face_distance: Sequence[Dist] | None = None,
+    sync_group: Mapping[str, Any] | None = None,
+    extra: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """六方锥晶体（``type: pyramid``，doc §pyramid），字段原样透传，语义（源码取证见 :func:`pyramid_crystal_from_geometry`）：
+
+    - ``prism_h``：棱柱段高 / Lumice 的 ``a``（顶点对角线直径），与 ``prism`` 的 ``height`` 同一把尺子（``geo3d_closedform.cpp:764``
+      ``h2_2 = 0.5·h2`` 进平面方程）
+    - ``upper_h`` / ``lower_h``：锥台高占理论锥高的比例，``0`` 无锥（该侧为底面）、``(0,1)`` 截顶、``≥1`` 到顶（doc §Pyramid Shape
+      Legality）；``1 − O(1e-4)`` 窄带会 snap 到顶
+    - ``upper_indices`` / ``lower_indices``：三指数 ``(h, 0, l)``，锥面倾角只能经它给（v4.5.1 与本地 build 都没有 ``upper_alpha``
+      JSON 字段），``[1,0,1]`` = 冰 {10-11} 锥面（α = 28.0°）
+    - ``axis=None`` 同 :func:`prism_crystal`：整体省略 = 固定取向
+    """
+    shape: dict[str, Any] = {
+        "prism_h": prism_h,
+        "upper_h": upper_h,
+        "lower_h": lower_h,
+        "upper_indices": _check_miller("upper_indices", upper_indices),
+        "lower_indices": _check_miller("lower_indices", lower_indices),
+    }
+    if face_distance is not None:
+        if len(face_distance) != 6:
+            raise ValueError(f"face_distance 必须 6 项，收到 {len(face_distance)} 项")
+        shape["face_distance"] = list(face_distance)
+    if sync_group is not None:
+        shape["sync_group"] = dict(sync_group)
+    out: dict[str, Any] = {"id": id, "type": "pyramid", "shape": shape}
+    if axis is not None:
+        if "zenith" not in axis:
+            raise ValueError("写了 axis 就必须给 zenith（doc: axis present ⇒ zenith required）")
+        out["axis"] = dict(axis)
+    out.update(extra or {})
+    return out
+
+
+PYRAMID_TIP_SNAP = 0.999
+"""``tip_ratio`` 上限：Lumice 在 ``1.0 − O(1e-4)`` 带内把截顶 snap 成到顶（doc §Pyramid Shape Legality），与 LI 的截顶几何不一致，
+留一个数量级余量拒绝。"""
+
+
+def pyramid_crystal_from_geometry(
+    id: int,
+    pyramid: "Pyramid",
+    *,
+    axis: Mapping[str, Dist] | None = None,
+    face_distance: Sequence[Dist] | None = None,
+    sync_group: Mapping[str, Any] | None = None,
+    extra: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """从本仓 :class:`~lumice_integral.geometry.Pyramid` ``(a, h, c_over_a, tip_ratio)`` 换算成 Lumice ``pyramid`` shape。
+
+    换算：源码推导（Ice Halo 仓 ``94b90ab6``，锥晶几何代码与 v4.5.1 逐字相同）+ 2026-09-20 实测钉死（记录在
+    ``scratchpad/scrum-ch9-prep/task-pyramid-sim-glue/progress.md``）：
+
+    - ``prism_h = hex_prism_height_ratio(h/a) = (h/a)/2``：``geo3d_closedform.cpp:296-310`` 横截面模型里棱柱段 ``|z| ≤ h2/2`` 的
+      apothem 是 ``√3/4``（``dist=1``），即 Lumice 长度单位 = 2×边长，与六棱柱 ``height`` 同一换算。**实测**：退化锥晶
+      ``upper_h=lower_h=0, prism_h=0.2/0.1`` 跑 ``analyze``（本地 build，5M 光线，seed 7），判别光路 ``1-3-2-1-5`` 命中
+      3109 / 0 次、``1-2-1-2-3-4`` 0 / 1 次，与 ``prism`` 型 ``height=0.2/0.1`` 的 3123 / 0、0 / 1 逐条同模式
+    - ``upper_h = lower_h = tip_ratio``：Lumice 截顶高 ``z_top − h2/2 = a1·h1·m_apex``，正六边形 ``m_apex = 1``、理论锥高 ``a1``；
+      LI ``cone_h = a·c_over_a·tip_ratio``、``H = a·c_over_a``——两边都是"截顶高 / 理论锥高"，比例直接相等。**实测**：LI 二分得
+      ``1-13-23`` 在 ``tip_ratio* = 0.439`` 由不可行变可行、``3-2-6`` 在 ``0.623`` 由可行变不可行；Lumice ``upper_h=lower_h`` 取
+      ``0.409 / 0.469`` 前者命中 0 / 17 次，``0.593 / 0.653`` 后者命中 571 / 0 次——两个锚点都在 ±0.03 内翻转，线性关系无偏移
+    - ``upper_indices = lower_indices = pyramid_miller_indices(c_over_a)``：Lumice ``a1 = i1·1.629/(2·i4)``（Lumice 单位）=
+      ``a·1.629·i1/i4``（LI 单位）对上 ``H = a·c_over_a``；默认 ``1.6288`` ⇒ ``[1,0,1]``。**实测**：固定取向单光路渲染
+      （:mod:`.raypath_probe`，``tests/data/pyramid_raypath_fixture.json``）9 条含锥面光路的亮斑与 ``phi`` 预测夹角 ≤ 0.19°，
+      而 ``[2,0,3]`` 锥面的预测偏 ≥ 4.8°；面编号 / 手性 / 旋转链（axis 省略 = ``Rz(−180°)``）一并钉住，release v4.5.1 与本地
+      build 结果一致（≤ 0.003°）
+    - 上下对称截顶（LI 目前唯一支持的形状），``face_distance`` 默认全 1（正六边形，与 LI 一致）
+    """
+    if pyramid.tip_ratio > PYRAMID_TIP_SNAP:
+        raise ValueError(f"tip_ratio={pyramid.tip_ratio} 落在 Lumice 的到顶 snap 带附近（> {PYRAMID_TIP_SNAP}），几何与 LI 截顶不一致")
+    idx = pyramid_miller_indices(pyramid.c_over_a)
+    return pyramid_crystal(
+        id,
+        prism_h=hex_prism_height_ratio(pyramid.h / pyramid.a),
+        upper_h=float(pyramid.tip_ratio),
+        lower_h=float(pyramid.tip_ratio),
+        upper_indices=idx,
+        lower_indices=idx,
+        axis=axis,
+        face_distance=face_distance,
+        sync_group=sync_group,
+        extra=extra,
+    )
 
 
 # ---------- filter ----------

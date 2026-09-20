@@ -78,14 +78,26 @@ def elements() -> list[Element]:
     return [R(k) for k in range(6)] + [Element(True, m) for m in range(6)]
 
 
+PYRAMID_BANDS = {3: SIDE_FACES, 13: tuple(range(13, 19)), 23: tuple(range(23, 29))}
+"""D6 作用的三个面号环带：棱柱侧面 3–8、上锥面 13–18、下锥面 23–28（锥晶面号见 ``lumice_integral.geometry.Pyramid``，
+锥面 ``13+i`` / ``23+i`` 的方位角与侧面 ``3+i`` 相同，所以同一置换公式逐环带套用）。"""
+
+
+def _band(face: int) -> int:
+    for base, band in PYRAMID_BANDS.items():
+        if face in band:
+            return base
+    raise ValueError(f"face number must be 1..8, 13..18 or 23..28, got {face}")
+
+
 def apply(g: Element, face: int) -> int:
-    """g 作用于面编号：底面 1、2 不动；侧面 3–8 按模块 docstring 的公式循环。"""
+    """g 作用于面编号：底面 1、2 不动；侧面 3–8（以及锥晶的 13–18 / 23–28，各自环带内）按模块 docstring 的公式循环。"""
     if face in (1, 2):
         return face
-    if face not in SIDE_FACES:
-        raise ValueError(f"face number must be 1..8, got {face}")
-    x = g.shift - face if g.flip else face + g.shift
-    return 3 + (x - 3) % 6
+    base = _band(face)
+    i = face - base                                   # 环带内序号 0..5，与侧面 3+i 同方位角
+    x = g.shift - (3 + i) if g.flip else (3 + i) + g.shift
+    return base + (x - 3) % 6
 
 
 def apply_path(g: Element, faces: Sequence[int]) -> list[int]:
