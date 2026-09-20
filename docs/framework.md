@@ -110,6 +110,8 @@ $h/a\ge0.5$ 时 34 类全部可达，**下界 = 上界**；片晶（0.2）缺 46
 | 柱晶 | 1 | 5 | 10 | 12 | 12 | 12 | 12 | 12 | 12 |
 | 锥晶 | 1 | 11 | 70 | 372 | 1884 | 9444 | 47244 | 236244 | 1181244 |
 
+字长 7/8 由 `09-pyramid/code/check_pyramid.py --max-len 8` 复现（2026-09-20）。
+
 锥晶群无限（有限反射群必须是 Coxeter 群，镜面夹角须为 $180°/m$；60°、90° 是，62° 不是）。**定理 1 是六棱柱的晶体学巧合，不是框架的定理。** 定理 4（分解）与 signature 不依赖群有限，幸存；方向映射类数的有限性改由**可达性**（TIR、几何相交对字长的封顶）保证，而非代数。
 
 **定理 7（九种楔）[算]。** 同一公式扫 20 个面，可透射楔角恰 9 个：
@@ -130,14 +132,14 @@ $h/a\ge0.5$ 时 34 类全部可达，**下界 = 上界**；片晶（0.2）缺 46
 
 ## 4. 聚光：纤维化与两种机制（ch10）
 
-**定理 8（半径归光路，方位归姿态）[推]。** 固定光路 $P$ 与太阳方向 $\mathbf s$。令 $\mathbf u=R^{-1}\mathbf s$（太阳在晶体系中的方向），$\{R: R\mathbf u=\mathbf s\}$ 是绕 $\mathbf s$ 的圆 $\mathrm{Rot}_{\mathbf s}(\theta)R_0(\mathbf u)$，于是 $SO(3)\cong$ 以 $S^2\ni\mathbf u$ 为底的主 $SO(2)$ 丛，Haar 测度 $=d\mathbf u\,d\theta$。代入 $\mathbf x=R\,\Phi_P(R^{-1}\mathbf s)$：
+**定理 8（半径归光路，方位归姿态）[推]。** 固定光路 $P$ 与太阳方向 $\mathbf s$。令 $\mathbf u=R^{-1}\mathbf s$（太阳在晶体系中的方向），$\{R: R\mathbf u=\mathbf s\}$ 是绕 $\mathbf s$ 的圆 $\mathrm{Rot}_{\mathbf s}(\theta)R_0(\mathbf u)$，于是 $SO(3)\cong$ 以 $S^2\ni\mathbf u$ 为底的主 $SO(2)$ 丛，Haar 测度 $=d\mathbf u\,d\theta$。代入 $\mathbf x=-R\,\Phi_P(-R^{-1}\mathbf s)$（$\Phi_P$ 按 §2 定义吃**入射传播方向**（$\langle\mathbf d,\mathbf n_a\rangle<0$）、吐出射传播方向；$\mathbf s$ 是指向太阳的方向，光点是出射传播方向的反向，故两处各带一个负号。数值取证：`ex-tape-vs-matrix/code/crosscheck_bridge.py::light_point` 与 Tape 两条链路互证到 $10^{-14}$ rad（`ex-tape-vs-matrix/data/crosscheck_a_summary.md`）。）：
 $$
-\angle(\mathbf x,\mathbf s)=\angle(\Phi_P(\mathbf u),\mathbf u)=D_P(\mathbf u)\quad\text{与 }R\text{ 无关},
+\angle(\mathbf x,\mathbf s)=\angle(-\Phi_P(-\mathbf u),\mathbf u)=D_P(\mathbf u)\quad\text{与 }R\text{ 无关},
 $$
 $$
-\mu_{\rm sky}=\int_{S^2}\!d\mathbf u\,w_P(\mathbf u)\int_0^{2\pi}\!d\theta\;\rho\big(\mathrm{Rot}_{\mathbf s}(\theta)R_0(\mathbf u)\big)\,\delta\big(\mathbf x-\mathrm{Rot}_{\mathbf s}(\theta)R_0(\mathbf u)\Phi_P(\mathbf u)\big).
+\mu_{\rm sky}=\int_{S^2}\!d\mathbf u\,w_P(\mathbf u)\int_0^{2\pi}\!d\theta\;\rho\big(\mathrm{Rot}_{\mathbf s}(\theta)R_0(\mathbf u)\big)\,\delta\big(\mathbf x-\mathrm{Rot}_{\mathbf s}(\theta)R_0(\mathbf u)\,\big({-}\Phi_P(-\mathbf u)\big)\big).
 $$
-出射点到太阳的角距离只由晶体系内的偏折角决定；姿态分布只决定每个太阳同心圆在方位上的填充。ch10 讲径向因子 $D_P(\mathbf u)$，ch11 讲方位因子 $\rho$。
+$D_P$ 的定义因此带两个负号（$D_P(\mathbf u)=\angle(-\Phi_P(-\mathbf u),\mathbf u)$），但两个负号在取夹角时抵消，数值与此前直接用 $\Phi_P(\mathbf u)$ 算的完全一致——改动只是让公式形式与光点的物理定义（出射传播方向的反向）对齐，角度结论不变。出射点到太阳的角距离只由晶体系内的偏折角决定；姿态分布只决定每个太阳同心圆在方位上的填充。ch10 讲径向因子 $D_P(\mathbf u)$，ch11 讲方位因子 $\rho$。
 
 **两种机制 [推]。** 设 halo map $F_P:Q\to S^2$，$Q$ 为姿态族。
 

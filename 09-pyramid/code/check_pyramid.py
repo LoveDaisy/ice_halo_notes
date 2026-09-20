@@ -1,5 +1,6 @@
 # 核验 docs/framework.md 定理 6/7：锥晶镜面群无限（闭包随字长爆炸），
 # 可透射楔角恰为 0/28/52.4/56/60/62/63.8/80.2/90，对应 odd-radius 晕家族。
+import argparse
 import itertools
 import math
 import numpy as np
@@ -34,6 +35,13 @@ def face_normals(pyramid):
     return [np.asarray(v, float) / np.linalg.norm(v) for v in N]
 
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--max-len", type=int, default=6)
+args = parser.parse_args()
+MAX_LEN = args.max_len
+
+KNOWN_PYRAMID_GROWTH_6 = [1, 11, 70, 372, 1884, 9444, 47244]
+
 A_MAX = 2 * math.degrees(math.asin(1 / N_ICE))   # 可透射楔角上限
 for pyramid in (False, True):
     N = face_normals(pyramid)
@@ -41,7 +49,7 @@ for pyramid in (False, True):
     seen = {key(np.eye(3))}
     layer = [np.eye(3)]
     growth = [1]
-    for _ in range(1, 7):
+    for _ in range(1, MAX_LEN + 1):
         nxt = []
         for g in layer:
             for m in mirrors:
@@ -57,12 +65,15 @@ for pyramid in (False, True):
         if abs(c) <= 1:
             wedge.add(round(math.degrees(math.acos(c)), 1))
     ok = sorted(x for x in wedge if x < A_MAX - 1e-9)
-    print(f"{'锥晶' if pyramid else '柱晶'} 面数={len(N):2d}  闭包按字长 0..6: {growth}")
+    print(f"{'锥晶' if pyramid else '柱晶'} 面数={len(N):2d}  闭包按字长 0..{MAX_LEN}: {growth}")
     print(f"      楔角: {sorted(wedge)}")
     print(f"      可透射(<{A_MAX:.1f}°): {ok}")
     if pyramid:
         assert ok == [0.0, 28.0, 52.4, 56.0, 60.0, 62.0, 63.8, 80.2, 90.0]
-        assert growth[-1] > growth[-2] > growth[-3], "锥晶闭包应持续增长"
+        if MAX_LEN == 6:
+            assert growth == KNOWN_PYRAMID_GROWTH_6
+        else:
+            assert all(growth[i] > growth[i - 1] for i in range(1, len(growth))), "锥晶闭包应持续增长"
     else:
         assert ok == [0.0, 60.0, 90.0] and growth[3:] == [12] * len(growth[3:])
 print("OK")
