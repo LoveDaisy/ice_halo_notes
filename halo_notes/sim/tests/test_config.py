@@ -127,3 +127,60 @@ def test_complex_filter_composition_and_reference_checks():
     with pytest.raises(ValueError, match="非复合"):
         C.build_config([C.prism_crystal(1)], [C.complex_filter(1, [2, 4], "PBD"), C.complex_filter(4, [3], "PBD")] + subs,
                        sc, [render])
+
+
+# ---------- 锥晶 builder ----------
+
+
+def test_pyramid_crystal_shape_fields_and_validation():
+    c = C.pyramid_crystal(1, prism_h=0.5, upper_h=0.3, lower_h=0.7, upper_indices=(2, 0, 3))
+    assert c["type"] == "pyramid" and "axis" not in c
+    assert c["shape"] == {"prism_h": 0.5, "upper_h": 0.3, "lower_h": 0.7, "upper_indices": [2, 0, 3],
+                          "lower_indices": [1, 0, 1]}
+    assert json.loads(json.dumps(c)) == c
+    with pytest.raises(ValueError, match="face_distance 必须 6 项"):
+        C.pyramid_crystal(1, prism_h=1.0, face_distance=[1, 1, 1])
+    with pytest.raises(ValueError, match="zenith"):
+        C.pyramid_crystal(1, prism_h=1.0, axis={"roll": 0})
+    with pytest.raises(ValueError, match="三个整数"):
+        C.pyramid_crystal(1, prism_h=1.0, upper_indices=[1, 0, -1, 1])      # GUI 四指数形式
+    with pytest.raises(ValueError, match="k 必须为 0"):
+        C.pyramid_crystal(1, prism_h=1.0, upper_indices=[1, 1, 1])
+    with pytest.raises(ValueError, match="非负"):
+        C.pyramid_crystal(1, prism_h=1.0, lower_indices=[1, 0, -1])
+    sc = C.scene(C.sun(25), 1000, [C.entry(1)])
+    cfg = C.build_config([c], [], sc, [C.render_unit(1, C.lens("rectangular"), [100, 50])])
+    assert cfg["crystal"][0]["shape"]["upper_indices"] == [2, 0, 3]
+
+
+def test_pyramid_wedge_angle_matches_lumice_and_li():
+    from lumice_integral.geometry.pyramid import pyramid_face_angle
+
+    alpha = C.pyramid_wedge_angle([1, 0, 1])
+    assert alpha == pytest.approx(28.0, abs=0.01)                        # doc §Pyramid Shape Legality：{10-11} ⇒ 28.0°
+    assert 90.0 - alpha == pytest.approx(pyramid_face_angle(C.LUMICE_ICE_C), abs=1e-9)   # 法向 = 90° − 楔角
+    assert C.pyramid_wedge_angle([0, 0, 1]) == 0.0
+    assert C.pyramid_wedge_angle([2, 0, 3]) == pytest.approx(38.57, abs=0.01)   # atan(0.866·1.5/1.629)
+
+
+def test_pyramid_miller_indices_from_c_over_a():
+    assert C.pyramid_miller_indices(1.6288) == [1, 0, 1]                  # LI 默认 C_OVER_A_ICE，相对误差 1.2e-4
+    assert C.pyramid_miller_indices(1.629 * 2 / 3) == [2, 0, 3]
+    assert C.pyramid_miller_indices(1.629 * 3) == [3, 0, 1]
+    with pytest.raises(ValueError, match="不能用"):
+        C.pyramid_miller_indices(1.0)
+    with pytest.raises(ValueError):
+        C.pyramid_miller_indices(0.0)
+
+
+def test_pyramid_crystal_from_geometry_default_values():
+    from lumice_integral.geometry import Pyramid
+
+    c = C.pyramid_crystal_from_geometry(1, Pyramid())                        # a=1, h=1, c/a=1.6288, tip=0.5
+    assert c["shape"] == {"prism_h": 0.5, "upper_h": 0.5, "lower_h": 0.5, "upper_indices": [1, 0, 1],
+                          "lower_indices": [1, 0, 1]}
+    assert c["shape"]["prism_h"] == C.hex_prism_height_ratio(1.0)            # 与六棱柱同一换算（Lumice 的 a = 2×边长）
+    c2 = C.pyramid_crystal_from_geometry(2, Pyramid(a=2.0, h=1.0, tip_ratio=0.25), axis=C.random_axis())
+    assert c2["shape"]["prism_h"] == 0.25 and c2["shape"]["upper_h"] == 0.25 and c2["axis"] == C.random_axis()
+    with pytest.raises(ValueError, match="snap"):
+        C.pyramid_crystal_from_geometry(3, Pyramid(tip_ratio=0.9995))
