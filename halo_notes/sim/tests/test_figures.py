@@ -94,6 +94,7 @@ def test_provenance_sidecars_present():
     ("08-wedge-times-fold/code/fig_b1_same_class.py", "img/same_class.jpg"),
     ("08-wedge-times-fold/code/fig_b2_unnamed_cell.py", "img/unnamed_cell.png"),
     ("08-wedge-times-fold/code/fig_cross_section_sensitivity.py", "img/cross_section_sensitivity.png"),
+    ("08-wedge-times-fold/code/fig_cross_section_renders.py", "img/cross_section_renders.png"),
 ])
 def test_fig_scripts_run_small(tmp_path, script, out_name):
     mod = runpy.run_path(str(ROOT / script))

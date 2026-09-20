@@ -74,13 +74,15 @@ def build_globe(ray_num: int = RAY_NUM) -> dict:
     return C.build_config(crystals(), flts, sc, [S.globe_render(globe_view_for(GLOBE_CENTER))])
 
 
-def build_rect(ray_num: int = RAY_NUM) -> dict:
-    """rect 局部图：**全部光路**（不装过滤器）——右上是肉眼看到的那片天，两个格子各自的贡献由右下曲线拆分；globe 定位图仍只画本格。"""
+def build_rect(ray_num: int = RAY_NUM, crystal_list: list[dict] | None = None) -> dict:
+    """rect 局部图：**全部光路**（不装过滤器）——右上是肉眼看到的那片天，两个格子各自的贡献由右下曲线拆分；globe 定位图仍只画本格。
+    ``crystal_list`` 换晶体段、其余（太阳 0°、5760×2880、absolute 曝光 INTENSITY）不变——图 7b（`fig_cross_section_renders.py`）
+    按截面变形逐档渲染同一片天时用，保证与本图右上同一口径。"""
     flts, sc = filters_and_scene(None, ray_num)
     # 不画 Lumice 网格：拼版时局部图带方位 / 仰角坐标轴，网格线（尤其地平线）只会压在骑在地平线上的亮斑上
     render = C.render_unit(1, C.lens("rectangular"), list(SUB_RESOLUTION), visible="full", background=[0, 0, 0],
                            ev_mode="absolute", intensity_factor=INTENSITY)
-    return C.build_config(crystals(), flts, sc, [render])
+    return C.build_config(crystals() if crystal_list is None else crystal_list, flts, sc, [render])
 
 
 def globe_offset_of(config: dict) -> float:

@@ -1,0 +1,54 @@
+$ /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/.lumice/v4.5.1/Lumice -f /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/08-wedge-times-fold/data/cross_section_renders/d1/config.json -o /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/08-wedge-times-fold/data/cross_section_renders/d1 --format png
+--- stdout ---
+2026-09-20 10:27:50.570 [I] ServerImpl: gpu_route=false worker_count=10 (preferred_backend=0)
+2026-09-20 10:27:50.732 [I] CommitConfig: restart took 161.6ms (Stop 0.0ms + rebuild 161.5ms + Start 0.0ms)
+2026-09-20 10:27:50.732 [I] GenerateScene: first batch enqueued at 0.1ms after start
+2026-09-20 10:27:50.757 [I] ConsumeData: first batch consumed (2432 ray segments)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/08-wedge-times-fold/data/cross_section_renders/d1/img_01.png (5760x2880)
+Stats: sim_rays=7398272, crystals=1, orientations=7398272
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/08-wedge-times-fold/data/cross_section_renders/d1/img_01.png (5760x2880)
+Stats: sim_rays=16540800, crystals=1, orientations=16540800
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/08-wedge-times-fold/data/cross_section_renders/d1/img_01.png (5760x2880)
+Stats: sim_rays=25769472, crystals=1, orientations=25769472
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/08-wedge-times-fold/data/cross_section_renders/d1/img_01.png (5760x2880)
+Stats: sim_rays=35210496, crystals=1, orientations=35210496
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/08-wedge-times-fold/data/cross_section_renders/d1/img_01.png (5760x2880)
+Stats: sim_rays=44549760, crystals=1, orientations=44549760
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/08-wedge-times-fold/data/cross_section_renders/d1/img_01.png (5760x2880)
+Stats: sim_rays=53767936, crystals=1, orientations=53767936
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/08-wedge-times-fold/data/cross_section_renders/d1/img_01.png (5760x2880)
+Stats: sim_rays=63582720, crystals=1, orientations=63582720
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/08-wedge-times-fold/data/cross_section_renders/d1/img_01.png (5760x2880)
+Stats: sim_rays=73264768, crystals=1, orientations=73264768
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/08-wedge-times-fold/data/cross_section_renders/d1/img_01.png (5760x2880)
+Stats: sim_rays=82989184, crystals=1, orientations=82989184
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/08-wedge-times-fold/data/cross_section_renders/d1/img_01.png (5760x2880)
+Stats: sim_rays=92343168, crystals=1, orientations=92343168
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/08-wedge-times-fold/data/cross_section_renders/d1/img_01.png (5760x2880)
+Stats: sim_rays=102245248, crystals=1, orientations=102245248
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/08-wedge-times-fold/data/cross_section_renders/d1/img_01.png (5760x2880)
+Stats: sim_rays=111163136, crystals=1, orientations=111163136
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/08-wedge-times-fold/data/cross_section_renders/d1/img_01.png (5760x2880)
+Stats: sim_rays=120693760, crystals=1, orientations=120693760
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/08-wedge-times-fold/data/cross_section_renders/d1/img_01.png (5760x2880)
+Stats: sim_rays=130522880, crystals=1, orientations=130522880
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/08-wedge-times-fold/data/cross_section_renders/d1/img_01.png (5760x2880)
+Stats: sim_rays=140152448, crystals=1, orientations=140152448
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/08-wedge-times-fold/data/cross_section_renders/d1/img_01.png (5760x2880)
+Stats: sim_rays=149790464, crystals=1, orientations=149790464
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/08-wedge-times-fold/data/cross_section_renders/d1/img_01.png (5760x2880)
+Stats: sim_rays=159391616, crystals=1, orientations=159391616
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/08-wedge-times-fold/data/cross_section_renders/d1/img_01.png (5760x2880)
+Stats: sim_rays=168952064, crystals=1, orientations=168952064
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/08-wedge-times-fold/data/cross_section_renders/d1/img_01.png (5760x2880)
+Stats: sim_rays=178323968, crystals=1, orientations=178323968
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/08-wedge-times-fold/data/cross_section_renders/d1/img_01.png (5760x2880)
+Stats: sim_rays=187904640, crystals=1, orientations=187904640
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/08-wedge-times-fold/data/cross_section_renders/d1/img_01.png (5760x2880)
+Stats: sim_rays=197242240, crystals=1, orientations=197242240
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/08-wedge-times-fold/data/cross_section_renders/d1/img_01.png (5760x2880)
+Stats: sim_rays=200000000, crystals=1, orientations=200000000
+2026-09-20 10:28:45.761 [I] Consume profile: 1562500 batches, avg 23.0us (proj 20.5us 89% + accum 2.5us 11%)
+
+--- stderr ---
+
