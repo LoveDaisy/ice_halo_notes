@@ -277,3 +277,156 @@ type: note
 1. Tape 自己就把 $x$ 化归为 $c/a$ + Miller 指数：Eq. (9.6) $\tan x=\frac{\sqrt3}{2}\frac ac|\frac lh|$ [TM2006 p.108]，取 $\{1,0,\bar1,1\}$ 后 $x$ 是 $c/a$ 的单参数函数；Table 8.1 / TK1999 Table 3 的 8 个楔角全部由此算出 [TM2006 p.108; TK1999 p.33]。这与 framework §3 定理 7「整个 odd-radius 晕家族由单参数 $c/a$ 决定」一致（本系列取 $c/a=1.6288$，锥面法向与 c 轴夹 $62.0°=90°-28°$）。
 2. 限定：「Search for Angle x」在 Tape 那里首先是**历史与观测问题**——哪一个 $x$ 是真的（Bravais 54.7 / Besson 25 / Humphreys 24.8 / Steinmetz–Weickmann 28）、锥面到底是不是 $\{1,0,\bar1,1\}$ 面、$c/a$ 是多少 [TM2006 p.123–134]，以及 ch18 的「还有没有别的楔角」[TM2006 p.193]。本系列说「只是参数」指的是**框架层面**（$\Phi=M\circ W$ 与楔角公式不依赖 $x$ 的具体值），不是说 $x$ 的值不重要——ch9 提纲引这句话时应写成「在本系列的框架里 Angle x 只是一个参数：换一个 $c/a$，定理 6、7 的算法一字不改」，并把「哪个值是真的」明确交还给 Tape [TM2006 p.101, p.133]。
 3. 附带：TM2006 Eq. (9.1) 的楔角公式与本系列楔角公式逐字相同 [TM2006 p.102]，所以 ch9「同一公式 $\cos A=-\langle\mathbf n_a,\mathbf n_b\rangle$ 扫 20 个面得 9 个可透射楔角」在 Tape 那里有直接对应（Table 9.1 + Table 8.1），本系列多出的是「以 $M$ 展开后仍成立」（$\tilde{\mathbf n}_b=M^{-1}\mathbf n_b$）这一步。
+
+## 4. 对应表（笔记核心）
+
+判定列的含义：**同物异名** = 同一个数学对象换了名字；**本系列多出** = Tape 三篇里没有这个对象；**Tape 有而本系列没有** = 本系列文档（`docs/framework.md`、ch7–ch8 正文）里没有对应对象；**部分** = 有对应但粒度或范围不同。「Tape 没有」的判断依据一律给页码（否定性结论的依据是「在该文该节的定义/范围声明里被排除」，不是「没搜到」）。
+
+| # | Tape 对象（出处） | 本系列对象 | 判定 | 说明 |
+|---|---|---|---|---|
+| 1 | halo function $F(\theta,\mu,\beta)$ [Tape1980 p.4 Eq. (20)]；halo point $\mathbf H(u,\alpha,\mathbf S)=\mathbf F(u\mathbf N_0,u\mathbf X_0,\mathbf S)$ [TK1999 p.4 Eq. (11)] | halo map $F_P:Q\to S^2$，$F_P(R)=$ 光点$\big(R\,\Phi_P(R^{-1}\cdot)\big)$（framework §0 对象链），限 $M=I$、$\Phi_P=W$ | 同物异名（限纯折射） | 三者都是「取向 → 天球光点」；Tape 的 $\Phi$ 只有 $W$。1980 把太阳钉在 $u$ 轴、用 Bravais 定律显式写；1999 用两次平行投影 + 取向矩阵写；本系列写成 $R\Phi R^{-1}$ 的共轭（ch8 §1）。 |
+| 2 | 真实偏折 $\Delta(\theta,\mu)$，$\sin(\Delta/2)=-\sin\theta\sin(D/2)$ [Tape1980 p.3 Eq. (15)]；$\cos\Delta=\mathbf S\cdot\mathbf H$ [TK1999 p.9 Eq. (40)] | $D_P(\mathbf u)=\angle(\Phi_P(\mathbf u),\mathbf u)$（定理 8） | 同物异名 | 1980 的 normal-plane 偏折 $D(\theta,\mu)$ 是 Bravais 定律的中间量，本系列无对应。 |
+| 3 | 取向坐标 $(\theta,\mu)$ = 太阳在楔系的球坐标 [Tape1980 p.4, p.12]；sun locus $\mathbf S_u=u^{-1}\mathbf S$ [TK1999 p.7, p.12] | $\mathbf u=R^{-1}\mathbf s$，定理 8 纤维化的**底** $S^2$ | 同物异名 | 差一个楔系↔晶体系的固定旋转。 |
+| 4 | $\beta$ = 绕太阳方向（$u$ 轴）的旋转 [Tape1980 p.4]；「$\ker JF$ 与 $\beta$ 无关」[Tape1980 p.5 Fig. 8] | $\mathrm{Rot}_{\mathbf s}(\theta)$，定理 8 纤维化的**纤维** | 同物异名 | **定理 8 的纤维化在 Tape 1980 §IV 已以坐标形式存在**：$F=R_\beta\circ(\text{只依赖 }\mathbf u)$，$\Delta$ 不含 $\beta$。TK1999 没有这个纤维化（它用的是 #10 的另一个）。 |
+| 5 | 纤维曲线 $F^{-1}(Y)\subset\mathcal F-\mathcal S$，「无穷多取向点亮同一点」[Tape1980 p.5, p.12] | 定理 8 内层积分里 $\delta(\mathbf x-\cdots)$ 的支撑，即 $F_P^{-1}(\mathbf x)$ | 同物异名 | Tape 只有几何（曲线），没有在纤维上积分的测度（见 #17）。 |
+| 6 | wedge：$(\hat{\mathbf N}_1,\hat{\mathbf N}_2,\hat{\mathbf P})$ [Tape1980 p.1]；$(\mathbf N,\mathbf X)$ 与 wedge frame $\mathbf A,\mathbf B,\mathbf C$ [TK1999 p.3 Eq. (8)] | 展开空间里的面对 $(\mathbf n_a,\tilde{\mathbf n}_b)$ 与 $W=\mathcal S_{\tilde{\mathbf n}_b}\circ\mathcal S_{\mathbf n_a}$（定理 4） | 同物异名 | $\hat{\mathbf N}_1=-\mathbf n_a$、$\hat{\mathbf N}_2=\tilde{\mathbf n}_b$；$\mathbf N=\mathbf n_a$、$\mathbf X=-\tilde{\mathbf n}_b$；$\hat{\mathbf P}=\mathbf B\parallel-\mathbf n_a\times\tilde{\mathbf n}_b$。Tape 的 wedge 永远是**物理**面对（wedge $ij$ 由入射面 $i$、出射面 $j$ 定义 [TK1999 p.27]）；本系列的 $\tilde{\mathbf n}_b$ 是展开后的**虚**面。 |
+| 7 | refracting angle / wedge angle $\alpha$ [Tape1980 p.1; TK1999 p.4; TM2006 p.102 Eq. (9.1)] | 楔角 $A$，$\cos A=-\langle\mathbf n_a,M^{-1}\mathbf n_b\rangle$（ch8 §2） | 同物异名 | 三篇数值都等于 $A$（内/外法向约定不同，见 §5）。TM2006 Eq. (9.1) 与本系列公式逐字相同（$M=I$）。 |
+| 8 | $\mathrm{pr}(\mathbf S,\mathbf N,n_2)=\mathbf S+\lambda\mathbf N$ [TK1999 p.2 Eqs. (2)–(3)]；「光点在垂直于界面的直线上」[TM2006 p.48] | 折射算子 $\mathcal S_{\mathbf n}$，$\mathbf p'=\mathbf p_\parallel+\sigma\sqrt{n_2^2-\|\mathbf p_\parallel\|^2}\mathbf n$（ch8 §1） | 同物异名 | 同一个 Snell；Tape 作用在光点（$-$光线，长度 $=n$），本系列作用在光线方向。ch8 §1 已点明「古典几何路线的光点法，内外两个同心圆，做的就是这件事」。 |
+| 9 | $\mathbf F(w\mathbf N,w\mathbf X,w\mathbf S)=w\mathbf F(\mathbf N,\mathbf X,\mathbf S)$，$\mathbf H(wu,\alpha,w\mathbf S)=w\mathbf H(u,\alpha,\mathbf S)$ [TK1999 p.4 Eqs. (12)–(13)] | 旋转等变引理 $\mathcal S_{Q\mathbf n}(Q\mathbf r)=Q\mathcal S_{\mathbf n}(\mathbf r)$；$T=R\Phi R^{-1}$（ch8 §1） | 同物异名 | TK1999 只用它做变换规则与 pole；本系列用它把 $M$ 从两次折射中间提出来（定理 4）——**同一个引理，用途不同**。 |
+| 10 | halo-making set（$ZU\subseteq U$）、zenith locus $K=\{u^{-1}\mathbf k\}$、$p:SO(3)\to S^2$ [TK1999 p.7–8 Eqs. (29)–(38)] | 姿态族 $Q=\mathrm{supp}\,\rho$ 的方位不变性；**另一个纤维化**：底 = 天顶在晶体系的方向、纤维 = $Z$ | 部分（本系列未显式写） | 与定理 8 互为「姿态适配」（底 = $\mathbf k$ 在晶体系）与「径向适配」（底 = $\mathbf s$ 在晶体系）的两种切法。TM2006 p.235 脚注 1 同一假设。 |
+| 11 | Spin Vector Assumption $(\psi,\mathbf P_u)$、point / great circle halo [TK1999 p.2, p.6, p.8]；spin vector Table 13.1、contact / non-contact arcs [TM2006 p.145] | ch11 姿态族：片（$\mathbf c=\mathbf N_1$ 竖直）/ 柱 / Parry / Lowitz，各带扩散 $\sigma$；$\dim Q=1/2$ | 部分 | TK1999 多两族（AP、AL）[TK1999 p.28]；本系列多「随机 + 扩散 $\sigma$」与权重（#17）。pole $\mathbf P_u$ = spin vector 在楔系的坐标 = 本系列「晶体系向量经 $u_0^{-1}$ 换到展开楔系」，本系列没有为它起名。 |
+| 12 | 三维/二维/一维晕（generating set 是开集/曲面/曲线）[Tape1980 p.13]；point halo 取向集一维、great circle halo 二维 [TK1999 p.7] | $\dim(\text{晕})=\dim Q-\dim\mathrm{Stab}$（定理 3）/ $\dim Q-\dim(\text{纤维})$（framework §5） | 部分 | Tape 按 $\dim Q$ 分；本系列按 $\dim Q-\dim(\text{纤维})$ 分（多了「纤维」项——平行光路的 dimension collapse），对纯折射楔两者一致（纤维零维）。 |
+| 13 | 奇点、$\ker JF$（Prop. 2 Eq. (21)–(22)）、caustic = 奇点集的像 [Tape1980 p.1, p.5, p.14] | $DF$ 降秩、Jacobian focusing（framework §4） | 同物异名 | Tape 给了显式核公式与「核 ⟂ $\mathcal N$ 法向」判据 [Tape1980 p.14–15]，本系列只有定义；**ch10 应直接引用 Prop. 2 与 Eq. (34)**。 |
+| 14 | 二维晕 case (i)/(ii)：$X\in\mathcal S$（与圆晕 caustic 重合的点）vs $X\notin\mathcal S$ [Tape1980 p.14] | framework §4 表的「Jacobian focusing」一列 | 同物异名 | Tape 的 $\mathcal S$（$\theta=90,\mu=\mu_M(90)$）= 本系列 22° 晕的 fold 奇点线 $D(i)\simeq D_{\min}+\frac12D''(i-i_0)^2$。 |
+| 15 | Whitney fold / pleat [Tape1980 p.14]；「pleat 真实吗」[Tape1980 p.15] | fold 局部律 $I\sim1/\sqrt{D-D_{\min}}$（framework §4）；pleat / cusp 数值确认列为未决（framework §7） | 部分 | Tape 有 pleat 的位置（Figs. 15–16）没有强度；本系列有 fold 强度律没有 pleat。 |
+| 16 | 最小偏折轨迹 ≠ caustic（除切弧与幻日）[Tape1980 p.15] | 无独立对象 | Tape 有而本系列没有 | ch10 写「最小偏折 = fold caustic」时必须加 Tape 的限定：只对切弧 / 幻日 / 圆晕成立；side arc 上最小偏折轨迹一般不是 caustic。 |
+| 17 | 姿态分布 $\rho$ | $\rho$、$\mu_{\rm sky}=(F_P)_*[\rho\,w_P\,dq]$、$SO(3)$ 上的群卷积 $\rho_0*k_\sigma$（framework §0, §4, §5） | **本系列多出（Tape 没有）** | 依据：Tape 1980「若参数取随机或加权值就得到 Greenler 式仿真」[Tape1980 p.1]，note 22 承认 $(\theta,\mu)$ 等距不等于取向均匀 [Tape1980 p.18]，理想化「不偏离优先取向」[Tape1980 p.13]；TK1999「不做强度计算，所有光线等权，忽略遮挡」[TK1999 p.1]，Fig. 31 MC「取向假定完美」[TK1999 p.39]；TM2006 只定性说倾角使弧变圆 [TM2006 p.153]。**弱假设 (29) 与 SVA 只约束 $\mathrm{supp}\,\rho$，不等价于某个 $\rho$ 族**——它们等价于「$\rho$ 是 $Z$-不变集合上的均匀测度」这一个特例（SVA 下 $\rho\propto\mathbf 1_{U(K(\psi,\mathbf P_u))}$）。 |
+| 18 | $D_P(\mathbf u)$ 与纤维化积分（定理 8 的二重积分） | — | **本系列多出（Tape 没有积分，有坐标）** | Tape 1980 有纤维化的**坐标**（#4）与纤维**曲线**（#5），TK1999 有另一纤维化的**定理**（#10），但三篇都没有把 $\mu_{\rm sky}$ 写成对底与纤维的积分——因为没有 $\rho$（#17）与 $w_P$。 |
+| 19 | 折叠 $M$、12 种折叠、$\Phi=M\circ W$ 分解 | 定理 4、定理 1–2 | **本系列多出（Tape 没有）** | 依据：Tape 1980「忽略反射光线」[Tape1980 p.1]；TK1999「光路从入射面进、直接从出射面出，无中间内反射」，仅以一次 normal-plane 内反射为例说「会得到一整本新 atlas」[TK1999 p.15]；TM2006 refraction halos 定义排除反射 [TM2006 p.139]，ch4 的 subsun（1、326）与幻日环只用光点图逐条画 [TM2006 p.48, p.50]，不分类。 |
+| 20 | signature $(M,\mathbf n_a,M^{-1}\mathbf n_b)$、商掉 $D_{6h}$、34 类 | 定理 5、5′、5″ | **本系列多出（Tape 没有）** | 最接近的是 TK1999「哪些楔做同一个晕」：给定取向类下按 $(\alpha,\text{pole})$ 排序楔 [TK1999 p.29–30]，与 TM2006「35 与 46 的区别是面编号的偶然」[TM2006 p.48]——那是**在给定姿态族下**商掉晶体对称，本系列是**不看姿态**商掉 $D_{6h}$，且多了 $M$ 这一维。Wedge Change Rule 的 $w_v=v^{-1}wv$ [TK1999 p.36] 是 `canonical_signature` 里 $g$ 作用的楔系写法。 |
+| 21 | atlas（$\alpha\times\mathbf P_u\times\psi\times\Sigma$）[TK1999 p.42, App. A]；pole diagrams（每楔角一张）[TK1999 p.62, App. B]；分类矩阵（楔角 × 取向类）[TM2006 p.141] | ch8 的 34 类 $\Phi$ 表（$(M,\text{楔角})$ 组织）；framework §5「行 = 光路类、列 = 姿态族」 | Tape 有而本系列没有（产品形态） | 两边的「行」不同：Tape 按 $\alpha$（连续）+ pole（连续），本系列按 $(M,\text{楔角})$（离散，有限）。Tape 的 atlas 没有 $M$ 这一维；本系列没有 pole 这一连续参数（姿态族只取了五族）。 |
+| 22 | Bravais 坐标 $\mathbf B(\theta,\delta)$（pole 球面）[TK1999 p.6 Eq. (26)]；D-centered $(s,t)$ [TK1999 p.17] | 定理 8 底 $S^2\ni\mathbf u$ 上的坐标（本系列未选定） | 部分 | **不是天球坐标**——它们是「空间方向在楔系里」的坐标。子任务 3 若要画 $D_P(\mathbf u)$，可直接用 Bravais 网（极 = 楔棱），便于与 Fig. 9 的 level curves of $\Delta$ 对照。 |
+| 23 | S-centered $(\Delta,\tau)$：到太阳的角距 + 从太阳量的 bearing（天球内部看顺时针）[TK1999 p.17 Eq. (53)] | 天球坐标：$\angle(\mathbf x,\mathbf s)=D_P(\mathbf u)$ + 方位 | 同物异名 | ch8 §6 的「方位 142°」是绕天顶沿幻日环量的方位角，$\Sigma=0$ 时等于 $\Delta$；TK1999 的 $\tau$ 是绕太阳的 bearing，二者不同（§5）。 |
+| 24 | contact circle $\mathcal C(\alpha,\sigma)$、Criterion for Contact、Contact Point Theorem、Nonempty Halos Theorem [TK1999 p.16–22; TM2006 p.231] | 无独立对象 | Tape 有而本系列没有 | 用本系列语言可复述：contact ⇔ $Q$ 与定理 8 在最小偏折方向 $\mathbf u_D$ 上方的那条**纤维**相交；contact circle 就是这条纤维投到 #10 那个纤维化的底上的像。这一句是番外「两种语言互译」的现成素材，但本系列文档里没有写。 |
+| 25 | Rules 1–4、「别无其它」定理、Face Interchange Rule、八个相关晕 [TK1999 p.22–26]；mmm 对称 [TK1999 p.37–38] | 定理 3（与 $R_z$ 对易）、ch8 §3 正/反向配对 | 部分 | Rule 1 = 方位不变性在天球上的表述；Face interchange「形状无简单关系」= 本系列 $\Phi$ 类不合并正反向对。x-rotation / z-reflection（换太阳高度符号）本系列没有。 |
+| 26 | Table 3 / Table 8.1 的 8 个楔角 [TK1999 p.33; TM2006 p.86]；Eq. (9.1) [TM2006 p.102] | 定理 7 的 9 个楔角（含 0°）；楔角公式 | 同物异名 | 数值逐一相同（28.0/52.4/56.0/60/62.0/63.8/80.2/90）。本系列多「0°」（平行光路，$W=I$）与「以 $M$ 展开后仍成立」。 |
+| 27 | Angle x [TM2006 p.7, p.101, p.123]；$\tan x=\frac{\sqrt3}{2}\frac ac|\frac lh|$ [TM2006 p.108 Eq. (9.6)] | 参数 $c/a$（定理 7；锥面法向与 c 轴夹 $62.0°=90°-28°$） | 同物异名（框架层面） | 见 §3.4：Tape 的「search」是哪个值为真 + 是否还有别的楔角；本系列只承接「给定 $c/a$ 后一切可算」这半句。 |
+| 28 | light point / light point diagram [TM2006 p.43, p.50]；「光点」[TK1999 p.3] | 番外用语「光点法」 | 同物异名 | 是 Tape 自己的术语（TM2006 命名）；几何折射定律溯源 Hamilton、MacCullagh 1837 [TM2006 p.51]。 |
+| 29 | caustic 的解析处理：Eq. (21) 显式核、Eq. (33)–(34) 奇点集方程数值解、Figs. 15–16 [Tape1980 p.5, p.15, p.11] | — | Tape 有而本系列没有 | issue 点名的那一项。本系列 ch10 计划「22° 晕的 $F$、$DF$ 数值」（roadmap）应以 Prop. 2 为起点而不是重推。 |
+| 30 | 「caustic 强度没有简单解析度量」[Tape1980 p.16] | fold 律 $1/\sqrt{D-D_{\min}}$ + $\rho\,w_P$ 权重 + $SO(3)$ 卷积（framework §4–5） | 本系列多出 | 正是 Tape 自陈的缺口；番外可以把这句话当「古典几何到现代代数」的交接点引。 |
+
+**总括**：Tape 三篇 = 本系列 $W$ 那一半（#6–9）+ 取向 → 光点映射的两种纤维化几何（#3–5、#10）+ 奇点/caustic 的解析工具（#13–16、#29）+ 一套按 $(\alpha,\text{pole})$ 的连续分类与 atlas（#11、#21–25）。本系列多出的是：折叠 $M$ 与 $\Phi=M\circ W$ 的分解（#19）、不看姿态的 signature 商与有限类数（#20）、姿态分布 $\rho$ 与 pushforward 测度（#17–18、#30）。Tape 有而本系列没有的是：caustic 解析（#29）、最小偏折 ≠ caustic 的警示（#16）、contact / nonempty 定理（#24）、太阳高度变换规则（#25）、atlas 产品（#21）。
+
+## 5. 记号差异表
+
+子任务 3 写换算时按这张表对，任何一处数值对不上先怀疑换算约定，再怀疑公式（scrum.md 风险 2）。
+
+| 项 | Tape 1980 | TK1999 | TM2006 | 本系列 | 换算 / 提醒 |
+|---|---|---|---|---|---|
+| 楔角 | refracting angle $\alpha$ = 从 $\hat{\mathbf N}_1$（入射面**内**法向）到 $\hat{\mathbf N}_2$（出射面**外**法向）的角，$0<\alpha<180$ [p.1] | wedge angle $\alpha$ = 入射面与出射面的夹角；$\mathbf N$（入射面**外**法向）$\cdot\mathbf X$（出射面**内**法向）$=\cos\alpha$ [p.4 Eq. (10)] | $\cos\alpha=-\mathbf N_i\cdot\mathbf N_j/(\lvert\mathbf N_i\rvert\lvert\mathbf N_j\rvert)$，两者都是**外**法向 [p.102 Eq. (9.1)] | 楔角 $A$，$\cos A=-\langle\mathbf n_a,M^{-1}\mathbf n_b\rangle$，外法向，展开后 | **四者数值相同**：$\alpha=A$。差别只在哪个法向取内、哪个取外。本系列只说「楔角」，不说「法线夹角」（= $180°-A$）。 |
+| 通光上限 | $\sin(\alpha/2)\le n^{-1}$ [p.2] | $\alpha_{\max}=99.5$ [p.11] | $n\sin(\alpha_{\max}/2)=1$，99.5 [p.86 Eq. (8.2)] | $2\arcsin(1/n)\approx99.5°$（定理 5） | 相同。 |
+| 圆晕半径 | $-D_{\min}(90)$：21.8 / 45.7 [p.5] | $\sin[(\alpha+\Delta_m)/2]=n\sin(\alpha/2)$ [p.9 Eq. (41)] | 同左 [p.86 Eq. (8.1)]，21.8 / 45.7 | $\min_{\mathbf u}D_P(\mathbf u)$ | 相同（$n=1.31$）。 |
+| 光线 vs 光点 | $\hat{\mathbf I},\hat{\mathbf R}$ 是**光线传播方向**单位向量；光点 $=-\hat{\mathbf R}$，太阳 $\hat{\mathbf S}=-\hat{\mathbf I}$ [p.2; p.18 note 18] | 全程用**光点**：$\mathbf S=-\mathbf I$、$\mathbf T=-\mathbf J$、$\mathbf H$；向量长度 = 所在介质折射率 [p.3] | 同 TK1999，天球半径 = 折射率 [p.48] | `signature.phi(d)`：`d` 是**外部入射传播方向**，定义域 $\langle\mathbf d,\mathbf n_a\rangle<0$；framework §4 写 $\mathbf x=R\Phi_P(R^{-1}\mathbf s)$ | **本系列两处约定不一致**（$\Phi$ 作用在传播方向 vs 作用在太阳方向 $\mathbf s$）。严格写法：$\mathbf x=-R\,\Phi_P(-R^{-1}\mathbf s)$（光点 = $-$出射方向，入射方向 = $-$太阳方向）。$D_P$ 的定义 $\angle(\Phi_P(\mathbf u),\mathbf u)$ 在两种写法下相等（同时取负不改变夹角），不影响定理 8，但子任务 3 逐点比对光点时必须取 $-\Phi(-\cdot)$。→ §7 上抛。 |
+| 太阳位置 | $(\cos\Sigma,0,\sin\Sigma)$，$\Sigma$ 太阳高度；然后转到 $uvw$ 系使太阳 $=(1,0,0)$ [p.4] | $\mathbf S$ 任意空间向量；$\sigma=90-\Sigma$ 太阳天顶角 [p.12]；Rule 1 说方位无关 [p.22] | $\Sigma$ 太阳高度、$\sigma$ 天顶角 [p.152] | $\mathbf s$ | 相同物理量；Tape 1980 把太阳放在 $xz$ 平面内、TK1999 的 halo 定义把太阳当自变量。 |
+| 空间坐标轴 | $xyz$，$z$ 向上（$\Sigma=90$ 时 $u^\circ v^\circ w^\circ=z,y,-x$ [p.12]） | $\mathbf k=(0,0,1)$ 天顶 [p.2]；TM2006 明说 $x$ 朝前、$y$ 朝右、$z$ 朝上 [TM2006 p.147] | 同 TK1999 | `HexPrism`：$\mathbf n_1=+z$；天球方向约定见各章脚本 | 相同手性（右手）；「前」= 太阳方向所在的一侧（TK1999 standard orientation 入射面朝前）。 |
+| 取向参数化 | $(\theta,\mu,\beta)$：$\theta$ = $\hat{\mathbf P}$ 与 $\hat{\mathbf S}$ 夹角（$0\le\theta\le180$）、$\mu$ = 绕 $\hat{\mathbf P}$ 从 $\hat{\mathbf N}_1$ 量的投影入射角（$-90\le\mu\le\mu_L$）、$\beta$ = 绕 $u$ 轴（太阳）的旋转（mod 360）[p.4]；或 $(\hat{\mathbf P},\hat{\mathbf N})$ 正交对 [p.12] | $u\in SO(3)$，列 = $\mathbf A,\mathbf B,\mathbf C$，从 standard orientation 转到目标；**楔取向，不是晶体取向**——同一晶体取向对不同楔是不同的 $u$ [p.4; p.74 note 6, note 8] | 同 TK1999，非正式 [p.148, p.229] | $R\in SO(3)$ 晶体姿态，$T=R\Phi R^{-1}$ | TK1999 的 $u=R\,u_0$，$u_0$ = 楔 $ij$ 在晶体系里的 frame（列 $\mathbf A_0,\mathbf B_0,\mathbf C_0$ 由 Eq. (8) 以 $\mathbf N=\mathbf n_i$、$\mathbf X=-\mathbf n_j$ 算出）。**Tape 1980 的 $(\theta,\mu)$ 只覆盖通光的取向**（$\overline{\mathcal D}$），不是 $S^2$ 全部。 |
+| 手性 / 角度正向 | normal plane 内所有角的符号由 $\hat{\mathbf P}$ 按**右手定则**定 [p.1]；$\beta$ 绕 $u$ 轴 [p.4]；$D<0$ 恒成立 [p.2] | $\mathbf A,\mathbf B,\mathbf C$ 右手系 [p.3]；bearing $\tau$、$t$ 从天球**内部**看**顺时针**为正、12:00 为 0 [p.17]；$\mathbf D(s,t)=\mathrm{rot}(-t,\mathbf D_u)\mathbf D(s,0)$ 带负号 [p.17 Eq. (52)]；$\mathbf B(\theta,\delta)$ 第三分量 $-\sin\theta\sin\delta$ [p.6 Eq. (26)] | compass bearing，3:00 = 90° [p.231] | 右手系；方位角沿幻日环从太阳量（ch8 §6） | 三处负号（Eq. (26)、Eq. (52)、$D<0$）是抄公式时最容易丢的地方。 |
+| 「方位 142°」 vs bearing | — | $\tau$ = 从太阳量的 bearing（绕**太阳**）[p.17] | 同 | ch8 §6：沿幻日环的方位角（绕**天顶**） | $\Sigma=0$ 时幻日环 = 地平线，方位角 = 到太阳的角距 $\Delta$，bearing $\tau=\pm90$。 |
+| 面编号 | 无（只有一个楔） | 底面 1、2，侧面 3–8 看着面 1 逆时针，$\mathbf N_4=\cos60\,\mathbf N_3+\sin60\,\mathbf N_1\times\mathbf N_3$；锥面 13–18、23–28 [p.27 Eq. (78); p.33 Eq. (79)] | 同 TK1999 [p.47, p.62] | `HexPrism` 面 1 = $+z$，3 = $+x$，4 = $(\tfrac12,\tfrac{\sqrt3}2,0)$，… | **完全一致**（本笔记开头核对）。wedge $ij$ 的 $i$ = 入射、$j$ = 出射，与本系列光路面序列首尾同序。 |
+| 字母 $\mathbf P$ | axial vector（楔棱方向 $\hat{\mathbf N}_1\times\hat{\mathbf N}_2$）[p.1] | spin vector（固定在楔上、天顶角恒定）[p.2]；棱方向改叫 $\mathbf B$ | spin vector [p.143] | 光路 $P$ | 1980 的 $\hat{\mathbf P}$ = 1999 的 $\mathbf B$（同向，已核）。 |
+| 字母 $\mathbf N$ | $\hat{\mathbf N}$ 入射面外法向、$\hat{\mathbf N}_1$ 内法向、$\hat{\mathbf N}_2$ 出射面外法向 [p.1] | $\mathbf N$ 入射面外法向；$\mathbf N_i$ 面 $i$ 外法向 [p.3, p.27] | $\mathbf N_i$ 外法向 [p.102] | $\mathbf n_a,\mathbf n_b$ 外法向 | — |
+| 字母 $D$ | normal-plane 偏折角（负值）[p.2] | 最小偏折**入射向量** $\mathbf D$；偏折角是 $\Delta$ [p.9–10] | $\mathbf D$ 同 TK1999 [p.229] | $D_P(\mathbf u)$ 偏折角 | 三个 $D$ 三个意思。 |
+| 字母 $\theta$ | $\hat{\mathbf P}$ 与 $-\hat{\mathbf I}$ 的夹角 [p.2] | Bravais 余纬（pole 球面）[p.6] | — | 定理 8 的纤维角 $\mathrm{Rot}_{\mathbf s}(\theta)$ | 三个 $\theta$ 三个意思；本笔记 §1 用 Tape 1980 的、§2 用 TK1999 的。 |
+| 字母 $\Sigma$ / $\sigma$ / $s$ | $\Sigma$ 太阳高度 | $\Sigma$ 太阳高度、$\sigma$ 太阳天顶角、$s$ = $\mathbf P_u$ 到 $\mathbf D_u$ 的角距、$s_1,s_2$ 到入射区最近/最远距离 [p.16–17] | 同 | $\mathbf s$ 太阳方向 | — |
+| 强度 / 权重 | 无 [p.1] | 无 [p.1] | 无（只说倾角）[p.153] | $\rho\,w_P$ | 见 §4 #17。 |
+
+## 6. 锚定实例的可行性判断
+
+### 6.1 22° 幻日（`3-5`，片晶）= 本系列 A60-12（`data/signature_table.md`）
+
+三篇都能直接表示，且给出的对象一一对应：
+
+- **Tape 1980**：幻日是一维晕，generating set 是 $\overline{\mathcal F}$ 中的水平直线 $\beta=90,\ \theta=90-\Sigma$（左幻日）或 $\beta=-90,\ \theta=90+\Sigma$（右幻日），由 $\hat{\mathbf P}$ 竖直（Eqs. (26)(27)）解出 [Tape1980 p.16]；左幻日 = 上切弧的 $\theta=90-\Sigma$ 那段圆弧绕太阳转 90° [Tape1980 p.16]；caustic 是单点 $F(90-\Sigma,\mu_M(90-\Sigma),90)$，幻日最内点 [Tape1980 p.16]。每段 $\{(\theta_0,\mu,\beta_0)\}$ 的像叫「幻日」，「圆晕是幻日的叠加」（Bravais）[Tape1980 p.12]；Fig. 7 里上切弧上的圆弧段 [Tape1980 p.4]。幻日在 Figs. 9–13 里作为子集出现 [Tape1980 p.16]。
+  - 可算的量（给子任务 3）：太阳高度 $\Sigma$ 下幻日内边到太阳的角距 $=\Delta(90-\Sigma,\mu_M(90-\Sigma))$，由 Eqs. (10)(11)(15) 得 $\sin(\Delta/2)=-\sin(90-\Sigma)\sin(D_{\min}(90-\Sigma)/2)$，$D_{\min}(\theta)=\alpha+2\mu_M(\theta)$，$\sin\mu_M(\theta)=-n'(\theta)\sin(\alpha/2)$，$n'(\theta)=(n^2-\cos^2\theta)^{1/2}/\sin\theta$。$\Sigma=0$ 时 $\theta=90$、$n'=n$、$\Delta=-D_{\min}(90)=21.8°$。
+- **TK1999**：Plate 3 5 与 Plate 3 7 是左、右 22° 幻日，在幻日环上，互为 face interchange 与左右镜像 [TK1999 p.32]；pole $\mathbf P_u=(0,\pm1,0)$（spin vector $\mathbf N_1$ 平行于楔棱）[TK1999 p.6, p.32]；Fig. 33 中 $(0,1,0)$ 处的晕「可能看着眼熟——它是右 22° 幻日」[TK1999 p.7]；Fig. 55 的 22° pole diagram [TK1999 p.66]；$\alpha=60$，point halo（$\psi=0$）。46° 幻日是 AP 1 3 / AP 3 1，整个落在幻日环上（$\mathbf k_u$ 在 Bravais 极上，sun locus 与一条 Bravais circle 重合）[TK1999 p.31]——同一论证对 22° 幻日成立（它们的 $\mathbf k_u$ 也在 Bravais 极上）。
+  - 可算的量：$\mathbf H(u,\alpha,\mathbf S)=\mathrm{pr}[\mathrm{pr}(\mathbf S,u\mathbf N_0,n),u\mathbf X_0,1]$，$u=\mathrm{zrot}(\phi)\,u_0$，$u_0$ 把 $\mathbf P_u=(0,1,0)$ 转到 $\mathbf k$（如绕 $x$ 轴转 $+90°$，$(0,1,0)\mapsto(0,0,1)$），$\phi\in[0,360)$；内边 = $\min_\phi\arccos(\mathbf S\cdot\mathbf H)$。
+- **TM2006**：PH 35、37 [TM2006 p.63 Fig. 6.2 表]；片晶下楔 35 做左幻日、楔 37 做右幻日 [TM2006 p.140]；Fig. 4.3「进一个侧面、出隔一个的侧面」→ 左幻日 [TM2006 p.46]；右幻日的 pole 是 $(0,1,0)$ [TM2006 p.150]；35 与 46 都给左幻日、区别是面编号的偶然 [TM2006 p.48]（= 本系列商掉 $D_{6h}$）。
+- **本系列**：A60-12，楔角 60°，$M=I$（#12），$3\to5$，五档 $h/a$ 全可达 [`data/signature_table.md`]；片晶姿态族 + 定理 8：$D_P(\mathbf u)$ 沿片晶的 $\mathbf u$ 轨迹（绕 $\mathbf c$ 轴的圆）取最小 = 幻日内边。
+
+**判断：可行，三种语言算同一个数（幻日内边角距随 $\Sigma$ 的曲线）。** 子任务 3 的互证目标建议就取这条曲线（$\Sigma=0,10,20,30$）+ $\Sigma=0$ 时的完整光点轨迹。
+
+### 6.2 A60-10（`3-4-5-7`，60° 楔 + 120° 折叠，ch8 §6「142° 幻日」）
+
+白盒事实（本机核验，见 progress M1）：`3-4-5-7` 的 $M=\mathcal S_{\mathbf n_5}\mathcal S_{\mathbf n_4}=R_{\mathbf c}(120°)$（绕晶体 c 轴转 120°），$M^{-1}\mathbf n_7=\mathbf n_5$，展开楔是面对 $(\mathbf n_3,\mathbf n_5)$——**与幻日同一个楔**；且 $\Phi_{3457}=M\circ\Phi_{35}$ 在共同定义域上逐点相等（最大差 $6.7\times10^{-16}$）。
+
+- **Tape 1980**：不能表示。文章开头就「忽略反射光线」[Tape1980 p.1]，$F$ 只依赖 $\alpha$ 与 $n$ [Tape1980 p.13]，没有任何对象承载 $M$。
+- **TK1999**：框架本身排除——「本文考虑的光路从入射面进、直接从出射面出，无中间内反射」[TK1999 p.15]；wedge $ij$ 由**物理**入射面 $i$、出射面 $j$ 定义 [TK1999 p.27]，`3-4-5-7` 的物理出射面是 7、展开出射面是 5，TK1999 没有「展开楔」这个对象。§2.E 只给了一个例子（一次在 normal plane 内的反射 → $\mathbf H_u$ 关于 $y=0$ 反射）并说「任何其它新光路都会得到一整本新 atlas」[TK1999 p.15]。**但对片晶这一族，A60-10 可以作为 TK1999 的一个推论表示出来**：片晶姿态 $R=\mathrm{zrot}(\phi)R_0$，$\mathbf c\parallel\mathbf k$，于是 $RMR^{-1}=\mathrm{zrot}(120°)$，$T_{3457}=\mathrm{zrot}(120°)\,T_{35}$，天球上的光点 $\mathbf H_{3457}=\mathrm{zrot}(120°)\mathbf H_{35}$——由 Rule 1 [TK1999 p.22 Eq. (67)]，这正是「把 Plate 3 5 幻日整体绕竖直转 120°」：$\Sigma=0$ 时幻日内边 21.8° → 141.8°，即 ch8 §6 报告的 142° 锐边（ch8 测的是半高点 142.56°，在锐边外侧，方向一致；精确对齐留子任务 3）。**这个表示成立的唯一原因是 $M$ 恰好是绕 spin vector 的旋转**（$M\in$ 绕 $\mathbf P=\mathbf N_1$ 的旋转群，经 $R$ 共轭后落进 $Z$）。换成柱晶 / Parry 姿态族，$RMR^{-1}$ 不再绕竖直，TK1999 的 atlas 里没有它，只能落到 p.15 那句「新 atlas」。
+- **TM2006**：refraction halos 定义排除反射 [TM2006 p.139]；含反射的晕（subsun 1 / 326、幻日环、120° 幻日 1342 / 1382）只在 ch4、ch6 用光点图逐条画 [TM2006 p.48, p.63]，不进 pole theory。120° 幻日（1342，平行光路，本系列 $M=r$ 的 $\Phi=M$）与 A60-10（同一个 $M$ 接在 60° 楔后）在 TM2006 里是两个无关条目——本系列把它们放进同一行（折叠 #4/#6）、不同列（楔角 0° vs 60°）。
+- **本系列**：A60-10 = $(M=\#4/\#6,\ \text{楔角 }60°,\ 3\to7)$ [`data/signature_table.md`]；与 A60-12（幻日）同楔、不同折叠；与 A0 族的 120° 幻日同折叠、不同楔。ch8 §6：这一格给 142° 锐边的宽鼓包，幻日环那一格（A0-02，平行光路）给外侧的 Liljequist 窄峰 [ch8 §6]。
+
+**判断：A60-10 在 Tape 的 wedge 框架里没有位置（三篇的范围声明都排除内反射）；折叠 $M$ 在他们那里只以「一次反射 → 反射一下 $\mathbf H_u$、再画一本 atlas」的形式出现 [TK1999 p.15]，没有被当作独立于楔的第二个分类维度。** 对片晶可以借 Rule 1 把它写成「幻日转 120°」，但这恰恰说明了番外的落点：**古典几何能解释这一个实例（幻日，甚至它转 120° 的复制品），现代代数分类的是「楔 × 折叠」这个结构**——A60-10 是「同一个楔（幻日的楔）× 一个非平凡折叠」，$W$ 这一半 Tape 已经做完，$M$ 这一半是本系列加的。子任务 3 的第二个互证目标建议取：片晶、$\Sigma=0$，用 TK1999 的 $\mathbf H(u,60,\mathbf S)$ 算 Plate 3 5 光点轨迹，$\mathrm{zrot}(120°)$ 后与本系列 `phi(M=fold_matrix(3-4-5-7), 3, 7)` 在片晶姿态上的光点轨迹逐点比（预期逐点相等到浮点精度）；再用柱晶姿态跑同一比较，预期 Tape 侧**无对应对象**，只能与本系列自己的 $\Phi_{35}$ 经 $RMR^{-1}$ 共轭的结果比——这一步就是「Tape 框架到此为止」的可展示证据。
+
+## 7. 待作者核对清单
+
+不在本机的文献涉及的断言、以及阅读中遇到的不确定点。每条注明为什么要核对、与正文哪条断言相关。**正文（§1–§6）不含这些断言。**
+
+| # | 待核对 | 为什么 | 关联 |
+|---|---|---|---|
+| 1 | Tricker 1970 *Introduction to Meteorological Optics*（本机无）：书里的构造法是否就是「光点」/ 两个同心圆的几何作图；Tricker 用的名字是什么（"point of light"? 别的?） | 番外要说「Tricker 光线几何构造 → Tape 取向空间到光点空间的映射」，Tricker 那一环的措辞现在只能靠 Tape 的转述：Tape 1980 说其结果「类似 Tricker 的」并引 Tricker 1970/1972/1979 [Tape1980 p.1, p.18 refs 1, 2, 14]；TK1999 说「最接近的先驱是 Tricker [2]（1979，锥晶优先取向的晕）」[TK1999 p.2]；TM2006 说几何折射定律「至少可追溯到 Hamilton、MacCullagh 1837」[TM2006 p.51]，没提 Tricker | §3.1 结论、§4 #28、番外提纲 |
+| 2 | 「光点法」这个称呼是否 Tape 自己的用语：本笔记已核实 "light point" [TK1999 p.3]、"light point diagram" [TM2006 p.50] 是 Tape 的术语；Tape 1980 用的是 "point of light" [Tape1980 p.1, p.18 note 18]。**待核对的只剩**：Tricker 1970 是否也这么叫（同上条）；ch2 正文引用 Tape 时用的原话是什么 | 番外标题用词 | §3.1 |
+| 3 | Tape 1994 *Atmospheric Halos*（本机无）：TK1999 [11] 与 TM2006 [76] 多处引它——TK1999 p.35 说 Sturm 照片在 Ref. 11 p.92、p.39 说 MC 方法在 Ref. 11 pp.132–133；TM2006 p.61 说光路图与更多仿真在 [76]；TM2006 p.202 说 Hevel 晕 [76] 也「一无所获」。1994 书里是否已有 pole / spin vector 的雏形（TM2006 p.147 说 pole 是 Können 1990 年代提出，1994 书应尚无），以及 Tricker 万花筒展开在 1994 书里的处理 | 番外若要说「Tape 1994 还没有 pole」需原书页码 | §3.3、§4 #11 |
+| 4 | framework.md §4 表里「Tape 1980 *Analytic foundations*：caustic = halo function 奇点集的像；**1983 fold / pleat**」——fold / pleat 在 Tape 1980 p.14 已经出现（引 Whitney / Callahan 1974）；「1983」指的是哪篇（可能是 Können 1983 *Polarization and intensity distributions of refraction halos*，TK1999 ref 10 [TK1999 p.74]，或 Tape 另一篇）本机无法核 | framework.md 的文献行可能要改；ch10 引用时别写错年份 | §1.4、§4 #15 |
+| 5 | TM2006 [74] "Walter Tape, *The Deviation of Light in a Transparent Wedge*, To appear" [TM2006 p.241]——是否已发表、是否含比 Tape 1980 更完整的 $\Delta_{\max}$ 解析 | TM2006 p.89 引它给 $\Delta_{\max}$ 分段公式；ch10 若要引最大偏折需要正式出处 | §3.1 |
+| 6 | Können 1983（TK1999 ref 10 [TK1999 p.74]）与 Können 1998（ref 9）：inner edge polarization——是否含 caustic 强度的解析处理（Tape 1980 自陈缺口 [Tape1980 p.16]） | §4 #30 说「本系列多出」，若 Können 1983 已做，判定要改为「部分」 | §4 #30 |
+| 7 | 本系列自身：framework §4 的 $\mathbf x=R\Phi_P(R^{-1}\mathbf s)$ 与 `signature.phi(d)`（`d` 为入射传播方向）的符号约定不一致（§5「光线 vs 光点」行）。建议 framework 改写为 $\mathbf x=-R\Phi_P(-R^{-1}\mathbf s)$ 或明注「$\Phi$ 此处按光点约定理解」。本任务不改 framework（越界），上抛 | 子任务 3 逐点比对光点时必须先定这一条 | §5 |
+| 8 | ch8 §6 的「142.56°」是半高点，与 $21.8°+120°=141.8°$ 的锐边理论值差 0.7°——差值是否全部来自半高定义 + 太阳角径 + 截面权重，待子任务 3 用零角径、片晶零倾角的设置重算 | §6.2 的「142° = 幻日转 120°」是精确陈述，数值验收要对到锐边而不是半高 | §6.2 |
+| 9 | Tape 1980 Eq. (32) 的 $\varphi$ 取值表里 "infralateral" 出现两次（$\varphi=-\alpha$ 与 $\varphi=\alpha$）[Tape1980 p.14]——按 $\lambda$ 只定义到 mod 180 [Tape1980 p.13] 应是 $\lambda=0$ 与 $\lambda=180$ 两个分支，不是笔误；若子任务 3 要复现 infralateral 需两支都取 | §1.3 | 
+| 10 | TK1999 Fig. 55（22° pole diagram，p.66）与 Fig. 59（46°，p.71–72）的表格数值（$s_1,s_2,s,t$）本笔记未逐格抄录（属 atlas 图集，Step 3 的范围声明不通读）；子任务 3 若要对 Plate 3 5 的 $s_1,s_2$ 数值，需回 p.66 抄 | §2.4、§6.1 |
+
+## 附录 A. 给子任务 3 的公式包（按实现顺序）
+
+所有公式已在 §1–§3 抄录并带页码，此处只列**实现顺序与符号表**，不再重复推导。
+
+**A.1 TK1999 路线（推荐作为 Tape 侧的实现，最短）**
+
+输入：$\alpha$（楔角，度）、$n=1.31$、$\mathbf S$（太阳光点，单位向量，$=-$入射传播方向）、取向矩阵 $u\in SO(3)$。
+
+1. $\mathbf N_0=[\cos(\alpha/2),0,\sin(\alpha/2)]$，$\mathbf X_0=[\cos(\alpha/2),0,-\sin(\alpha/2)]$ [TK1999 p.4 Eq. (10)]。
+2. $\mathbf N=u\mathbf N_0$，$\mathbf X=u\mathbf X_0$ [Eq. (9)]。
+3. $\lambda(\mathbf S,\mathbf N,n_2)=[(\mathbf S\cdot\mathbf N)^2+n_2^2-n_1^2]^{1/2}-\mathbf S\cdot\mathbf N$，$\mathrm{pr}(\mathbf S,\mathbf N,n_2)=\mathbf S+\lambda\mathbf N$ [Eqs. (2)–(3)]；定义域：$\mathbf S\cdot\mathbf N\ge0$ 且根号内 $\ge0$ [p.3]。
+4. $\mathbf T=\mathrm{pr}(\mathbf S,\mathbf N,n)$（$n_1=1,n_2=n$）；$\mathbf H=\mathrm{pr}(\mathbf T,\mathbf X,1)$（$n_1=n,n_2=1$）[Eqs. (6)–(7)]。无定义 → "no ray"。
+5. 姿态族：SVA，$u\in U\iff u\mathbf P_u\cdot\mathbf k=\cos\psi$ [Eq. (25)]；片晶（point halo）$\psi=0$、$U=Z u_0$，$u_0\mathbf P_u=\mathbf k$，$u=\mathrm{zrot}(\phi)u_0$。
+6. 对楔 $ij$：$\mathbf N=\mathbf N_i$、$\mathbf X=-\mathbf N_j$（晶体系外法向），frame $u_0$ 的列 $=(\mathbf A,\mathbf B,\mathbf C)$ 由 Eq. (8) 算；pole $\mathbf P_u=u_0^{-1}\mathbf P$ [Eqs. (8), (21)]。
+7. 输出：$\Delta=\arccos(\mathbf S\cdot\mathbf H)$ [Eq. (40)]；校验 $\Delta_m$：$\sin[(\alpha+\Delta_m)/2]=n\sin(\alpha/2)$ [Eq. (41)]。
+
+**A.2 Tape 1980 路线（作为第二独立链路，验 Bravais 定律版本）**
+
+输入：$\alpha,n,\Sigma$，取向 $(\theta,\mu,\beta)$。
+
+1. $n'(\theta)=(n^2-\cos^2\theta)^{1/2}/\sin\theta$ [p.2]。
+2. $\sin r=\sin\mu/n'$，$\mu'=r+\alpha$，$\sin r'=n'\sin\mu'$，$D=\alpha+\mu-r'$ [Eqs. (1)–(4)]；定义域 $\overline{\mathcal D}$ 由 Eqs. (5)–(6)。
+3. $A(\theta,\gamma)$ [Eq. (19)]；$F=R_\beta(A(\theta,D(\theta,\mu)))$，$R_\beta$ 绕 $u$ 轴 [Eq. (20)]；$uvw\to xyz$：绕 $y$ 轴转 $+\Sigma$（$uvw$ 是 $xyz$ 转 $-\Sigma$ 得到的）[p.4]。
+4. 光点 $=F$ 本身（$F$ 的值已经是光点 $-\hat{\mathbf R}$）[p.18 note 18]。
+5. 片晶：$\beta=\pm90$、$\theta=90\mp\Sigma$、$\mu\in[-90,\mu_L(\theta)]$ [p.16]。
+6. 校验：$\sin(\Delta/2)=-\sin\theta\sin(D/2)$ [Eq. (15)]；$\ker JF$ [Eq. (21)] 可选。
+
+**A.3 本系列侧**：`halo_notes.math.signature.phi(crystal, M, a, b, d)`，`d` = 入射传播方向 $=-\mathbf S$（片晶姿态 $R$ 下 $\mathbf d=-R^{-1}\mathbf S$），光点 $=-R\,\Phi(\mathbf d)$（§5「光线 vs 光点」行）。楔 $ij$ ↔ `a=i, b=j, M=I`；A60-10 ↔ `M = fold_matrix(3-4-5-7)`（$=R_{\mathbf c}(120°)$）、`a=3, b=7`。
+
+**A.4 符号表（互证脚本统一用本系列符号，Tape 符号只出现在注释里）**
+
+| 本系列 | TK1999 | Tape 1980 | 含义 |
+|---|---|---|---|
+| $A$ | $\alpha$ | $\alpha$ | 楔角 |
+| $n$ | $n$ | $n$ | 折射率 1.31 |
+| $\mathbf n_a$ | $\mathbf N$ | $\hat{\mathbf N}=-\hat{\mathbf N}_1$ | 入射面外法向 |
+| $\tilde{\mathbf n}_b$ | $-\mathbf X$ | $\hat{\mathbf N}_2$ | 出射面外法向（展开后） |
+| $-\mathbf n_a\times\tilde{\mathbf n}_b$ 方向 | $\mathbf B$ | $\hat{\mathbf P}$ | 楔棱 |
+| $\mathbf s$ | $\mathbf S$ | $\hat{\mathbf S}=-\hat{\mathbf I}$，在 $uvw$ 系 $=(1,0,0)$ | 太阳方向（光点） |
+| $-\Phi_P(-\mathbf u)$ 经 $R$ | $\mathbf H$ | $F$ | 晕点（光点） |
+| $\mathbf u=R^{-1}\mathbf s$ | $\mathbf S_u$ | $(\theta,\mu)$ | 太阳在楔/晶体系 |
+| $\mathrm{Rot}_{\mathbf s}(\cdot)$ | — | $\beta$ | 绕太阳的纤维 |
+| $Q$ / $\mathrm{supp}\,\rho$ | $U$、$K$ | $\mathcal N$ | 姿态族 |
+| $\mathbf c=\mathbf n_1$ | $\mathbf P=\mathbf N_1$（plate / column） | $\hat{\mathbf P}$ 竖直（幻日）| 片晶轴 |
+| $D_P(\mathbf u)$ | $\Delta$ | $\Delta$ | 偏折角 |
+| $\min D_P$ | $\Delta_m$ | $-D_{\min}(90)$ | 圆晕半径 |
+| $M$ | —（p.15 一句话） | — | 折叠 |
