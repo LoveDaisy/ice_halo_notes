@@ -30,11 +30,16 @@ from halo_notes.math import reflection_group as rg
 from halo_notes.math.signature import PhiClass, phi_class
 
 DATA = Path(__file__).resolve().parent.parent / "data"
-TIERS: tuple[tuple[float, float], ...] = ((1.0, 0.5), (0.5, 0.3), (2.0, 0.8), (1.0, 0.8))
-"""几何档位 (h/a, tip_ratio)：默认几何、参数空间两个对角极值、以及只改 tip_ratio 的 (1, 0.8)。Step 1（L=4、2° 网格）扫
+TIERS: tuple[tuple[float, float], ...] = ((1.0, 0.5), (0.5, 0.3), (2.0, 0.8), (1.0, 0.8), (3.0, 0.25), (0.3, 0.85))
+"""几何档位 (h/a, tip_ratio)：默认几何、参数空间两个对角极值、只改 tip_ratio 的 (1, 0.8)，以及两个现实习性档。Step 1（L=4、2° 网格）扫
 h/a ∈ {0.5,1,2} × tip_ratio ∈ {0.3,0.5,0.8} 全组合：族级可达 bitmap 只随 tip_ratio 变——tip_ratio=0.8 时 90° 族（顶面↔侧面，
 `1-3` 走廊被锥面挡死）在 L=4 不可达、L=5 起经更长光路重新出现；h/a 不改 bitmap。(1, 0.8) 与默认档只差 tip_ratio 一个变量，
-把这个效应单独隔离出来。"""
+把这个效应单独隔离出来。
+
+后两档是真实锥晶的两种常见习性（作者 2026-09-20 裁定，task-pyramid-realistic-tiers）：**棱柱型** (3, 0.25)——中间柱段长、两头
+锥段短（截顶很深，侧面主导）；**双锥型** (0.3, 0.85)——柱段很短、锥段长（几乎不截顶，锥面主导）。前四档是参数空间的对角探针，
+这两档把 h/a 与 tip_ratio 的效应向两端同向叠加，比现有档更极端。两档在 LI `Pyramid` 上都直接可构造（约束只有 0 < tip_ratio < 1）；
+几何一律是双侧对称截顶，单侧有锥的习性不在本表范围。"""
 L_STAR = 6
 """截断字长（含入射面与出射面）。Step 1 实测 2° 网格 L=6 每档 ≈ 30 s，1° ≈ ×2.7；也是 tip_ratio=0.8 下 90° 族重新出现
 （L=5 首现）有一档余量的最小值。"""
