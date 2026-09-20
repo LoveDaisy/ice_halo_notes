@@ -191,6 +191,14 @@ def test_arc_or_spot_synthetic_full_ring_vs_sector():
     sector, _ = _synthetic_sky(lambda th, az: (th >= r) & (th <= r + 1.0) & (az >= 100) & (az <= 118))
     out = S.arc_or_spot(sector, render, S.sun_direction(), r)
     assert out["verdict"] == "spot" and abs(out["coverage"] - 18 / 360) < 0.03
+    flat, _ = _synthetic_sky(lambda th, az: th > 1.0)                                  # 均匀天空：环带与背景不可分
+    assert S.arc_or_spot(flat, render, S.sun_direction(), r)["verdict"] == "none"
+
+
+def test_exposure_gain_is_linear_in_luminance():
+    assert S._exposure_gain(S.TARGET_PX) == pytest.approx(1.0)
+    assert S._exposure_gain(40) == pytest.approx(S._srgb_to_linear(200) / S._srgb_to_linear(40))
+    assert S._exposure_gain(40) > 200 / 40                                              # 按码值线性算会欠曝
 
 
 def test_exposure_stats_and_total_energy_per_i():

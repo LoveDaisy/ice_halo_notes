@@ -297,6 +297,17 @@ def exposure_stats(image: np.ndarray, render: dict, *, sun_alt: float = SUN_ALT,
     }
 
 
+def _srgb_to_linear(code: float) -> float:
+    a = code / 255.0
+    return a / 12.92 if a <= 0.04045 else ((a + 0.055) / 1.055) ** 2.4
+
+
+def _exposure_gain(max_code: float, target: float = TARGET_PX) -> float:
+    """把最亮像素从 sRGB 码值 ``max_code`` 抬到 ``target`` 需要乘的 intensity 倍率——intensity 与**线性**亮度成正比，码值是 gamma 编码的，
+    按码值线性换算会欠曝一截（首轮实跑：码值 40 × 5 只到 89）。"""
+    return _srgb_to_linear(target) / _srgb_to_linear(max_code)
+
+
 def exposed_render(name: str, variant: str, make_config: Callable[[float, int], dict], *, region: str, ray_num: int,
                    out_root: Path | None = None, workers: int | None = None, backend: str | None = None,
                    probe_intensity: float = 0.2) -> tuple[RenderResult, dict, dict[str, float | int]]:
@@ -311,7 +322,7 @@ def exposed_render(name: str, variant: str, make_config: Callable[[float, int], 
         probe = exposure_stats(load_image(res.images[0]), cfg["render"][0])
     if probe[key] <= 0:
         raise ValueError(f"{name}.{variant}: 曝光探针在关注区域（{region}）全黑，无法定曝光")
-    intensity = probe_intensity * TARGET_PX / probe[key]
+    intensity = probe_intensity * _exposure_gain(probe[key])
     rounds = 0
     while True:
         rounds += 1
@@ -320,7 +331,7 @@ def exposed_render(name: str, variant: str, make_config: Callable[[float, int], 
         stats = exposure_stats(load_image(res.images[0]), cfg["render"][0])
         if PX_OK[0] <= stats[key] <= PX_OK[1] or rounds >= 2:
             break
-        intensity = intensity * TARGET_PX / max(stats[key], 1)
+        intensity = intensity * _exposure_gain(max(stats[key], 1))
     stats.update(probe_intensity=probe_intensity, probe_max=probe[key], rounds=rounds, ray_num=ray_num)
     return res, cfg, stats
 
@@ -398,8 +409,8 @@ ARC_BIN_RATIO = 2.0       # 方位格「亮起」= 该格环带均值 ≥ 2 × �
 ARC_AZ_BIN_DEG = 5.0      # 方位角格宽
 RING_INNER_DEG, RING_OUTER_DEG = 0.5, 2.5    # 环带 = [R − 0.5°, R + 2.5°]（晕的亮边在最小偏向角外侧，内缘锐、外侧拖尾）
 RING_ZONES = tuple((r - RING_INNER_DEG, r + RING_OUTER_DEG) for r in sorted(KNOWN_RADII.values()))   # 背景估计时剔除的 8 个环带
-WINDOW_BELOW_DEG, WINDOW_ABOVE_DEG = 0.25, 2.0    # 已知半径 R 的峰搜索窗 [R − 0.25°, R + 2.0°]：2×10⁸ 探针里 9°/22°/24° 环的峰在 R + 0.4…0.8°，
-                                                  # 46° 环（90° 楔，入射角大、分布宽）在 R + 1.1…1.6°。单环图（逐族 / top-3）直接在窗内找 argmax；
+WINDOW_BELOW_DEG, WINDOW_ABOVE_DEG = 0.25, 2.5    # 已知半径 R 的峰搜索窗 [R − 0.25°, R + 2.5°]：逐族图（2×10⁸）实测环的内缘都在 R（R − 0.3° 处为 0），
+                                                  # 峰位 R + 0.4…1.9°（9°/22°/24° 环 +0.4…0.8°，46° 环 +1.6°，18° 环最宽 +1.85°）。单环图（逐族 / top-3）直接在窗内找 argmax；
                                                   # 全景里 20°/22°/23°/24° 相邻只差 1.0–1.8°、窗互相重叠，改为先找整条曲线的局部极大再归到
                                                   # 「峰位 − 0.25° 以下最近的已知半径」（`assign_peaks`），不用窗切邻环
 
@@ -556,7 +567,7 @@ def arc_or_spot(image: np.ndarray, render: dict, center_dir: np.ndarray, radius_
                 profile_bin_deg: float = PROFILE_BIN_DEG, zones: tuple[tuple[float, float], ...] = RING_ZONES) -> dict[str, float | str | bool]:
     """环带 [R − inner, R + outer] 内按绕 ``center_dir`` 的方位角分格（``az_bin_deg``），格「亮起」= 格内平均辐亮度 ≥ ``bin_ratio`` ×
     局部径向背景（背景来自同一张图的径向剖面在 R 处的 :func:`local_background`，剔除环带本身）；``coverage`` = 亮起格数 / 总格数，
-    ≥ ``coverage`` 判 ``"arc"``，否则 ``"spot"``。顺带给出径向剖面在环带窗口内的峰（:func:`peak_over_background`），
+    ≥ ``coverage`` 判 ``"arc"``，0 < 覆盖率 < coverage 判 ``"spot"``，一格都没亮判 ``"none"``（环带与背景不可分）。顺带给出径向剖面在环带窗口内的峰（:func:`peak_over_background`），
     「环是否锐」看它的 ratio。注意：随机取向下天空关于太阳方向旋转对称，任何光路的像都是整圈——这时 coverage 恒接近 1，
     真正区分「有自己的弧 / 散成背景」的是径向峰/背景比。"""
     energy, weight, dirs = energy_map(image, render)
@@ -575,6 +586,7 @@ def arc_or_spot(image: np.ndarray, render: dict, center_dir: np.ndarray, radius_
     lit = mean >= bin_ratio * bg if bg > 0 else mean > 0
     cov = float(lit.sum() / lit.size)
     radial = peak_over_background(centers, radiance, (radius_deg - inner_deg, radius_deg + outer_deg), zones=zones)
+    verdict = "arc" if cov >= coverage else ("spot" if cov > 0 else "none")     # none：环带里没有任何方位格亮到 bin_ratio × 背景
     return {"radius_deg": float(radius_deg), "background": bg, "coverage": cov, "n_bins": int(lit.size),
-            "verdict": "arc" if cov >= coverage else "spot", "ring_energy_frac": float(energy[ring].sum() / energy.sum()),
+            "verdict": verdict, "ring_energy_frac": float(energy[ring].sum() / energy.sum()),
             "radial_peak_deg": radial["peak_deg"], "radial_ratio": radial["ratio"], "radial_is_local_max": radial["is_local_max"]}
