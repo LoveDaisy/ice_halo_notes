@@ -38,12 +38,13 @@ obsidian rename file=<旧名> name=<新名>.md   # 重命名 md 必须走 Obsidi
 │   │   └── legacy/        # 已被 python 重做的旧 matlab/mathematica 脚本（不删，作为已发表插图的出处）
 │   ├── img/
 │   └── data/
+├── ex-kebab-slug/        # 番外，一篇一目录，同上结构，不占章号
 └── scratchpad/            # 任务管理（不入 git）
 ```
 
 ### 当前状态（2026-09-20）
 
-目标布局已落地。ch0–ch8 published（ch7 2026-09-14、ch8 2026-09-20 发表，公开版已回拉进 vault `Writing/articles/`；ch8 两张曲线图共用 `code/_ch8_plot.py` 外观，`fig_b2_unnamed_cell.py` / `fig_cross_section_sensitivity.py` 支持 `--replot` 从 data/ 重画），ch12 outline；ch9 与番外「Tape 光点法 vs 矩阵法」处于写作准备（scrum `ch9-prep` / `ex-tape-prep`，见 `docs/roadmap.md`）。几何本体（`Polyhedron` / `HexPrism` / `Pyramid` / `unfold_faces`；`feasibility` 方向扫描 + 凸多边形投影求交的光路可行性判定，`enumerate` DFS 单调剪枝 + 调用方注入对称轨道去重的可行光路枚举器——ch2 枚举器的 python 复活）自 2026-09-18 起**由 `lumice_integral.geometry` 提供**（Lumice Integral 仓，本仓以指向本机 LI 仓的 git 源（`file://` 绝对 URL + 钉住 rev，见 `pyproject.toml` 注释：path 依赖在 uv.lock 里会按 checkout 相对深度改写，主仓与 worktree 互相踩）引入，`halo_notes/geometry/` 副本已删除，`draw/geometry.py` 是其 re-export shim；要用 LI 新改动须先在 LI 仓 commit 再 bump rev；LI 正式发布后换 GitHub + tag 另立任务）。`halo_notes/` 现有 `draw` / `math`（含 `ground_truth` ch3 光路清单解析；`signature`：signature 规范型、带定义域的 Φ 指纹、六棱柱 34 类全类表；ch8 `data/signature_table*` 由 `enumerate_signatures.py` 产出，五档 h/a 下界已算）/ `sim`（含 `analyze`：Lumice 4.6.x `analyze` 子命令胶水——随机朝向光路分析 CSV → Φ 类能量份额 / 与枚举器互证；ch8 `data/energy_table.md` 由 `analyze_energy.py` 产出，需本地 build `LUMICE_BIN`）四包；35 张旧图已重制 34 张（余 6.4 等直接积分项目，后排）。
+目标布局已落地。ch0–ch8 published（ch7 2026-09-14、ch8 2026-09-20 发表，公开版已回拉进 vault `Writing/articles/`；ch8 两张曲线图共用 `code/_ch8_plot.py` 外观，`fig_b2_unnamed_cell.py` / `fig_cross_section_sensitivity.py` 支持 `--replot` 从 data/ 重画），ch12 outline；ch9 与番外「Tape 光点法 vs 矩阵法」处于写作准备（scrum `ch9-prep` / `ex-tape-prep`，见 `docs/roadmap.md`）。几何本体（`Polyhedron` / `HexPrism` / `Pyramid` / `unfold_faces`；`feasibility` 方向扫描 + 凸多边形投影求交的光路可行性判定，`enumerate` DFS 单调剪枝 + 调用方注入对称轨道去重的可行光路枚举器——ch2 枚举器的 python 复活）自 2026-09-18 起**由 `lumice_integral.geometry` 提供**（Lumice Integral 仓，本仓以指向本机 LI 仓的 git 源（`file://` 绝对 URL + 钉住 rev，见 `pyproject.toml` 注释：path 依赖在 uv.lock 里会按 checkout 相对深度改写，主仓与 worktree 互相踩）引入，`halo_notes/geometry/` 副本已删除，`draw/geometry.py` 是其 re-export shim；要用 LI 新改动须先在 LI 仓 commit 再 bump rev；LI 正式发布后换 GitHub + tag 另立任务）。`halo_notes/` 现有 `draw` / `math`（含 `ground_truth` ch3 光路清单解析；`signature`：signature 规范型、带定义域的 Φ 指纹、六棱柱 34 类全类表；ch8 `data/signature_table*` 由 `enumerate_signatures.py` 产出，五档 h/a 下界已算）/ `sim`（含 `analyze`：Lumice 4.6.x `analyze` 子命令胶水——随机朝向光路分析 CSV → Φ 类能量份额 / 与枚举器互证；ch8 `data/energy_table.md` 由 `analyze_energy.py` 产出，需本地 build `LUMICE_BIN`）四包；35 张旧图已重制 34 张（余 6.4 等直接积分项目，后排）。番外 `ex-tape-vs-matrix/` 骨架已起（outline）。
 
 ### 外部依赖
 
