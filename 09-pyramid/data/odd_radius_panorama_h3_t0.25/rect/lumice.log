@@ -1,0 +1,84 @@
+$ /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/.lumice/v4.5.1/Lumice -f /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/config.json -o /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect --format png
+--- stdout ---
+2026-09-21 02:29:30.724 [I] ServerImpl: gpu_route=false worker_count=10 (preferred_backend=0)
+2026-09-21 02:29:30.737 [I] CommitConfig: restart took 12.4ms (Stop 0.0ms + rebuild 12.4ms + Start 0.0ms)
+2026-09-21 02:29:30.737 [I] GenerateScene: first batch enqueued at 0.0ms after start
+2026-09-21 02:29:30.762 [I] ConsumeData: first batch consumed (1152 ray segments)
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=5193472, crystals=1, orientations=5193472
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=10729216, crystals=1, orientations=10729216
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=16198912, crystals=1, orientations=16198912
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=21752064, crystals=1, orientations=21752064
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=27275264, crystals=1, orientations=27275264
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=32740608, crystals=1, orientations=32740608
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=38237056, crystals=1, orientations=38237056
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=43747712, crystals=1, orientations=43747712
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=49262080, crystals=1, orientations=49262080
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=54705664, crystals=1, orientations=54705664
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=60175872, crystals=1, orientations=60175872
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=65694208, crystals=1, orientations=65694208
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=71156864, crystals=1, orientations=71156864
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=76589312, crystals=1, orientations=76589312
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=82079872, crystals=1, orientations=82079872
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=87549824, crystals=1, orientations=87549824
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=92989312, crystals=1, orientations=92989312
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=98435584, crystals=1, orientations=98435584
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=103920384, crystals=1, orientations=103920384
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=109384320, crystals=1, orientations=109384320
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=114828160, crystals=1, orientations=114828160
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=120263552, crystals=1, orientations=120263552
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=125720832, crystals=1, orientations=125720832
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=131157632, crystals=1, orientations=131157632
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=136641536, crystals=1, orientations=136641536
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=142073856, crystals=1, orientations=142073856
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=147519872, crystals=1, orientations=147519872
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=153009024, crystals=1, orientations=153009024
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=158502144, crystals=1, orientations=158502144
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=163896576, crystals=1, orientations=163896576
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=169345536, crystals=1, orientations=169345536
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=174710784, crystals=1, orientations=174710784
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=180150144, crystals=1, orientations=180150144
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=185587200, crystals=1, orientations=185587200
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=191007744, crystals=1, orientations=191007744
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=196411264, crystals=1, orientations=196411264
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h3_t0.25/rect/img_01.png (1440x720)
+Stats: sim_rays=200000000, crystals=1, orientations=200000000
+2026-09-21 02:30:17.782 [I] Consume profile: 1562500 batches, avg 16.6us (proj 13.1us 79% + accum 3.5us 21%)
+
+--- stderr ---
+
