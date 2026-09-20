@@ -13,3 +13,6 @@ __pycache__/
 
 # ch8 光路分析的大体积文本产物（~7 MB CSV）：本地缓存，入库形态是同目录的 analysis.zip（LFS）
 08-wedge-times-fold/data/analysis/
+
+# ch9 锥晶光路分析的大体积文本产物：同上，入库形态是 09-pyramid/data/analysis.zip（LFS）
+09-pyramid/data/analysis/
