@@ -139,7 +139,7 @@ $$
 $$
 \mu_{\rm sky}=\int_{S^2}\!d\mathbf u\,w_P(\mathbf u)\int_0^{2\pi}\!d\theta\;\rho\big(\mathrm{Rot}_{\mathbf s}(\theta)R_0(\mathbf u)\big)\,\delta\big(\mathbf x-\mathrm{Rot}_{\mathbf s}(\theta)R_0(\mathbf u)\,\big({-}\Phi_P(-\mathbf u)\big)\big).
 $$
-$D_P$ 的定义因此带两个负号（$D_P(\mathbf u)=\angle(-\Phi_P(-\mathbf u),\mathbf u)$），但两个负号在取夹角时抵消，数值与此前直接用 $\Phi_P(\mathbf u)$ 算的完全一致——改动只是让公式形式与光点的物理定义（出射传播方向的反向）对齐，角度结论不变。出射点到太阳的角距离只由晶体系内的偏折角决定；姿态分布只决定每个太阳同心圆在方位上的填充。ch10 讲径向因子 $D_P(\mathbf u)$，ch11 讲方位因子 $\rho$。
+$D_P$ 的定义因此带两个负号（$D_P(\mathbf u)=\angle(-\Phi_P(-\mathbf u),\mathbf u)$）——这不是「负负得正」的代数恒同（$\Phi_P$ 有定义域限制，$\angle(-\Phi_P(-\mathbf u),\mathbf u)$ 一般不等于 $\angle(\Phi_P(\mathbf u),\mathbf u)$），角度结论不变的真正原因是：`signature.phi` 一直按**入射传播方向**实现，此前只是 framework.md 文字上的符号写错，符号改正后公式形式与代码实现、与光点的物理定义（出射传播方向的反向）才对齐；数值取证见本条正文引用的 `crosscheck_bridge.py::light_point` 与 Tape 两条链路互证（`ex-tape-vs-matrix/data/crosscheck_a_summary.md`）。出射点到太阳的角距离只由晶体系内的偏折角决定；姿态分布只决定每个太阳同心圆在方位上的填充。ch10 讲径向因子 $D_P(\mathbf u)$，ch11 讲方位因子 $\rho$。
 
 **两种机制 [推]。** 设 halo map $F_P:Q\to S^2$，$Q$ 为姿态族。
 
