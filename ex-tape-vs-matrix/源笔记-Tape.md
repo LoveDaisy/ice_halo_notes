@@ -85,7 +85,7 @@ type: note
 - 一维晕（$\mathcal N$ 为曲线）[Tape1980 p.16]：幻日假定来自 $\hat{\mathbf P}$ 竖直的晶体，由 (26)(27) 得 $\sin\theta\cos\beta=0$、$-\cos\theta\cos\Sigma+\sin\theta\sin\beta\sin\Sigma=0$，即水平线 $\beta=90,\ \theta=90-\Sigma$（左幻日，$y<0$）或 $\beta=-90,\ \theta=90+\Sigma$（右幻日）。上切弧是平面 $\beta=0$ 的像，每段圆弧对应固定 $\theta$；左幻日 = 上切弧 $\theta=90-\Sigma$ 那段转 90°。环天顶弧、环地平弧、各种 Parry 弧：$\hat{\mathbf P}$ 水平且入射面外法向与竖直方向成固定角 $\varphi$，同时满足 (31) 与 (32)；CZA：$\alpha=90,\varphi=0$；CHA：$\alpha=90,\varphi=-90$ [Tape1980 p.16]。
 - 「圆晕是幻日的叠加」（Bravais）：$\overline{\mathcal F}$ 中每条线段 $\{(\theta_0,\mu,\beta_0)\mid-90\le\mu\le\mu_L(\theta_0)\}$ 是晶体绕固定轴向量的旋转，其像是一个「幻日」[Tape1980 p.12]。「圆晕是旋转过的上切弧的叠加」[Tape1980 p.4, p.12]。
 
-**本系列对照**：generating set $\mathcal N$ = 姿态族 $Q$（ch11 的片/柱/Parry/Lowitz），$F|_{\mathcal N}=F_P|_Q$；三维/二维/一维晕 = $\dim Q$ = 3/2/1。Tape 说的「同一个 $F$、不同子集、不同的晕」= framework §5「同一光路 × 五族 = 五种晕」。Tape 的理想化「不偏离优先取向」= 本系列 $\sigma\to0$；他明确没有 $\rho$（见 §4）。
+**本系列对照**：generating set $\mathcal N$ = 姿态族 $Q$（ch11 的片/柱/Parry/Lowitz），$F|_{\mathcal N}=F_P|_Q$；三维/二维/一维晕 = $\dim Q$ = 3/2/1。Tape 说的「同一个 $F$、不同子集、不同的晕」[Tape1980 p.1, p.16] = framework §5「同一光路 × 五族 = 五种晕」。Tape 的理想化「不偏离优先取向」= 本系列 $\sigma\to0$；他明确没有 $\rho$（见 §4）。
 
 ### 1.4 奇点集、Jacobian 的核、caustic（§V–VI, §VIII）
 
@@ -263,8 +263,8 @@ type: note
 - 非接触弧的定性规则 [TM2006 p.150–152]：$\mathbf D_u$ 在子午线上、赤道下 $\Delta_{\min}/2$；弧相对太阳的方向 ≈ pole 相对 $\mathbf D_u$ 的方向；pole 在左/右半球 → 左/右弧，在 $y=0$ 上 → 左右对称；上/下弧的分界是过 $\mathbf D_u$ 与 $(0,\pm1,0)$ 的大圆（不是赤道）；pole 远离 $\pm\mathbf D_u$ → sunvex（U 形、凸向太阳），靠近 → suncave；只在 $\sigma=s$（$s$ = $\mathbf D_u$ 到 $\mathbf P_u$ 的角距）这一个太阳天顶角接触圆晕，接触点方向 = $\mathbf P_u$ 相对 $\mathbf D_u$ 的方向 [TM2006 p.152]。
 - Appendix F 是 TK1999 §2 的白话版：$\mathbf k,\mathbf S,\mathbf H,\mathbf D,\mathbf E,\mathbf P$；$\mathbf V_u$ = 把向量与楔刚性连起来一起转到 standard orientation 后 $\mathbf V$ 落到的位置 [TM2006 p.229–230]；非接触弧 zenith locus $=\{\mathbf P_u\}$，接触弧 zenith locus = 以 $\mathbf P_u$ 为心的大圆 [TM2006 p.230–231]；contact circle 以 $\mathbf D_u$ 为心、半径 $\sigma$；Criterion for contact [TM2006 p.231]；证明用三角形 $\mathbf k\mathbf S\mathbf H\cong\mathbf k_u\mathbf S_u\mathbf H_u$ [TM2006 p.233–235]；脚注 1：「若某楔取向可取，则它绕竖直轴转过的取向也可取——这个很弱的假设被所有常见取向类满足，更一般地被任何由 spin vector 刻画的取向类满足」[TM2006 p.235]（= TK1999 Eq. (29)）。
 - **与 1980 / 1999 的异同小结**：
-  - 术语变化：1980「point of light」「halo function」「generating set」「caustic」→ 1999「light point」「halo point $\mathbf H(u,\alpha,\mathbf S)$」「halo-making set」「zenith locus」「pole」→ 2006「light point」「light point diagram」「spin vector」「halo pole」「contact / non-contact arcs」「refraction halos」。1980 的 caustic / 奇点语言在 1999、2006 里**消失**（2006 只在 p.88 引 [75] 说它是解析处理）。
-  - 图集组织：1999 按 $(\alpha,\mathbf P_u,\psi,\Sigma)$ 的 atlas + 按楔角的 pole diagrams；2006 改为按圆晕半径分章（9°、18°、20°、22°、23°、24°、35° 各一族，ch15–17 按 plate / column / Parry 组织），pole 只作定性工具（ch14「用户指南」），不再印完整 atlas。
+  - 术语变化：1980「point of light」「halo function」「generating set」「caustic」→ 1999「light point」「halo point $\mathbf H(u,\alpha,\mathbf S)$」「halo-making set」「zenith locus」「pole」→ 2006「light point」「light point diagram」「spin vector」「halo pole」「contact / non-contact arcs」「refraction halos」。1980 的 caustic / 奇点语言在 1999、2006 里**消失**（2006 只在 p.88 引 [75] 说它是解析处理）。 [Tape1980 p.1, p.13; TK1999 p.3–4, p.6–7; TM2006 p.43, p.50, p.139, p.143, p.145, p.147]
+  - 图集组织：1999 按 $(\alpha,\mathbf P_u,\psi,\Sigma)$ 的 atlas + 按楔角的 pole diagrams；2006 改为按圆晕半径分章（9°、18°、20°、22°、23°、24°、35° 各一族，ch15–17 按 plate / column / Parry 组织），pole 只作定性工具（ch14「用户指南」），不再印完整 atlas [TM2006 p.5 目录; TK1999 p.42]。
   - 2006 ch14 的「上/下弧分界是过 $\mathbf D_u$ 的大圆」「sunvex / suncave 由 pole 到 $\mathbf D_u$ 的距离决定」是 1999 §2.D 定性推断的提炼；1999 的 D-centered 坐标 $(s,t)$ 在 2006 里只保留 $s$ [TM2006 p.152]。
 
 ### 3.4 「Angle x」的原始提法，与 roadmap ch9 那句话的对照
