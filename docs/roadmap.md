@@ -41,7 +41,7 @@
 | 10 | `10-two-focusing-mechanisms` | 两种聚光 | ch3「明亮凝聚」的说法不严谨 | 纤维化定理：$SO(3)\cong$ 以「太阳在晶体系中的方向 $\mathbf u$」为底的圆丛，$\angle(\mathbf x,\mathbf s)=D_P(\mathbf u)$ 与姿态无关（两章共用接口）；径向部分：dimension collapse（$DF$ 沿某方向恒为零，对称性）vs Jacobian focusing（$DF$ 只在特殊姿态降秩，奇点）；最小偏折 = fold caustic，$I\sim 1/\sqrt{D-D_{\min}}$；Tape 1980 的 halo function 奇点语言；pushforward $\mu_{\rm sky}=F_*[\rho\,w\,dq]$ 就是 ch4 的渲染方程，ch6 是算它的两条路 | 22° 晕的 $F$、$DF$ 数值 + 仿真径向剖面对照 | `math`：$D_P(\mathbf u)$ 及其 Jacobian | todo |
 | 11 | `11-orientation-to-halo` | 姿态给方位 | ch5 的 SO(3) / 四元数至此才有用武之地；draft 里「离散冲激被姿态展开成弧」的比喻 | 方位部分：$\rho$ 均匀时天空图案 = 太阳盘与带状核 $f(D)$ 的球面卷积（比喻严格成立）；非均匀时是纤维化积分，不是天空上的卷积；真正的卷积核在 $SO(3)$ 上（$\rho=\rho_0 * k_\sigma$），天空上的模糊是 $F$ 推过去的像，$DF$ 大处糊得多；五个标准姿态族（随机 / 片 / 柱 / Parry / Lowitz）作为 $SO(3)$ 子流形，同一光路 × 五族 = 五种晕；$\dim(\text{晕})=\dim Q-\dim(\text{纤维})$ 是 ch7 稳定子公式的一般化。**结尾**：前向模型对 $\rho$ 线性 ⇒ 反问题是线性反问题，Hough = 伴随算子，参数化反演 vs 非参数投票两条路预告 | 同一条 3-5 光路 × 五个姿态族的仿真并排；倾角扩散与 $DF$ 的模糊对照 | `math`：$SO(3)$ 上的分布族与群卷积；`sim`：姿态族参数化 | todo |
 
-**核心交付物是一张表：行 = 光路类（ch7–9 给），列 = 姿态族（ch11 给），格子里的形状由 $(F, DF)$ 裁定（ch10）。** 反向问题就是「给一张天空图，找哪些格子亮、亮多少」。
+**核心交付物是一张表：行 = 光路类（ch7–9 给），列 = 姿态族（ch11 给），格子里的形状由 $(F, DF)$ 裁定（ch10）。** 锥晶版的第一列已有探针数据（explore `pyramid-orientation-boost`，2026-09-20：默认档 × {plate, column, Parry} × 太阳 {10°, 30°} 的 9 族 + 族外能量表与冒头类渲染，`scratchpad/explore-pyramid-orientation-boost/data/`，不入 git）；结论：姿态改变的是族内的塌陷而非族外的放大，plate 10° 下一条 60.7° 楔角的族外光路（`18-16-25-23`）压过 18°/23° 两族——ch9 尾声留一句钩子，ch10/11 起章时接手。 反向问题就是「给一张天空图，找哪些格子亮、亮多少」。
 
 ## 第二部分：反向问题
 
