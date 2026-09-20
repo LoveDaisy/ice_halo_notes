@@ -224,14 +224,22 @@ def pyramid_crystal_from_geometry(
 ) -> dict[str, Any]:
     """从本仓 :class:`~lumice_integral.geometry.Pyramid` ``(a, h, c_over_a, tip_ratio)`` 换算成 Lumice ``pyramid`` shape。
 
-    换算（**候选：2026-09-20 源码推导，待 Step 3–5 渲染探针确认**，Ice Halo 仓 ``94b90ab6``，锥晶几何代码与 v4.5.1 逐字相同）：
+    换算：源码推导（Ice Halo 仓 ``94b90ab6``，锥晶几何代码与 v4.5.1 逐字相同）+ 2026-09-20 实测钉死（记录在
+    ``scratchpad/scrum-ch9-prep/task-pyramid-sim-glue/progress.md``）：
 
     - ``prism_h = hex_prism_height_ratio(h/a) = (h/a)/2``：``geo3d_closedform.cpp:296-310`` 横截面模型里棱柱段 ``|z| ≤ h2/2`` 的
-      apothem 是 ``√3/4``（``dist=1``），即 Lumice 长度单位 = 2×边长，与六棱柱 ``height`` 同一换算
+      apothem 是 ``√3/4``（``dist=1``），即 Lumice 长度单位 = 2×边长，与六棱柱 ``height`` 同一换算。**实测**：退化锥晶
+      ``upper_h=lower_h=0, prism_h=0.2/0.1`` 跑 ``analyze``（本地 build，5M 光线，seed 7），判别光路 ``1-3-2-1-5`` 命中
+      3109 / 0 次、``1-2-1-2-3-4`` 0 / 1 次，与 ``prism`` 型 ``height=0.2/0.1`` 的 3123 / 0、0 / 1 逐条同模式
     - ``upper_h = lower_h = tip_ratio``：Lumice 截顶高 ``z_top − h2/2 = a1·h1·m_apex``，正六边形 ``m_apex = 1``、理论锥高 ``a1``；
-      LI ``cone_h = a·c_over_a·tip_ratio``、``H = a·c_over_a``——两边都是"截顶高 / 理论锥高"，比例直接相等
+      LI ``cone_h = a·c_over_a·tip_ratio``、``H = a·c_over_a``——两边都是"截顶高 / 理论锥高"，比例直接相等。**实测**：LI 二分得
+      ``1-13-23`` 在 ``tip_ratio* = 0.439`` 由不可行变可行、``3-2-6`` 在 ``0.623`` 由可行变不可行；Lumice ``upper_h=lower_h`` 取
+      ``0.409 / 0.469`` 前者命中 0 / 17 次，``0.593 / 0.653`` 后者命中 571 / 0 次——两个锚点都在 ±0.03 内翻转，线性关系无偏移
     - ``upper_indices = lower_indices = pyramid_miller_indices(c_over_a)``：Lumice ``a1 = i1·1.629/(2·i4)``（Lumice 单位）=
-      ``a·1.629·i1/i4``（LI 单位）对上 ``H = a·c_over_a``；默认 ``1.6288`` ⇒ ``[1,0,1]``
+      ``a·1.629·i1/i4``（LI 单位）对上 ``H = a·c_over_a``；默认 ``1.6288`` ⇒ ``[1,0,1]``。**实测**：固定取向单光路渲染
+      （:mod:`.raypath_probe`，``tests/data/pyramid_raypath_fixture.json``）9 条含锥面光路的亮斑与 ``phi`` 预测夹角 ≤ 0.19°，
+      而 ``[2,0,3]`` 锥面的预测偏 ≥ 4.8°；面编号 / 手性 / 旋转链（axis 省略 = ``Rz(−180°)``）一并钉住，release v4.5.1 与本地
+      build 结果一致（≤ 0.003°）
     - 上下对称截顶（LI 目前唯一支持的形状），``face_distance`` 默认全 1（正六边形，与 LI 一致）
     """
     if pyramid.tip_ratio > PYRAMID_TIP_SNAP:
