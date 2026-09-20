@@ -66,6 +66,7 @@ DISK_DEG = 1.0                               # 太阳盘掩模半径：0° 族�
 TARGET_PX = 200                              # 曝光目标：关注区域最亮像素 ≈ 200/255（留 20% 余量给正式光线数下的热像素）
 PROBE_RAYS_DIV = 10                          # 曝光探针用正式光线数的 1/10（热像素只会更亮，换算出的 intensity 偏保守）
 PX_OK = (100, 254)                           # 正式渲染后关注区域最亮像素须落在此区间，否则再修正一轮
+MAX_EXPOSURE_ROUNDS = 4                      # 关注区域削顶就再压低一轮重渲（小光线数下散斑热像素会削顶），最多 4 轮
 
 KNOWN_WEDGES = ES.KNOWN_WEDGES
 KNOWN_RADII = {w: ES.min_deviation_deg(w) for w in KNOWN_WEDGES if w > 0}   # 8 个晕半径（0° 平行族无晕）
@@ -323,15 +324,17 @@ def exposed_render(name: str, variant: str, make_config: Callable[[float, int], 
     if probe[key] <= 0:
         raise ValueError(f"{name}.{variant}: 曝光探针在关注区域（{region}）全黑，无法定曝光")
     intensity = probe_intensity * _exposure_gain(probe[key])
-    rounds = 0
-    while True:
-        rounds += 1
+    sat_key = {"out": "sat_out", "disk": "sat_disk"}[region]
+    for rounds in range(1, MAX_EXPOSURE_ROUNDS + 1):
         cfg = make_config(intensity, ray_num)
         res = sim_figure(name, CHAPTER, cfg, out_root=out_root, workers=workers, backend=backend, variant=variant)
         stats = exposure_stats(load_image(res.images[0]), cfg["render"][0])
-        if PX_OK[0] <= stats[key] <= PX_OK[1] or rounds >= 2:
+        if stats[sat_key] > 0:                                   # 关注区域削顶：产出不可用，按 255 反推再压低一截重来
+            intensity *= _exposure_gain(255, target=TARGET_PX * 0.75)
+        elif PX_OK[0] <= stats[key] <= PX_OK[1] or rounds >= 2:  # 落在目标区间，或已修正过一轮（未削顶时第二轮就收）
             break
-        intensity = intensity * _exposure_gain(max(stats[key], 1))
+        else:
+            intensity *= _exposure_gain(max(stats[key], 1))
     stats.update(probe_intensity=probe_intensity, probe_max=probe[key], rounds=rounds, ray_num=ray_num)
     return res, cfg, stats
 
