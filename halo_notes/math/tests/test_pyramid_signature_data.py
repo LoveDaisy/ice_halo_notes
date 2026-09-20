@@ -1,4 +1,4 @@
-"""对 ``09-pyramid/data/`` 里由 ``enumerate_signatures.py`` / ``analyze_energy.py`` 产出的数据文件做断言：不在 pytest 里重跑四档 ×
+"""对 ``09-pyramid/data/`` 里由 ``enumerate_signatures.py`` / ``analyze_energy.py`` 产出的数据文件做断言：不在 pytest 里重跑六档 ×
 max_len=6 的枚举（那是脚本的事，每档数分钟），只核验产出文件的结构、族 / 类归属可复算、可达性声明有独立的追迹见证（a01：不信
 枚举器自报，用 ``draw.raypath.trace`` 这条不共享失效模式的链路取证），以及「tip_ratio=0.8 时 90° 族首现字长从 2 升到 5」这条
 ch9 素材有独立于枚举器 DFS 的几何见证。"""
@@ -19,6 +19,7 @@ from halo_notes.math.signature import phi_class
 CH9 = Path(__file__).resolve().parents[3] / "09-pyramid"
 DATA = CH9 / "data"
 sys.path.insert(0, str(CH9 / "code"))
+from analyze_energy import MC_MAX_LEN  # noqa: E402
 from enumerate_signatures import GRID, KNOWN_WEDGES, L_STAR, TIERS, family_of, tier_label, tier_pyramid  # noqa: E402
 
 DEFAULT = (1.0, 0.5)
@@ -47,6 +48,15 @@ def _md_table(text: str, heading: str) -> list[list[str]]:
     return [[c.strip() for c in ln.strip("|").split("|")] for ln in rows[2:]]
 
 
+def _first_lengths() -> dict[float, list[int]]:
+    """`signature_table.md`「每族首次出现的字长」表：楔角 → 按 TIERS 顺序的首现字长。这是「某档某族 MC 能否覆盖」的唯一权威来源
+    （`analyze_energy.py` 判「MC 未覆盖」用的就是精确侧最短代表长度 > MC_MAX_LEN），energy_table 的断言从这里推，不另写 tip_ratio 阈值公式。"""
+    text = (DATA / "signature_table.md").read_text()
+    first = {float(r[0].rstrip("°")): [int(c) for c in r[1:]] for r in _md_table(text, "每族首次出现的字长")}
+    assert set(first) == set(KNOWN_WEDGES) and all(len(v) == len(TIERS) for v in first.values())
+    return first
+
+
 # ---- signature_table.md / csv 的结构 --------------------------------------------------------------
 
 
@@ -56,7 +66,7 @@ def test_md_has_9_family_rows_all_reachable():
     assert [r[0] for r in main] == [f"{w:g}°" for w in KNOWN_WEDGES]
     for r in main:
         assert r[3] != "—", r                     # 每族至少一档可达（验收：无空族）
-        assert all(c != "—" for c in r[4:]), r    # 且 L*=6 下四档全部可达
+        assert all(c != "—" for c in r[4:]), r    # 且 L*=6 下六档全部可达
     assert f"| 9 族命中数 | {' | '.join('9' for _ in TIERS)} |" in text
     assert "不宣称穷尽" in text                   # 诚实声明必须在
 
@@ -161,12 +171,13 @@ def test_sampled_class_shortest_paths_have_traceable_witnesses(tier):
 
 
 def test_first_length_table_locks_tip_ratio_effect():
-    text = (DATA / "signature_table.md").read_text()
-    first = {float(r[0].rstrip("°")): [int(c) for c in r[1:]] for r in _md_table(text, "每族首次出现的字长")}
+    """回归锁：钉住六档实测的首现字长。其余 8 族六档都在 L≤MC_MAX_LEN 出现；90° 族只随 tip_ratio 变——≥0.8 的三档（含 0.85）都是 5、
+    其余三档（含 0.25）都是 2，h/a 从 0.3 到 3 不改这个数（task-pyramid-realistic-tiers 两个极端档把这条从「四档观察」加固为「六档观察」）。"""
+    first = _first_lengths()
     for w in KNOWN_WEDGES:
         if w == 90.0:
             continue
-        assert max(first[w]) <= 4, (w, first[w])       # 其余 8 族四档都在 L≤4 出现（MC 可覆盖）
+        assert max(first[w]) <= MC_MAX_LEN, (w, first[w])
     for t, n in zip(TIERS, first[90.0]):
         assert n == (5 if t[1] >= 0.8 else 2), (t, n)
 
@@ -187,10 +198,12 @@ def test_energy_table_structure():
     text = (DATA / "energy_table.md").read_text()
     main = _md_table(text, "主表：9 个楔角族的能量份额")
     assert [r[0] for r in main] == [f"{w:g}°" for w in KNOWN_WEDGES]
+    first = _first_lengths()
     for r in main:
-        for t, cell in zip(TIERS, r[2:2 + len(TIERS)]):
-            if r[0] == "90°" and t[1] >= 0.8:
-                assert cell == "未覆盖", (r[0], t, cell)     # 精确侧首现 L=5 > MC_MAX_LEN=4，MC 按设计看不到
+        w = float(r[0].rstrip("°"))
+        for i, (t, cell) in enumerate(zip(TIERS, r[2:2 + len(TIERS)])):
+            if first[w][i] > MC_MAX_LEN:                       # 两份数据互证：精确侧首现字长 > MC 链面上限 ⇔ MC 按设计看不到
+                assert cell == "未覆盖", (r[0], t, cell)
             else:
                 assert re.fullmatch(r"\d+\.\d{4}", cell), (r[0], t, cell)
     fam = _md_table(text, "族级互证")
