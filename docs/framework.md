@@ -2,7 +2,7 @@
 
 > 系列 7–11 章共用的理论底稿。起源于 2026-09-11 作者与另一 assistant 的讨论（原文 `scratchpad/DRAFT-discussion-on-roadmap.md`，不入 git），2026-09-12 经本仓核验、修正与扩展后定稿于此。章节安排见 [roadmap.md](roadmap.md)。
 >
-> 每条结论标注证据等级：**[算]** = 已由 `docs/checks/` 下脚本数值核验；**[推]** = 解析推导，未另作数值核验；**[猜]** = 结构性断言，待穷举或仿真确认。
+> 每条结论标注证据等级：**[算]** = 已由各章 `code/` 下核验脚本数值核验（尚未起章的暂放 `docs/checks/`）；**[推]** = 解析推导，未另作数值核验；**[猜]** = 结构性断言，待穷举或仿真确认。
 
 ## 0. 对象链
 
@@ -190,6 +190,6 @@ $$
 - `08-wedge-times-fold/code/check_signature.py` — 定理 5′。
 - `08-wedge-times-fold/code/enumerate_signatures.py` — 定理 5″（产出 `data/signature_table*`）；`check_ground_truth_signature.py` — ch3 ground truth 对表（产出 `data/ground_truth_signature.md`）。
 - `08-wedge-times-fold/code/analyze_energy.py` — 定理 5″ 的 MC 独立复核 + 每类能量份额（产出 `data/analysis/`（ignored，打包为 `data/analysis.zip` 走 LFS）、`data/energy_table.md`；需 `LUMICE_BIN` 指向带 `analyze` 子命令的本地 build）。
-- `docs/checks/check_pyramid.py` — 定理 6、7。
+- `09-pyramid/code/check_pyramid.py` — 定理 6、7。
 
 ch7 / ch9 bootstrap 时迁入各章 `code/`。
