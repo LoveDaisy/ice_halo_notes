@@ -1,0 +1,23 @@
+{
+  "lumice_version": "v4.5.1",
+  "lumice_bin": "/Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/.lumice/v4.5.1/Lumice",
+  "lumice_bin_sha256": "ebd04c8cba8258bf178dea24dd59b335eb6b6da3fb4b66d8d1f06ef06f791a6a",
+  "config_sha256": "f90b9bbf0417985e9a23cbcefaf9cdf1de8a765ac67500029383230f50e13537",
+  "wall_clock_s": 57.806,
+  "platform": "Darwin 23.6.0 arm64",
+  "workers": null,
+  "backend": null,
+  "format": "png",
+  "cli_args": [
+    "-f",
+    "/Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/08-wedge-times-fold/data/cross_section_renders/d1.2/config.json",
+    "-o",
+    "/Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/08-wedge-times-fold/data/cross_section_renders/d1.2",
+    "--format",
+    "png"
+  ],
+  "images": [
+    "img_01.png"
+  ],
+  "ray_num": 200000000
+}
