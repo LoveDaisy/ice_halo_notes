@@ -247,15 +247,20 @@ def raypaths_of_class(number: int, max_len: int = 6) -> tuple[tuple[int, ...], .
     return tuple(sorted(out, key=lambda s: (len(s), s)))
 
 
+_B_SWAP = {1: 2, 2: 1, **{13 + i: 23 + i for i in range(6)}, **{23 + i: 13 + i for i in range(6)}}
+"""上下互换（B）：底面 1↔2；锥晶再加上锥面 13+i ↔ 下锥面 23+i；侧面不动。"""
+
+
 def pbd_orbit(faces: Sequence[int]) -> set[tuple[int, ...]]:
-    """面序列在 Lumice ``symmetry: "PBD"`` 下的全部像：D6（P 旋转 + D 翻转，:mod:`halo_notes.math.group`）× 上下互换（B）。"""
+    """面序列在 Lumice ``symmetry: "PBD"`` 下的全部像：D6（P 旋转 + D 翻转，:mod:`halo_notes.math.group`）× 上下互换（B）。
+    锥晶面号（13–18 / 23–28）同样适用：D6 逐环带作用，B 把上下锥面对调。"""
     from . import group as D6
     faces = tuple(int(f) for f in faces)
     out: set[tuple[int, ...]] = set()
     for g in D6.elements():
         im = tuple(D6.apply_path(g, faces))
         out.add(im)
-        out.add(tuple({1: 2, 2: 1}.get(f, f) for f in im))
+        out.add(tuple(_B_SWAP.get(f, f) for f in im))
     return out
 
 

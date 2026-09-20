@@ -139,3 +139,16 @@ def test_latex_names():
 def test_apply_rejects_bad_face(bad):
     with pytest.raises(ValueError):
         apply(R(1), bad)
+
+
+def test_apply_acts_on_pyramid_bands_like_the_prism_band():
+    """锥面 13+i / 23+i 与侧面 3+i 同方位角：同一元素作用后环带内序号一致；底面不动；环带之间不串。"""
+    for g in elements():
+        for i in range(6):
+            j = apply(g, 3 + i) - 3
+            assert apply(g, 13 + i) == 13 + j and apply(g, 23 + i) == 23 + j
+        assert apply(g, 1) == 1 and apply(g, 2) == 2
+    assert apply(R(1), 18) == 13 and apply(R(5), 23) == 28
+    for bad in (12, 19, 22, 29):
+        with pytest.raises(ValueError):
+            apply(R(1), bad)

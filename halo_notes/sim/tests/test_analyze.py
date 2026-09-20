@@ -281,6 +281,46 @@ def test_real_lumice_analyze_pipeline_smoke(tmp_path):
     assert isinstance(cc.ok, bool) and not cc.uncovered
 
 
+def test_pyramid_analysis_config_shape():
+    """锥晶版与六棱柱版只差 crystal 段：类型 pyramid、换算字段来自 ``pyramid_crystal_from_geometry``、随机取向；六棱柱版不变。"""
+    from lumice_integral.geometry import Pyramid
+
+    cfg = A.pyramid_analysis_config(Pyramid(a=1.0, h=2.0, tip_ratio=0.3), max_len=5, rays=1234)
+    c = cfg["crystal"][0]
+    assert c["type"] == "pyramid" and c["axis"] == C.random_axis()
+    assert c["shape"] == {"prism_h": 1.0, "upper_h": 0.3, "lower_h": 0.3, "upper_indices": [1, 0, 1], "lower_indices": [1, 0, 1]}
+    assert cfg["scene"]["max_hits"] == 5 and cfg["scene"]["ray_num"] == 1234 and cfg["render"] == []
+    hexcfg = A.analysis_config(1.0, max_len=5, rays=1234)
+    assert {k: v for k, v in cfg.items() if k != "crystal"} == {k: v for k, v in hexcfg.items() if k != "crystal"}
+    with pytest.raises(ValueError):
+        A.pyramid_analysis_config(Pyramid(), max_len=0, rays=10)
+
+
+@pytest.mark.slow
+def test_real_lumice_analyze_pyramid_smoke(tmp_path):
+    """锥晶 smoke（scrum ch9-prep 子任务 2）：随机取向 ``Pyramid()``、``max_len=4`` 跑通，CSV 出现上锥 13–18 与下锥 23–28 面，
+    ``classify_rows(Pyramid(), rows)`` 归 Φ 类不报错且类数 > 1；不出表（子任务 4）。``max_len=4`` 是不撞 16384 槽驻留表的
+    最大链长（2026-09-20 实测：4 ⇒ 7580 行 / ``record_full_hits=0``；5 ⇒ 16385 行 / 20374 次被拒、``other`` 0.7% 能量），
+    这里顺带断言不溢出，子任务 4 要跑 5 以上必须先处理上限。"""
+    if not os.environ.get("LUMICE_BIN"):
+        pytest.skip("需要 LUMICE_BIN 指向带 analyze 子命令的本地 build")
+    from lumice_integral.geometry import Pyramid
+    from lumice_integral.geometry.pyramid import LOWER_PYRAMID_FACES, UPPER_PYRAMID_FACES
+
+    pyramid, max_len = Pyramid(), 4
+    cfg = A.pyramid_analysis_config(pyramid, max_len=max_len, rays=300_000)
+    res = A.run_analysis(cfg, tmp_path / "out", seed=7, timeout=600)
+    assert res.provenance["local_build"] is True and res.rows and max(len(r.faces) for r in res.rows) == max_len
+    assert res.header.record_full_hits == 0 and not any(r.is_other for r in res.rows)
+    faces_seen = {f for r in res.rows for f in r.faces}
+    assert faces_seen & set(UPPER_PYRAMID_FACES) and faces_seen & set(LOWER_PYRAMID_FACES)
+    assert faces_seen <= {1, 2, *range(3, 9), *UPPER_PYRAMID_FACES, *LOWER_PYRAMID_FACES}
+    agg = A.classify_rows(pyramid, res.rows)
+    assert len(agg) > 1
+    assert sum(a.energy_pct for a in agg.values()) > 0
+    print(f"pyramid smoke: {len(res.rows)} 行, record_full_hits={res.header.record_full_hits}, {len(agg)} 个 Φ 类")
+
+
 def test_fine_grid_area_recovers_coarse_grid_miss():
     """h/a=1 的 `3-6-3-6-4`：2° 网格判不可达（枚举器口径），0.5° 细网格上有可行格（2026-09-15 互证违反项归因样例）；
     宽窗口的 `3-5` 两边都可行；单面序列拒绝。"""
