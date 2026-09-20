@@ -1,0 +1,23 @@
+{
+  "lumice_version": "v4.5.1",
+  "lumice_bin": "/Users/zhangjiajie/Codes/ice-halo-notes-wt-22/.lumice/v4.5.1/Lumice",
+  "lumice_bin_sha256": "ebd04c8cba8258bf178dea24dd59b335eb6b6da3fb4b66d8d1f06ef06f791a6a",
+  "config_sha256": "c8287de2e7a58f6a0c6f9ccae677b0e71ed8f63bd6f1c62e27c2f26477a88f77",
+  "wall_clock_s": 52.098,
+  "platform": "Darwin 23.6.0 arm64",
+  "workers": null,
+  "backend": null,
+  "format": "png",
+  "cli_args": [
+    "-f",
+    "/Users/zhangjiajie/Codes/ice-halo-notes-wt-22/09-pyramid/data/odd_radius_top3/3_13-15-26-28/config.json",
+    "-o",
+    "/Users/zhangjiajie/Codes/ice-halo-notes-wt-22/09-pyramid/data/odd_radius_top3/3_13-15-26-28",
+    "--format",
+    "png"
+  ],
+  "images": [
+    "img_01.png"
+  ],
+  "ray_num": 200000000
+}
