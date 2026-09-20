@@ -1,6 +1,6 @@
 # 系列路线图
 
-> 2026-09-11 起草，2026-09-12 定下正向深化五章（7–11）。章节内容由作者定，本文只固定结构与线索；「需要的能力」一列是 `halo_notes/` 的需求清单来源。理论骨架本身见 [framework.md](framework.md)。
+> 2026-09-11 起草，2026-09-12 定下正向深化五章（7–11）；2026-09-20 ch7/ch8 发表，起 ch9 与番外「Tape 光点法 vs 矩阵法」的写作准备（scrum `ch9-prep` / `ex-tape-prep`）。章节内容由作者定，本文只固定结构与线索；「需要的能力」一列是 `halo_notes/` 的需求清单来源。理论骨架本身见 [framework.md](framework.md)。
 > 状态：`published` / `draft`（正文已成、未发表）/ `outline` / `idea`（只有一句话）/ `todo`（已决定写、未起提纲）。
 
 ## 主线
@@ -35,9 +35,9 @@
 
 | 章 | 目录（拟） | 标题（拟） | 锚定的悬念 | 核心结果 | 计算机核验交付 | 需要的能力 | 状态 |
 |---|---|---|---|---|---|---|---|
-| 7 | `07-reflection-group` | 为什么恰好是十二个 | ch3 结尾「这些结果和整体变换矩阵有什么联系？且听下回分解」 | 12 = 六棱柱镜面生成群 $D_{3h}$；6 类 = 该群下的共轭类（特征值 / Jordan 型是 O(3) 共轭不变量，太粗：#11 会并进 #2）；4 锐 2 散 ⇔ 是否与 $R_z$ 对易；$\dim(\text{晕})=\dim Q-\dim\mathrm{Stab}$。定理假设（镜面夹角 60°/90°）要写明，给 ch9 埋线 | 群闭包 + 共轭类 + 对易判据（`07-reflection-group/code/check_group.py` 已通过） | `math.group`：$D_{3h}$ 作用与共轭类 | draft（正文与 7 图 2 gif 已成，待发表） |
-| 8 | `08-wedge-times-fold` | 三种楔子、十二种折叠 | ch2/ch3「进一步的对称性」；ch3 楔角光路图；ch3 工作笔记「推导一下楔角光路」 | $\Phi_P = M\circ W_{\mathbf n_a,\,M^{-1}\mathbf n_b}$（Snell 的旋转等变性）；$M^{-1}\mathbf n_b$ 仍是面法向 ⇒ 六棱柱任意长度光路 = {0°, 60°, 90°} 三种有效楔 × 12 种折叠（120° 楔全反射死角）；平行光路 = $W=I$ 退化；与 Tape 的 wedge theory / Tricker 万花筒展开合流；signature $[M,\mathbf n_a,M^{-1}\mathbf n_b]/\text{对称}$ 做穷举分类；商掉 $D_{6h}$ 后方向映射至多 34 类（0°/60°/90° 族 6/12/16，`check_signature.py` 已通过）；A60-10（`3-4-5-7`）渲染出带 142° 锐边的宽鼓包 = 楔角机制（与 22° 幻日同类，当年叫「142° 幻日」没叫错东西）；Liljequist 幻日特指其外侧的窄峰 = A0-02 平行光路机制（`3-5-6-7-3`，与 `1-3-2` 同 Φ 定义域窄），对截面形状敏感（锐边不动、窄峰摊平；为什么留后篇） | 上界：signature 类数（已通过）；下界：枚举器给可达类数（已通过：$h/a\ge0.5$ 时 34 类全可达，片晶 28，`data/signature_table.md`）；ch3 ground truth 93 条对表（已通过，`data/ground_truth_signature.md`） | `signature`：规范型（已交付 `halo_notes.math.signature`）；ch2 枚举器 python 复活（已交付，现由 `lumice_integral.geometry.enumerate` 提供） | draft |
-| 9 | `09-pyramid` | 锥晶：结构还是巧合 | ch7 定理的假设 | 锥面法向与 c 轴夹 62.0°（由 $c/a=1.6288$ 算出），不是 Coxeter 角 ⇒ 镜面群无限，矩阵数随字长爆炸（1, 11, 70, 372, 1884, …）；但 $\Phi=M\circ W$ 与 signature 幸存，有限性改由可达性（TIR、几何）保证；同一公式 $\cos A=-\langle\mathbf n_a,\mathbf n_b\rangle$ 扫 20 个面得 9 个可透射楔角 0/28.0/52.4/56.0/60/62.0/63.8/80.2/90 ⇔ 平行、9°、18°、23°、22°、20°、24°、35°、46° 晕；Tape 的「Angle x」在此只是参数 $c/a$。**篇幅卡在四样交付**：增长对照表、9 个楔角推导、加字长上限的 signature 计数、一两个 odd-radius 晕实例；完整目录不进正文 | 增长表 + 楔角表（`docs/checks/check_pyramid.py` 已通过）；加字长上限的 signature 穷举 | `geometry.polyhedron`：一般凸多面体的面相交可达性（ch9 最贵的前置） | todo |
+| 7 | `07-reflection-group` | 为什么恰好是十二个 | ch3 结尾「这些结果和整体变换矩阵有什么联系？且听下回分解」 | 12 = 六棱柱镜面生成群 $D_{3h}$；6 类 = 该群下的共轭类（特征值 / Jordan 型是 O(3) 共轭不变量，太粗：#11 会并进 #2）；4 锐 2 散 ⇔ 是否与 $R_z$ 对易；$\dim(\text{晕})=\dim Q-\dim\mathrm{Stab}$。定理假设（镜面夹角 60°/90°）要写明，给 ch9 埋线 | 群闭包 + 共轭类 + 对易判据（`07-reflection-group/code/check_group.py` 已通过） | `math.group`：$D_{3h}$ 作用与共轭类 | published（2026-09-14，发表题「十二种矩阵背后的数学结构」） |
+| 8 | `08-wedge-times-fold` | 三种楔子、十二种折叠 | ch2/ch3「进一步的对称性」；ch3 楔角光路图；ch3 工作笔记「推导一下楔角光路」 | $\Phi_P = M\circ W_{\mathbf n_a,\,M^{-1}\mathbf n_b}$（Snell 的旋转等变性）；$M^{-1}\mathbf n_b$ 仍是面法向 ⇒ 六棱柱任意长度光路 = {0°, 60°, 90°} 三种有效楔 × 12 种折叠（120° 楔全反射死角）；平行光路 = $W=I$ 退化；与 Tape 的 wedge theory / Tricker 万花筒展开合流；signature $[M,\mathbf n_a,M^{-1}\mathbf n_b]/\text{对称}$ 做穷举分类；商掉 $D_{6h}$ 后方向映射至多 34 类（0°/60°/90° 族 6/12/16，`check_signature.py` 已通过）；A60-10（`3-4-5-7`）渲染出带 142° 锐边的宽鼓包 = 楔角机制（与 22° 幻日同类，当年叫「142° 幻日」没叫错东西）；Liljequist 幻日特指其外侧的窄峰 = A0-02 平行光路机制（`3-5-6-7-3`，与 `1-3-2` 同 Φ 定义域窄），对截面形状敏感（锐边不动、窄峰摊平；为什么留后篇） | 上界：signature 类数（已通过）；下界：枚举器给可达类数（已通过：$h/a\ge0.5$ 时 34 类全可达，片晶 28，`data/signature_table.md`）；ch3 ground truth 93 条对表（已通过，`data/ground_truth_signature.md`） | `signature`：规范型（已交付 `halo_notes.math.signature`）；ch2 枚举器 python 复活（已交付，现由 `lumice_integral.geometry.enumerate` 提供） | published（2026-09-20，发表题「楔角光路」） |
+| 9 | `09-pyramid` | 锥晶：结构还是巧合 | ch7 定理的假设 | 锥面法向与 c 轴夹 62.0°（由 $c/a=1.6288$ 算出），不是 Coxeter 角 ⇒ 镜面群无限，矩阵数随字长爆炸（1, 11, 70, 372, 1884, …）；但 $\Phi=M\circ W$ 与 signature 幸存，有限性改由可达性（TIR、几何）保证；同一公式 $\cos A=-\langle\mathbf n_a,\mathbf n_b\rangle$ 扫 20 个面得 9 个可透射楔角 0/28.0/52.4/56.0/60/62.0/63.8/80.2/90 ⇔ 平行、9°、18°、23°、22°、20°、24°、35°、46° 晕；Tape 的「Angle x」在此只是参数 $c/a$。**篇幅卡在四样交付**：增长对照表、9 个楔角推导、加字长上限的 signature 计数、一两个 odd-radius 晕实例；完整目录不进正文 | 增长表 + 楔角表（`docs/checks/check_pyramid.py` 已通过）；加字长上限的 signature 穷举 | `geometry.polyhedron`：一般凸多面体的面相交可达性（已交付，`lumice_integral.geometry.Pyramid`）；`sim`：锥晶 config（待） | todo → 写作准备中（scrum `ch9-prep`：骨架 → 锥晶 sim 胶水与面编号取证 → Φ 类数随字长收敛探针 → 全类表 + odd-radius 实例 → 提纲） |
 | 10 | `10-two-focusing-mechanisms` | 两种聚光 | ch3「明亮凝聚」的说法不严谨 | 纤维化定理：$SO(3)\cong$ 以「太阳在晶体系中的方向 $\mathbf u$」为底的圆丛，$\angle(\mathbf x,\mathbf s)=D_P(\mathbf u)$ 与姿态无关（两章共用接口）；径向部分：dimension collapse（$DF$ 沿某方向恒为零，对称性）vs Jacobian focusing（$DF$ 只在特殊姿态降秩，奇点）；最小偏折 = fold caustic，$I\sim 1/\sqrt{D-D_{\min}}$；Tape 1980 的 halo function 奇点语言；pushforward $\mu_{\rm sky}=F_*[\rho\,w\,dq]$ 就是 ch4 的渲染方程，ch6 是算它的两条路 | 22° 晕的 $F$、$DF$ 数值 + 仿真径向剖面对照 | `math`：$D_P(\mathbf u)$ 及其 Jacobian | todo |
 | 11 | `11-orientation-to-halo` | 姿态给方位 | ch5 的 SO(3) / 四元数至此才有用武之地；draft 里「离散冲激被姿态展开成弧」的比喻 | 方位部分：$\rho$ 均匀时天空图案 = 太阳盘与带状核 $f(D)$ 的球面卷积（比喻严格成立）；非均匀时是纤维化积分，不是天空上的卷积；真正的卷积核在 $SO(3)$ 上（$\rho=\rho_0 * k_\sigma$），天空上的模糊是 $F$ 推过去的像，$DF$ 大处糊得多；五个标准姿态族（随机 / 片 / 柱 / Parry / Lowitz）作为 $SO(3)$ 子流形，同一光路 × 五族 = 五种晕；$\dim(\text{晕})=\dim Q-\dim(\text{纤维})$ 是 ch7 稳定子公式的一般化。**结尾**：前向模型对 $\rho$ 线性 ⇒ 反问题是线性反问题，Hough = 伴随算子，参数化反演 vs 非参数投票两条路预告 | 同一条 3-5 光路 × 五个姿态族的仿真并排；倾角扩散与 $DF$ 的模糊对照 | `math`：$SO(3)$ 上的分布族与群卷积；`sim`：姿态族参数化 | todo |
 
@@ -58,14 +58,14 @@
 |---|---|---|---|---|---|
 | 球面上的分布 | ch5 存档提纲 | 球面均匀分布按面积算、经纬参数化的奇点、最近邻距离分布、大指数的数值稳定性、球面高斯；ch11 之后升级为 $SO(3)$ 上的分布族 | S² / S³ 采样、解析 pdf | ch11 → ch12 之间 | idea |
 | 球面网格系统 | ch5 存档提纲「单独开一篇？」 | 球面 / 姿态空间离散化方案 | 与 ch12 的姿态空间离散化共用 | ch11 → ch12 之间 | idea |
-| Tape 光点法 vs 矩阵法 | 2026-09-11 draft 讨论 | Tricker 光线几何构造 → Tape 取向空间到光点空间的映射 → 先商成 O(3) 算子再研究群作用；「古典几何解释一个实例，现代代数分类一个结构」 | — | ch8 之后 | idea |
+| Tape 光点法 vs 矩阵法 | 2026-09-11 draft 讨论 | Tricker 光线几何构造 → Tape 取向空间到光点空间的映射 → 先商成 O(3) 算子再研究群作用；「古典几何解释一个实例，现代代数分类一个结构」。写法：锚一个具体实例双写（同一晕两种语言各算一遍、得同一个数），不写成综述；文献忠实度由作者把关（runner 只做源笔记 + 数值互证） | 数值互证脚本（`ex-tape-vs-matrix/code/`） | ch8 之后（2026-09-20 裁定：先于 ch9 动笔） | 写作准备中（scrum `ex-tape-prep`） |
 | 锥晶晕目录 | ch9 溢出 | ch9 正文不放的完整 odd-radius 晕目录（数据附录性质） | ch9 的枚举结果 | ch9 之后或数据附录 | idea |
-| Jordan 型是条歧路 | ch3 工作笔记 | 不变量必须是「正确的那个群」下的不变量：特征值是 O(3) 不变量，把底面反射与侧面反射并成一类；ch7 正文可能已容纳，溢出则成番外 | — | ch7 之后 | idea |
+| ~~Jordan 型是条歧路~~ | ch3 工作笔记 | 已被 ch7 §1「相同的特征值，不同的晕」整段吸收（#2 vs #11 特征值相同、晕不同；用错群不变量就合并东西），不再单立 | — | — | absorbed（2026-09-20） |
 
 ## 章号与目录名
 
 - 目录名 `NN-slug` 的 `NN` = **发表顺序**。正向深化五章占 07–11，`07-halo-detection` 已在 ch7 bootstrap 时改名为 `12-halo-detection`（只改目录名不动 md 文件名，wikilink 不受影响）。
-- 番外目录名用 `ex-<slug>`（待定）。
+- 番外目录名用 `ex-<slug>`（2026-09-20 起用：`ex-tape-vs-matrix`）。
 
 ## `halo_notes/` 需求汇总（由各章「需要的能力」列聚合）
 
