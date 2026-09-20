@@ -1,0 +1,64 @@
+$ /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/.lumice/v4.5.1/Lumice -f /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h0.3_t0.85/fisheye/config.json -o /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h0.3_t0.85/fisheye --format png
+--- stdout ---
+2026-09-21 02:34:25.066 [I] ServerImpl: gpu_route=false worker_count=10 (preferred_backend=0)
+2026-09-21 02:34:25.097 [I] CommitConfig: restart took 30.0ms (Stop 0.0ms + rebuild 30.0ms + Start 0.0ms)
+2026-09-21 02:34:25.097 [I] GenerateScene: first batch enqueued at 0.0ms after start
+2026-09-21 02:34:25.122 [I] ConsumeData: first batch consumed (1152 ray segments)
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h0.3_t0.85/fisheye/img_01.png (1800x1800)
+Stats: sim_rays=6672000, crystals=1, orientations=6672000
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h0.3_t0.85/fisheye/img_01.png (1800x1800)
+Stats: sim_rays=14414976, crystals=1, orientations=14414976
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h0.3_t0.85/fisheye/img_01.png (1800x1800)
+Stats: sim_rays=22312576, crystals=1, orientations=22312576
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h0.3_t0.85/fisheye/img_01.png (1800x1800)
+Stats: sim_rays=30213504, crystals=1, orientations=30213504
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h0.3_t0.85/fisheye/img_01.png (1800x1800)
+Stats: sim_rays=38043264, crystals=1, orientations=38043264
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h0.3_t0.85/fisheye/img_01.png (1800x1800)
+Stats: sim_rays=45852800, crystals=1, orientations=45852800
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h0.3_t0.85/fisheye/img_01.png (1800x1800)
+Stats: sim_rays=53699456, crystals=1, orientations=53699456
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h0.3_t0.85/fisheye/img_01.png (1800x1800)
+Stats: sim_rays=61447296, crystals=1, orientations=61447296
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h0.3_t0.85/fisheye/img_01.png (1800x1800)
+Stats: sim_rays=69207680, crystals=1, orientations=69207680
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h0.3_t0.85/fisheye/img_01.png (1800x1800)
+Stats: sim_rays=77018880, crystals=1, orientations=77018880
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h0.3_t0.85/fisheye/img_01.png (1800x1800)
+Stats: sim_rays=84796800, crystals=1, orientations=84796800
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h0.3_t0.85/fisheye/img_01.png (1800x1800)
+Stats: sim_rays=92651264, crystals=1, orientations=92651264
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h0.3_t0.85/fisheye/img_01.png (1800x1800)
+Stats: sim_rays=100391424, crystals=1, orientations=100391424
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h0.3_t0.85/fisheye/img_01.png (1800x1800)
+Stats: sim_rays=108230016, crystals=1, orientations=108230016
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h0.3_t0.85/fisheye/img_01.png (1800x1800)
+Stats: sim_rays=116088064, crystals=1, orientations=116088064
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h0.3_t0.85/fisheye/img_01.png (1800x1800)
+Stats: sim_rays=123936256, crystals=1, orientations=123936256
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h0.3_t0.85/fisheye/img_01.png (1800x1800)
+Stats: sim_rays=131616256, crystals=1, orientations=131616256
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h0.3_t0.85/fisheye/img_01.png (1800x1800)
+Stats: sim_rays=139318528, crystals=1, orientations=139318528
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h0.3_t0.85/fisheye/img_01.png (1800x1800)
+Stats: sim_rays=147213184, crystals=1, orientations=147213184
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h0.3_t0.85/fisheye/img_01.png (1800x1800)
+Stats: sim_rays=155025536, crystals=1, orientations=155025536
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h0.3_t0.85/fisheye/img_01.png (1800x1800)
+Stats: sim_rays=162733440, crystals=1, orientations=162733440
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h0.3_t0.85/fisheye/img_01.png (1800x1800)
+Stats: sim_rays=170470912, crystals=1, orientations=170470912
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h0.3_t0.85/fisheye/img_01.png (1800x1800)
+Stats: sim_rays=178263424, crystals=1, orientations=178263424
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h0.3_t0.85/fisheye/img_01.png (1800x1800)
+Stats: sim_rays=186039808, crystals=1, orientations=186039808
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h0.3_t0.85/fisheye/img_01.png (1800x1800)
+Stats: sim_rays=193939200, crystals=1, orientations=193939200
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h0.3_t0.85/fisheye/img_01.png (1800x1800)
+Stats: sim_rays=200000000, crystals=1, orientations=200000000
+Saved: /Users/zhangjiajie/Codes/ice-halo-notes-wt-26/09-pyramid/data/odd_radius_panorama_h0.3_t0.85/fisheye/img_01.png (1800x1800)
+Stats: sim_rays=200000000, crystals=1, orientations=200000000
+2026-09-21 02:35:15.873 [I] Consume profile: 1562500 batches, avg 14.9us (proj 11.0us 74% + accum 3.9us 26%)
+
+--- stderr ---
+

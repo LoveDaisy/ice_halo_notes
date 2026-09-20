@@ -227,9 +227,9 @@ def top_out_of_family(n: int = 3, tier: tuple[float, float] = TIER) -> list[OffF
 # ---- 场景 / 渲染段 ----
 
 
-def crystal() -> dict:
-    """默认档锥晶、随机取向（`random_axis()`：zenith 球面均匀，azimuth / roll 省略 = 均匀）。"""
-    return C.pyramid_crystal_from_geometry(1, ES.tier_pyramid(TIER), axis=C.random_axis())
+def crystal(tier: tuple[float, float] = TIER) -> dict:
+    """``tier`` 档锥晶（默认档）、随机取向（`random_axis()`：zenith 球面均匀，azimuth / roll 省略 = 均匀）。"""
+    return C.pyramid_crystal_from_geometry(1, ES.tier_pyramid(tier), axis=C.random_axis())
 
 
 def scene(ray_num: int, *, filtered: bool = True) -> dict:
