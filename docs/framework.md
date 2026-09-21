@@ -68,7 +68,7 @@ $$
 = M\circ\underbrace{\mathcal S_{M^{-1}\mathbf n_b}\circ\mathcal S_{\mathbf n_a}}_{W_{\mathbf n_a,\tilde{\mathbf n}_b}},
 \qquad \tilde{\mathbf n}_b=M^{-1}\mathbf n_b .
 $$
-$\tilde{\mathbf n}_b$ 是把内反射全部展开后出射面在展开空间中的法向：**任意复杂光路 = 一个展开后的楔角折射 $W$ + 一个最终折叠 $M$**。Tricker 的万花筒展开与矩阵法在此合流；Tape 的 wedge theory（Tape & Können 1999）恰好是 $W$ 这一半。平行光路 = $\tilde{\mathbf n}_b=-\mathbf n_a$，$W=I$，$\Phi=M$，是一般理论的退化子类。ch3 笔记里的 $c_\theta=\mathbf n_N^T M\mathbf n_1$ 就是楔角余弦；当年「没什么卵用」是因为在化简公式，它的用处在分类。
+$\tilde{\mathbf n}_b$ 是把内反射全部展开后出射面在展开空间中的法向：**任意复杂光路 = 一个展开后的楔角折射 $W$ + 一个最终折叠 $M$**。Tricker 1973 的万花筒逐次镜像直接给出平行光路 $W=I$ 时的 $M$；Tape 的 wedge theory（Tape & Können 1999）恰好是 $M=I$ 时的 $W$。二者在一般分解 $\Phi=M\circ W$ 中合流。平行光路 = $\tilde{\mathbf n}_b=-\mathbf n_a$，$W=I$，$\Phi=M$，是一般理论的退化子类。ch3 笔记里的 $c_\theta=\mathbf n_N^T M\mathbf n_1$ 就是楔角余弦；当年「没什么卵用」是因为在化简公式，它的用处在分类。
 
 **定理 5（三种楔）[算]。** $G$ 置换面法向集合，故 $\tilde{\mathbf n}_b$ 仍是 8 个面法向之一。遍历 $M\in G$ 与所有面对，$\langle\mathbf n_a,M^{-1}\mathbf n_b\rangle\in\{0,\pm\tfrac12,\pm1\}$，楔角 $A$（$\cos A=-\langle\mathbf n_a,\tilde{\mathbf n}_b\rangle$）$\in\{0°,60°,90°,120°,180°\}$；$n=1.31$ 下可透射上限 $2\arcsin(1/n)\approx99.5°$，有效楔只有 **0° / 60° / 90°**（平行、22° 族、46° 族），120° 全反射死角。故**六棱柱任意长度光路的方向映射 ⊆ 3 种楔 × 12 种折叠**，再商掉晶体对称与不可达组合。
 
@@ -149,7 +149,7 @@ $D_P$ 的定义因此带两个负号（$D_P(\mathbf u)=\angle(-\Phi_P(-\mathbf u
 | 来源 | 精确对称：$M\in C_G(\text{姿态子群})$ | 奇点：$\det DF\to0$ |
 | 典型 | 平行光路（特里克尔弧的 $\theta$ 整维压扁） | 22° 晕：$D(i)\simeq D_{\min}+\tfrac12D''(i-i_0)^2$ |
 | 局部律 | 整维贡献到同一位置 | $I(D)\sim\sum_{u:F(u)=D}\rho(u)/\lvert dD/du\rvert\sim 1/\sqrt{D-D_{\min}}$（fold） |
-| 文献 | — | Tape 1980 *Analytic foundations*：caustic = halo function 奇点集的像；1983 fold / pleat |
+| 文献 | — | Tape 1980 *Analytic foundations*：caustic = halo function 奇点集的像、已讨论 fold / pleat；Tape 1982 *Folds, pleats, and halos* 作科普展开，Tape 1983 *Halos and Singularities* 再作技术扩展；Können 1983 在理想化假设下给出近晕角的解析强度分布 |
 
 非平行楔一般没有连续稳定子（$\mathbf n_1,\mathbf n_2,\mathbf n_1\times\mathbf n_2$ 已钉死朝向），所以 centralizer 语言只对平行光路有效，一般晕的聚光机制是奇点，不是对称。draft 早先把 centralizer 提得太重，此处已修正。发散被太阳 0.5° 角径、姿态扰动、晶面缺陷、波动光学卷积平滑。
 
@@ -178,7 +178,7 @@ $D_P$ 的定义因此带两个负号（$D_P(\mathbf u)=\angle(-\Phi_P(-\mathbf u
 
 | 路线 | 对象 | 备注 |
 |---|---|---|
-| Tricker 1973 *kaleidoscope* | 光线几何构造，展开 / 折叠 | 对应 $\tilde{\mathbf n}_b=M^{-1}\mathbf n_b$ 的展开空间 |
+| Tricker 1973 *kaleidoscope* | 六棱柱侧面的逐次镜像；平行底面使入、出折射等量 | 直接对应 $W=I,\ \Phi=M$：逐次镜像合成为内反射矩阵 $M$；不是一般 $\tilde{\mathbf n}_b=M^{-1}\mathbf n_b$ / $M\circ W$ 分解的完整先例 |
 | Tape 1979 *Geometry of halo formation*；1980 *Analytic foundations* | 取向空间 → 光点空间的映射；caustic = 奇点集的像 | 对应 $F_P$ 与 $DF$（第 4 节） |
 | Tape & Können 1999 *A general setting for halo theory* | 一般楔角的 wedge theory | 对应 $W$（定理 4 的一半） |
 | Tape *Angle x* | 锥面角 | 对应参数 $c/a$（定理 7） |
