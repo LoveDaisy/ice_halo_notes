@@ -6,9 +6,11 @@ status: outline
 
 tags: [[halo]], [[Halo Notes]], [[math|数学]], [[optics|光学]], [[我的知乎专栏文章]],
 
-> 本篇尚未动笔。番外不占主线章号，落在漫谈(8) 之后作过场；提纲 2026-09-20 草成（待作者 review）。主源三篇：Tape 1980 *Analytic foundations of halo theory*、Tape & Können 1999 *A general setting for halo theory*、Tape & Moilanen 2006 *Atmospheric Halos and the Search for Angle x*；另以 Tricker 1973 *The long hexagonal ice prism as a kaleidoscope* 作万花筒光路的一手历史源。逐页引注的源笔记见同目录 `源笔记-Tape.md`（下文 `[Tape1980 p.N]` 等页码沿其约定，指本机 PDF 页序号）；数值互证脚本 `code/tape_halo_function.py`（Tape 侧两条链路）、`code/crosscheck_bridge.py`（翻译层）、`code/crosscheck_a.py`（逐点）、`code/crosscheck_b.py`（图级），数据与结论在 `data/crosscheck_a_summary.md`、`data/crosscheck_b_inner_edge.csv`、`data/notes.md`。
+> 本篇尚未动笔。番外不占主线章号，落在漫谈(8) 之后、漫谈(9) 之前作过场，双出口（主出口 ch9、次出口 ch10）；提纲 2026-09-20 草成，2026-09-21 按讨论板（`scratchpad/DRAFT-DISCUSS-BOARD-ch9-ex.md`）改为「三块拼图」框架、A60-10 为主角。主源三篇：Tape 1980 *Analytic foundations of halo theory*、Tape & Können 1999 *A general setting for halo theory*、Tape & Moilanen 2006 *Atmospheric Halos and the Search for Angle x*；另以 Tricker 1973 *The long hexagonal ice prism as a kaleidoscope* 作万花筒光路的一手历史源。逐页引注的源笔记见同目录 `源笔记-Tape.md`（下文 `[Tape1980 p.N]` 等页码沿其约定，指本机 PDF 页序号）；数值互证脚本 `code/tape_halo_function.py`（Tape 侧两条链路）、`code/crosscheck_bridge.py`（翻译层）、`code/crosscheck_a.py`（逐点）、`code/crosscheck_b.py`（图级），数据与结论在 `data/crosscheck_a_summary.md`、`data/crosscheck_b_inner_edge.csv`、`data/notes.md`。
 
-> 本篇知识点（拟）：光点（light point）、楔与 pole、等变、楔 × 折叠
+> 本篇知识点（拟）：光点（light point）、同心球折射作图、楔与 pole、等变、楔 × 折叠
+
+> **核心命题（一句话）**：Tape 按「楔 + 取向」组织纯折射晕；本系列按「楔 $W$ + 折叠 $M$」组织晶体中的完整光路。不写「古典几何解释一个实例，现代代数分类一个结构」——Tape 的 atlas 本身也在系统分类，区别在分类轴，不在是否分类。`3-5` 只是翻译校准（证明 $M=I$ 时两套语言是同一个东西），A60-10 才是主角，片晶正例与柱晶反例是核心证据。
 
 ## 提纲
 
@@ -28,6 +30,7 @@ tags: [[halo]], [[Halo Notes]], [[math|数学]], [[optics|光学]], [[我的知�
 - **对应关系要收窄**：这篇论文直接给出的是 $W=I$ 的平行光路，所以 $\Phi=M$；它不是一般 $M\circ W$ 分解的完整先例，也没有把所有反射序列商成 12 类。ch8 的「Tricker 万花筒展开与矩阵法合流」应理解为：逐次镜像合成为 $M$；非平行首尾面所需的 $W$ 是后续合流时补上的另一半。
 - **已经可以写实的部分**：TM2006 Fig. 4.5 明确规定以介质折射率为半径画同心天球（图面截面即同心圆），入射、反射、折射光点沿界面法线共线；Fig. 4.8 再由 Snell 定律推出这套作图 [TM2006 p.48, p.51]。因此「同心圆作图」不是悬而未决的 Tricker 专属细节，而是可以直接据 Tape & Moilanen 介绍的标准几何折射法。
 - **仍保留的一层谨慎**：Tricker 1973 说的是逐次镜像和天球上的 image / direction，并没有在本文使用可确认的 “light point” 术语。本机仍无 Tricker 1970 原书，故不能断言 1970 书采用了 TM2006 的同心圆图式或相同命名；两者属于同一古典几何传统是合理判断，但直接继承关系仍是推断。
+- **篇幅受控**：Tricker 在本篇只做历史前情——一张逐次镜像图、一个 $W=I$ 的翻译、一句边界说明。不展开 1973 文里 anthelic arc 的球面三角计算，那会把文章带回实例考据，偏离「$M$ 与 $W$ 如何合流」。
 - 图占位：① 改绘 Tricker1973 Fig. 4 的「侧面逐次镜像 → 一个 $M$」；② 标准同心球折射作图（改绘自 TM2006 Fig. 4.5）。两张图并列，正好把反射的 $M$ 与折射的 $W$ 分开；不要把第二张题作「Tricker 的作图」。
 
 ### 2. Tape：取向空间到光点空间的映射
@@ -53,22 +56,39 @@ tags: [[halo]], [[Halo Notes]], [[math|数学]], [[optics|光学]], [[我的知�
   - **片晶族：能**。片晶姿态下 $RMR^{-1}=\mathrm{zrot}(120°)$（200 组样本，恒等式误差最大 $7.216\times10^{-16}$），恰好落进 TK1999 的方位不变性 Rule 1 [TK1999 p.22, Eq. (67)]，于是 A60-10 = 「把 Plate 3 5 幻日整体绕竖直转 120°」：两侧都可达的 31 组样本，$\mathbf H_{3457}$ 与 $\mathrm{zrot}(120°)\mathbf H_{35}$ 最大角距离 $3.003\times10^{-15}$ rad（`crosscheck_a_summary.md` §2，明细 `crosscheck_a_A60-10_plate.csv`）。$\Sigma=0$ 时最内点 $=21.8393°+120°=141.8393°$（`crosscheck_b_inner_edge.csv` 第四列）；$\Sigma>0$ 时「+120°」只对方位成立、不对角距成立——$\Sigma=10°/20°/30°$ 最内点 137.6551° / 127.0555° / 113.0092°（与幻日内边差 115.52° / 103.98° / 88.22°），这就是 ch8 §6 说亮斑「沿幻日环、在反日点附近」的几何来由（`data/notes.md` §2）。
   - **柱晶族：不能**。柱晶姿态下 $R\mathbf k$ 水平，$RMR^{-1}$ 是绕水平轴的 120° 旋转，$\angle(RMR^{-1}\mathbf k,\mathbf k)\equiv120°$，不在 TK1999 的 $Z$（绕竖直旋转群）里，Rule 1 前提失效：两侧都可达的 35 组样本，强行套 Rule 1 得到的 $\mathrm{zrot}(120°)\mathbf H_{35}$ 与真值 $\mathbf H_{3457}$ 差 min / mean / max = 17.512° / 88.451° / 150.247°（`crosscheck_a_summary.md` §3，明细 `crosscheck_a_A60-10_column_negative.csv`）。同一批样本上本系列自己的共轭式 $RMR^{-1}\mathbf H_{35}=\mathbf H_{3457}$ 仍逐点成立（最大 $2.993\times10^{-15}$ rad）。
   - 落点：TK1999 自己说过，加一次内反射「会得到一整本新 atlas，任何其它新光路同样如此」[TK1999 p.15]；他们缺的对象正是一个固定在**晶体**上（而不是楔上）的正交算子 $M$，光点公式补成 $\mathbf H=RMR^{-1}\,\mathbf F(u\mathbf N_0,u\mathbf X_0,\mathbf S)$ 就是本系列 signature 的 $M$ 那一维（`data/notes.md` §3；源笔记 §4 #19、#20）。片晶族能表示 A60-10，唯一的原因是 $M$ 恰好是绕 spin vector 的旋转（源笔记 §6.2）——是巧合，不是结构。
+  - **措辞纪律**：不写「Tape 不能表示反射」，写「TK1999 的纯折射 wedge atlas 没有把晶体内反射 $M$ 编进同一个对象；加入反射需要另建 atlas」。不写「片晶能、柱晶不能」，写「片晶下 Rule 1 恰好能从纯折射 atlas 恢复这个 $M$；柱晶下同一 Rule 1 不再适用」。「同一个楔」必须说清是本系列**展开后的有效楔**：TK1999 原生 wedge 由物理入射面和出射面定义，把 `3-4-5-7` 投影成 `3-5` 已经用了展开和 $M^{-1}\mathbf n_b$。
+  - 1980 / 1999 两条 Tape 公式链的完整互证、1000 组随机样本与浮点误差、四个太阳高度的全部数字、141.84° 与 142.56° 的口径差——各缩成一句或进脚注 / 数据附录，不占正文。
 - 顺手交代 ch8 §6 的 142.56° 与这里 141.84° 的 0.72° 差：前者是 Lumice 渲染（太阳角径 0.5°、倾角 0.5°、0.5° 桶）的内侧**半高点**，后者是零角径、零倾角、单条光路的**锐边理论值**；半高必在锐边外侧、量级 < 1°，方向与大小都对得上，ch8 不改（`data/notes.md` §2）。
 - 图占位：`3-5` 双写示意（见配图表）。
 
-### 4. 收束：解释一个实例，还是分类一个结构
+### 4. 收束：两种 atlas、两种分类轴
 
-- 「古典几何解释一个实例，现代代数分类一个结构」——不是谁对谁错，是问的问题不同：Tape 问「给定楔与取向族，光点落在哪」，本系列问「六棱柱一共能给出多少种 $\Phi$，它们之间什么关系」。A60-10 与 A60-12 是「同一个楔 × 不同折叠」，这层关系在 atlas 里是两张无关的图（片晶）或干脆不存在（柱晶）（源笔记 §4 #20、#21）。
+- 两边都在分类，轴不同：Tape 按「楔 $\alpha$ + pole / 取向族」把纯折射晕列成 atlas，问「给定楔与取向族，光点落在哪」；本系列按「楔 $W$ + 折叠 $M$」把完整光路商成 signature，问「六棱柱一共能给出多少种 $\Phi$，它们之间什么关系」。A60-10 与 A60-12 是「同一个楔 × 不同折叠」，这层关系在 atlas 里是两张无关的图（片晶）或干脆不存在（柱晶）（源笔记 §4 #20、#21）。两边各自没有的东西下面分说。
 - 反过来也要说清本系列没有的：caustic 的解析处理——显式 Jacobian 核公式与奇点集方程 [Tape1980 p.5, p.15]（源笔记 §4 #29）；「最小偏折轨迹 ≠ caustic」的警示，只对切弧 / 幻日 / 圆晕成立 [Tape1980 p.15]（#16）；contact circle、Nonempty Halos 定理这些几何直觉工具（#24）。
 - 一句话把奇点 / caustic 语言留给后篇：Tape 1980 自陈「理论最显眼的缺陷是缺少 caustic 强度的简单解析度量」[Tape1980 p.16]；Können 1983 后来在五个理想化假设下给出了近晕角的解析强度分布与 halocaustic 形状 [Können1983 p.1, p.3, p.10]。任意姿态分布 $\rho$ 与光路权重下的统一 pushforward 仍是本系列多出的一层（源笔记 §4 #17、#30），留给 ch10，本篇不展开。
+
+### 5. 双出口：先交给 ch9，再远眺 ch10
+
+- **主出口 → ch9**：Tape / Angle x 给出的是直接楔目录（$M=I$，楔由两个物理面构成）；加入非平凡 $M$ 之后，直接楔仍然有限，但折叠楔（$\tilde{\mathbf n}_b=M^{-1}\mathbf n_b$ 为虚面）和精确 $\Phi$ 类不再封闭成有限表——锥晶正是这件事的试金石。一句话交接，不剧透 ch9 的数字。
+- **次出口 → ch10**：Tape 的奇点 / caustic 语言是本系列到 ch8 为止尚未展开的另一半；已有一条 Tape 1980 → Tape 1982 / 1983 → Können 1983 的 caustic / 强度文献链，本篇只指出存在，不展开。
+
+## 正文范围（讨论板裁定）
+
+**保留**：光点的同心球几何；TK1999 的两次投影公式；`3-5` 的一次翻译校准；A60-10 的 $W/M$ 分离；片晶下 Rule 1 为何恰好补回 $M$、柱晶下为何不行；两种 atlas / 两种分类轴及各自没有的东西。
+
+**缩成一句、脚注或数据附录**：1980 / 1999 两条公式链的完整互证；1000 组随机样本与浮点误差；四个太阳高度的全部数字；141.84° 与 142.56° 的口径差。
+
+**后置**：halo function 完整坐标、Jacobian 核、fold / pleat、caustic 方程 → ch10；generating set 维数、pole / spin-vector 姿态族、$\rho$ → ch11；Angle x、锥晶直接楔角表与 $c/a$ → ch9。
+
+**不写**：Tricker 1970 原书未获得前的构造细节与术语归属（只写「Tricker 所代表的经典几何传统」）；Tape 1994、Können 1983 等旁支考据（Können 1983 不写的原因是它属于 ch10 主线，不是材料缺失）；完整 atlas 综述。
 
 ## 配图（拟）
 
 | 图 | 类型 | 内容 / 读者必须能看出的东西 |
 |---|---|---|
 | 万花筒与同心球 | 几何示意（分别改绘 Tricker1973 Fig. 4、TM2006 Fig. 4.5） | 左：太阳方向关于六棱柱侧面逐次成像，镜像连乘就是 $M$；右：折射率决定同心球半径，法线投影就是 $W$。先把两块分开，随后才能看懂 $M\circ W$ |
-| atlas 对照图（互证 B） | 图表（`code/crosscheck_b.py` 数据重画） | 左 22° 幻日光点轨迹随太阳高度 $\Sigma=0°/10°/20°/30°$ 四条（`data/crosscheck_b_locus_sigma{0,10,20,30}.csv`），Tape 侧与本系列侧叠画；旁附内边角距三链路对照表（`data/crosscheck_b_inner_edge.csv`）：**两种写法、四条曲线、同一组数** |
-| `3-5` 双写示意 | 图表（`code/crosscheck_a.py` 数据重画） | 同一个姿态、同一个太阳方向，左边用 Tape 的两次平行投影（内球半径 1、外球半径 $n$）、右边用本系列 $-R\Phi(-R^{-1}\mathbf S)$ 各画一次光点（`data/crosscheck_a_A60-12.csv` 取一组可达样本）：**两套坐标系、两条公式，光点重合**；可加第三块：A60-10 在片晶（重合）与柱晶（Rule 1 偏 17°–150°）下的对照（`data/crosscheck_a_A60-10_plate.csv`、`data/crosscheck_a_A60-10_column_negative.csv`） |
+| atlas 对照图（互证 B，**补充图**，正文可只留内边角距一行） | 图表（`code/crosscheck_b.py` 数据重画） | 左 22° 幻日光点轨迹随太阳高度 $\Sigma=0°/10°/20°/30°$ 四条（`data/crosscheck_b_locus_sigma{0,10,20,30}.csv`），Tape 侧与本系列侧叠画；旁附内边角距三链路对照表（`data/crosscheck_b_inner_edge.csv`）：**两种写法、四条曲线、同一组数** |
+| `3-5` 双写 + A60-10 片晶 / 柱晶对照（**主图**，与「万花筒与同心球」并列为两张主图） | 图表（`code/crosscheck_a.py` 数据重画） | 同一个姿态、同一个太阳方向，左边用 Tape 的两次平行投影（内球半径 1、外球半径 $n$）、右边用本系列 $-R\Phi(-R^{-1}\mathbf S)$ 各画一次光点（`data/crosscheck_a_A60-12.csv` 取一组可达样本）：**两套坐标系、两条公式，光点重合**；可加第三块：A60-10 在片晶（重合）与柱晶（Rule 1 偏 17°–150°）下的对照（`data/crosscheck_a_A60-10_plate.csv`、`data/crosscheck_a_A60-10_column_negative.csv`） |
 
 ## 文献核对状态
 

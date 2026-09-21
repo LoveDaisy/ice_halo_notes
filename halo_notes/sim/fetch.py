@@ -15,7 +15,7 @@ import tempfile
 import urllib.request
 from pathlib import Path
 
-LUMICE_VERSION = "v4.5.1"  # 唯一权威常量；升级只改这里
+LUMICE_VERSION = "v4.6.1"  # 唯一权威常量；升级只改这里
 LUMICE_REPO = "LoveDaisy/ice_halo_sim"
 BIN_NAME = "Lumice"
 
