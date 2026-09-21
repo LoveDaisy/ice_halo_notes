@@ -68,7 +68,7 @@ $$
 = M\circ\underbrace{\mathcal S_{M^{-1}\mathbf n_b}\circ\mathcal S_{\mathbf n_a}}_{W_{\mathbf n_a,\tilde{\mathbf n}_b}},
 \qquad \tilde{\mathbf n}_b=M^{-1}\mathbf n_b .
 $$
-$\tilde{\mathbf n}_b$ 是把内反射全部展开后出射面在展开空间中的法向：**任意复杂光路 = 一个展开后的楔角折射 $W$ + 一个最终折叠 $M$**。Tricker 的万花筒展开与矩阵法在此合流；Tape 的 wedge theory（Tape & Können 1999）恰好是 $W$ 这一半。平行光路 = $\tilde{\mathbf n}_b=-\mathbf n_a$，$W=I$，$\Phi=M$，是一般理论的退化子类。ch3 笔记里的 $c_\theta=\mathbf n_N^T M\mathbf n_1$ 就是楔角余弦；当年「没什么卵用」是因为在化简公式，它的用处在分类。
+$\tilde{\mathbf n}_b$ 是把内反射全部展开后出射面在展开空间中的法向：**任意复杂光路 = 一个展开后的楔角折射 $W$ + 一个最终折叠 $M$**。Tricker 1973 的万花筒逐次镜像直接给出平行光路 $W=I$ 时的 $M$；Tape 的 wedge theory（Tape & Können 1999）恰好是 $M=I$ 时的 $W$。二者在一般分解 $\Phi=M\circ W$ 中合流。平行光路 = $\tilde{\mathbf n}_b=-\mathbf n_a$，$W=I$，$\Phi=M$，是一般理论的退化子类。ch3 笔记里的 $c_\theta=\mathbf n_N^T M\mathbf n_1$ 就是楔角余弦；当年「没什么卵用」是因为在化简公式，它的用处在分类。
 
 **定理 5（三种楔）[算]。** $G$ 置换面法向集合，故 $\tilde{\mathbf n}_b$ 仍是 8 个面法向之一。遍历 $M\in G$ 与所有面对，$\langle\mathbf n_a,M^{-1}\mathbf n_b\rangle\in\{0,\pm\tfrac12,\pm1\}$，楔角 $A$（$\cos A=-\langle\mathbf n_a,\tilde{\mathbf n}_b\rangle$）$\in\{0°,60°,90°,120°,180°\}$；$n=1.31$ 下可透射上限 $2\arcsin(1/n)\approx99.5°$，有效楔只有 **0° / 60° / 90°**（平行、22° 族、46° 族），120° 全反射死角。故**六棱柱任意长度光路的方向映射 ⊆ 3 种楔 × 12 种折叠**，再商掉晶体对称与不可达组合。
 
@@ -112,7 +112,7 @@ $h/a\ge0.5$ 时 34 类全部可达，**下界 = 上界**；片晶（0.2）缺 46
 
 字长 7/8 由 `09-pyramid/code/check_pyramid.py --max-len 8` 复现（2026-09-20）。
 
-锥晶群无限（有限反射群必须是 Coxeter 群，镜面夹角须为 $180°/m$；60°、90° 是，62° 不是）。**定理 1 是六棱柱的晶体学巧合，不是框架的定理。** 定理 4（分解）与 signature 不依赖群有限，幸存；方向映射类数的有限性改由**可达性**（TIR、几何相交对字长的封顶）保证，而非代数。
+**锥晶群无限 [推]。** 证明用三维有限反射群的分类，而不是「$180°/m$」一句话（$\pi/m$ 只是基本室相邻墙面的判据，任意两镜面的夹角只需是 $\pi$ 的有理倍数，62° 本身就是；2026-09-21 讨论板订正）：(i) 若镜面生成群有限，它是有限反射群；三维不可约有限反射群只有 $A_3$、$B_3$、$H_3$，任意两镜面夹角分别只能取 $\{60°,90°\}$、$\{45°,60°,90°\}$、$\{36°,60°,72°,90°\}$。(ii) 可约情形要求除至多一面外所有镜面过同一条直线；锥晶 6 个锥面法向秩为 3，无公共轴，排除。(iii) 锥晶 10 个镜面（1 底 + 3 侧 + 6 锥）两两夹角实算为 $\{28.0, 52.4, 56.0, 60, 62.0, 63.8, 80.2, 90\}$，六个不在允许集内 ⇒ 群无限。允许集是孤立点，结论对 $c/a$ 的舍入不敏感。注意这张镜面夹角表去掉 0° 后恰是定理 7 的可透射楔角表——同一张表一边杀死有限性、一边给出 9 个半径。**定理 1 是六棱柱的晶体学巧合，不是框架的定理。** 定理 4（分解）与 signature 不依赖群有限，幸存；但方向映射类数的**有限性没有回来**：TIR 与几何可达性都不提供自然封顶（定理 7′ 的不收敛实测），六棱柱的「精确有限全类表」在锥晶上换成「9 个直接楔家族 + 显式字长截断 $L^\ast$」的可控假设空间。**术语**（2026-09-22）：定理 5 的「有效楔」（展开后的楔）是总称；$M=I$、由两个物理面构成的叫**直接楔**，$M\ne I$、出射面 $\tilde{\mathbf n}_b$ 为虚面的叫**折叠楔**。六棱柱的折叠楔角不跑出直接楔角表 {0, 60, 90}，锥晶的会——定理 1 是巧合的另一种说法。
 
 **定理 7（九种楔）[算]。** 同一公式扫 20 个面，可透射楔角恰 9 个：
 
@@ -149,7 +149,7 @@ $D_P$ 的定义因此带两个负号（$D_P(\mathbf u)=\angle(-\Phi_P(-\mathbf u
 | 来源 | 精确对称：$M\in C_G(\text{姿态子群})$ | 奇点：$\det DF\to0$ |
 | 典型 | 平行光路（特里克尔弧的 $\theta$ 整维压扁） | 22° 晕：$D(i)\simeq D_{\min}+\tfrac12D''(i-i_0)^2$ |
 | 局部律 | 整维贡献到同一位置 | $I(D)\sim\sum_{u:F(u)=D}\rho(u)/\lvert dD/du\rvert\sim 1/\sqrt{D-D_{\min}}$（fold） |
-| 文献 | — | Tape 1980 *Analytic foundations*：caustic = halo function 奇点集的像；1983 fold / pleat |
+| 文献 | — | Tape 1980 *Analytic foundations*：caustic = halo function 奇点集的像、已讨论 fold / pleat；Tape 1982 *Folds, pleats, and halos* 作科普展开，Tape 1983 *Halos and Singularities* 再作技术扩展；Können 1983 在理想化假设下给出近晕角的解析强度分布 |
 
 非平行楔一般没有连续稳定子（$\mathbf n_1,\mathbf n_2,\mathbf n_1\times\mathbf n_2$ 已钉死朝向），所以 centralizer 语言只对平行光路有效，一般晕的聚光机制是奇点，不是对称。draft 早先把 centralizer 提得太重，此处已修正。发散被太阳 0.5° 角径、姿态扰动、晶面缺陷、波动光学卷积平滑。
 
@@ -178,7 +178,7 @@ $D_P$ 的定义因此带两个负号（$D_P(\mathbf u)=\angle(-\Phi_P(-\mathbf u
 
 | 路线 | 对象 | 备注 |
 |---|---|---|
-| Tricker 1973 *kaleidoscope* | 光线几何构造，展开 / 折叠 | 对应 $\tilde{\mathbf n}_b=M^{-1}\mathbf n_b$ 的展开空间 |
+| Tricker 1973 *kaleidoscope* | 六棱柱侧面的逐次镜像；平行底面使入、出折射等量 | 直接对应 $W=I,\ \Phi=M$：逐次镜像合成为内反射矩阵 $M$；不是一般 $\tilde{\mathbf n}_b=M^{-1}\mathbf n_b$ / $M\circ W$ 分解的完整先例 |
 | Tape 1979 *Geometry of halo formation*；1980 *Analytic foundations* | 取向空间 → 光点空间的映射；caustic = 奇点集的像 | 对应 $F_P$ 与 $DF$（第 4 节） |
 | Tape & Können 1999 *A general setting for halo theory* | 一般楔角的 wedge theory | 对应 $W$（定理 4 的一半） |
 | Tape *Angle x* | 锥面角 | 对应参数 $c/a$（定理 7） |

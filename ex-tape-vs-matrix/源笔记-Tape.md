@@ -3,9 +3,9 @@ type: note
 ---
 # 源笔记：Tape 三篇主源 ↔ 本系列对象
 
-> 番外「Tape 光点法与矩阵法」的文献源笔记（scrum `ex-tape-prep` 子任务 2）。子任务 3（数值互证）**只能按本笔记抄下来的公式实现**，子任务 4（提纲）只能引用本笔记里带页码的断言。不在本机的文献（Tape 1994、Tricker 1970）一律进 §7 清单，正文不写。
+> 番外「Tape 光点法与矩阵法」的文献源笔记（scrum `ex-tape-prep` 子任务 2）。子任务 3（数值互证）**只能按本笔记抄下来的公式实现**，子任务 4（提纲）只能引用本笔记里带页码的断言。不在本机的文献（Tape 1994、Tricker 1970）一律进 §7 清单，正文不写；作者后来补入的 Tricker 1973 作为历史一手源，单列 §T。
 >
-> **引注约定**：`[Tape1980 p.N]` / `[TK1999 p.N]` / `[TM2006 p.N]` 的 N 一律是**本机 PDF 的页序号**（`scratchpad/scrum-ex-tape-prep/refs/`，不入 git）。换算：Tape1980 期刊页 = 1174 + N（JOSA 70, 1175–1192）；TK1999 期刊页 = 1551 + N（Appl. Opt. 38, 1552–1625）；TM2006 书页 = N − 10（第 1 章起于 PDF p.11 = 书页 1）。引文里的公式编号（Eq. (20)、Eq. (8.1) 等）是原文编号。
+> **引注约定**：`[Tape1980 p.N]` / `[TK1999 p.N]` / `[TM2006 p.N]` / `[Tricker1973 p.N]` / `[Können1983 p.N]` / `[Können1998 p.N]` 的 N 一律是**本机 PDF 的页序号**（共享目录 `scratchpad/refs/`，旧路径 `scratchpad/scrum-ex-tape-prep/refs/` 是 symlink；均不入 git）。换算：Tape1980 期刊页 = 1174 + N（JOSA 70, 1175–1192）；TK1999 期刊页 = 1551 + N（Appl. Opt. 38, 1552–1625）；TM2006 书页 = N − 10（第 1 章起于 PDF p.11 = 书页 1）；Tricker1973 期刊页 = 648 + N；Können1983 期刊页 = 1628 + N；Können1998 期刊页 = 1449 + N。引文里的公式编号（Eq. (20)、Eq. (8.1) 等）是原文编号。
 >
 > **本系列记号**（以 `docs/framework.md` 与 ch8 正文为准）：$\mathbf n_a$ 入射面外法向、$\mathbf n_b$ 出射面外法向、$M$ 内反射总矩阵、$\tilde{\mathbf n}_b=M^{-1}\mathbf n_b$ 展开后的出射面法向、$W=\mathcal S_{\tilde{\mathbf n}_b}\circ\mathcal S_{\mathbf n_a}$ 楔角折射、$\Phi_P=M\circ W$ 方向映射、楔角 $A$ 满足 $\cos A=-\langle\mathbf n_a,\tilde{\mathbf n}_b\rangle$（= 180° − 两外法线夹角，**只用「楔角」一个词**）、$R\in SO(3)$ 晶体姿态、$F_P:Q\to S^2$ halo map、$\mathbf u=R^{-1}\mathbf s$ 太阳在晶体系中的方向、$D_P(\mathbf u)=\angle(\Phi_P(\mathbf u),\mathbf u)$ 偏折角、$\rho$ 姿态分布。面编号：底面 1（+z）、2（−z），侧面 3–8 从 +x 起逆时针（`lumice_integral.geometry.HexPrism`：$\mathbf n_3=(1,0,0)$、$\mathbf n_4=(\tfrac12,\tfrac{\sqrt3}{2},0)$、…）。
 
@@ -16,6 +16,15 @@ type: note
 - **Tape & Moilanen 2006**：面向普通读者的成熟版：光点图（light point diagram）讲折射定律 [TM2006 p.48–50]，spin vector / halo pole 讲取向 [TM2006 p.143, p.147]，主线是锥晶的 Angle x [TM2006 p.7, p.123]。理论上没有超出 1999，但术语与几何直觉更成熟，且把 1999 的 pole 概念归于 Können [TM2006 p.147]。
 
 三篇合起来 = 本系列 $\Phi_P=M\circ W$ 里 **$W$ 那一半** + 「取向空间 → 光点」这个映射的奇点分析；**折叠 $M$ 的分类在三篇里都不存在**（详见 §4、§6）。
+
+## T. Tricker 1973：长六棱柱作为万花筒
+
+- **范围**：论文研究长六棱柱水平飘浮时的 heliacal / anthelic arcs。光从一个底面进入，在侧面间多次全反射后，从另一底面射出，或再经后端面反射后从原底面射出 [Tricker1973 p.1, p.4]。它不计算 22° 幻日，也不建立一般楔理论。
+- **万花筒构造是一手原文**：Tricker 把六个侧面延长为过晶体轴的反射平面，令 $S_1$ 为太阳方向 $S_0$ 关于其中一面的像，$S_4$ 等为继续关于下一面反射所得的像；一次、两次、三次侧面反射分别对应这些逐次镜像后的出射方向 [Tricker1973 p.4, Fig. 4]。原文随后明确说这套理论与简单万花筒相同 [Tricker1973 p.4]。
+- **折射为什么能退出问题**：侧面反射不改变光线对底面的入射角，只旋转入射面；从平行的另一底面射出时，出射折射与入射折射大小相等、方向相反 [Tricker1973 p.4]。所以 $S_0$ 方向保持不变，其余像落在以晶体轴 $R$ 为极、过太阳的小圆上 [Tricker1973 p.4]。
+- **用本系列语言翻译**：逐次镜像就是逐次乘反射，合成为 $M$；两底面平行且入、出折射抵消，故展开楔为 $0°$、$W=I$，最终 $\Phi=M$。这给 ch3 的平行光路与 ch7 的反射矩阵提供了非常贴切的历史先例。
+- **边界必须写明**：Tricker 1973 直接支持的是 $W=I$ 的「纯折叠」一半，而不是任意首尾面的 $\Phi=M\circ W$ 分解，也没有 signature / 群商分类。ch8 所说「Tricker 的万花筒展开与矩阵法合流」可以保留，但精确含义应是：Tricker 的逐次镜像在矩阵语言里合成为 $M$；一般非平行光路再由本系列补上 $W$。
+- **与 Tape 光点术语的关系**：Tricker 在天球上谈太阳的 images 与光束的 origin / direction，没有在这篇论文中使用可确认的 “light point” / “light point diagram” 术语。因此它不能解决 Tricker 1970 是否采用同心圆作图或如何命名的问题。
 
 ## 1. Tape 1980 *Analytic foundations of halo theory*
 
@@ -105,7 +114,7 @@ type: note
 - 「pleat 真实吗」：上 Lowitz 的 pleat 来自近掠出射区域，应极弱；下 Lowitz 的 pleat 按 Mueller 仿真也不足以被看见 [Tape1980 p.15]。
 - 自陈缺口 [Tape1980 p.16 §X]："Perhaps the most conspicuous deficiency in the theory is the lack of a simple analytic measure of the strength of the caustic"，理想上还应给出 caustic 对 generating set 扰动的稳定性。
 
-**本系列对照**：奇点 = framework §4「Jacobian focusing：$DF$ 只在特殊姿态集合上降秩」；$\mathcal S$ = 22° 晕 $D(i)\simeq D_{\min}+\frac12D''(i-i_0)^2$ 的那条奇点线；Tape 的「二维晕 case (ii)」= $DF|_Q$ 降秩判据的显式版本。Tape 缺的「caustic 强度」= framework §4 的 fold 局部律 $I\sim1/\sqrt{D-D_{\min}}$ 与 §5 的 $SO(3)$ 上群卷积（他没有 $\rho$、没有 pushforward 测度，所以强度问题在他的框架里没有对象可承载）。Tape 的「dimension collapse」不存在：他的 collapse 都是奇点型（非平行楔没有连续稳定子，framework §4 已注）。
+**本系列对照**：奇点 = framework §4「Jacobian focusing：$DF$ 只在特殊姿态集合上降秩」；$\mathcal S$ = 22° 晕 $D(i)\simeq D_{\min}+\frac12D''(i-i_0)^2$ 的那条奇点线；Tape 的「二维晕 case (ii)」= $DF|_Q$ 降秩判据的显式版本。Tape 1980 自陈缺的「caustic 强度」，Können 1983 已经**部分补上**：在忽略 Fresnel 系数变化与晶体遮挡、视线方向晶体数相等、只取几何光学、优先取向完全实现这五个假设下，令 $I\propto dN/d\omega$，用近晕角 Taylor 展开得到简单解析强度分布，并解析描述 halo / halocaustic 的近晕角形状 [Können1983 p.1, p.3, p.10]。它仍不是任意姿态分布 $\rho$ 与光路权重 $w_P$ 下的一般 pushforward；framework §4 的 fold 局部律与 §5 的 $SO(3)$ 群卷积覆盖的是后一层。Tape 的「dimension collapse」不存在：他的 collapse 都是奇点型（非平行楔没有连续稳定子，framework §4 已注）。
 
 ### 1.5 文中给出的实例（晕、楔）
 
@@ -237,12 +246,12 @@ type: note
 - 「光点」定义：「The light point of the ray is the point on the celestial sphere in the direction opposite to the ray. It is the point that appears to be lit, should the ray reach the eye of an observer」[TM2006 p.43]。出射光的光点即 halo point [TM2006 p.44]。
 - 「只需考虑单个晶体」：天空充满平行阳光与同形同向晶体时，总有一个晶体的出射光到达观察者，且光路逐段平行于原光路 [TM2006 p.44]。
 - 晕的定义（普通话版）："a halo is the locus of the halo point of a specified ray path as a crystal takes on orientations in the given orientation class. Change the ray path and you (usually) get a new halo" [TM2006 p.47]。光路记为面编号序列，面编号：底面 1、2，侧面 3–8 看着面 1 逆时针 [TM2006 p.47; Fig. 6.1 p.62]。例外：光路 1 与 326 都给 subsun；35 与 46 都给左幻日，「区别是表面的，本质上是面编号的偶然」[TM2006 p.48]。
-- **反射与折射定律的几何形式**：把天球半径取为所在介质的折射率（每个折射率一个同心天球）；入射、反射、折射光线的光点 $\mathbf S,\mathbf S',\mathbf R$ 在一条**垂直于界面的直线上**（Fig. 4.5）[TM2006 p.48]。subsun 的例子：$\mathbf H$ 在 $\mathbf S$ 正下方 [TM2006 p.48]；环天顶弧的例子：先沿入射面法向把 $\mathbf S$ 投到外球得 $\mathbf R$，再沿出射面法向投回内球得 $\mathbf H$，CZA 是水平面与天球的交 [TM2006 p.50]。
+- **反射与折射定律的几何形式**：把天球半径取为所在介质的折射率（每个折射率一个天球，诸球同心；二维截面就是通常所说的「同心圆作图」）；入射、反射、折射光线的光点 $\mathbf S,\mathbf S',\mathbf R$ 在一条**垂直于界面的直线上**（Fig. 4.5）[TM2006 p.48]。Fig. 4.8 又从 $n_1\sin\theta_1=n_2\sin\theta_2$ 推出这条几何折射定律 [TM2006 p.51]。因此同心圆 / 同心球作图本身已有可直接引用的一手说明，并不是必须等 Tricker 1970 才能确认的专属方法。subsun 的例子：$\mathbf H$ 在 $\mathbf S$ 正下方 [TM2006 p.48]；环天顶弧的例子：先沿入射面法向把 $\mathbf S$ 投到外球得 $\mathbf R$，再沿出射面法向投回内球得 $\mathbf H$，CZA 是水平面与天球的交 [TM2006 p.50]。
 - **"light point diagrams"**：Figs. 4.6、4.7 这类图的名字；「对很多其它晕我们只能依赖仿真或 'pole theory'……不是光点图不对，而是它们太复杂、不够启发……第 8 章之后不再出现光点图」[TM2006 p.50–51]。几何形式的折射定律「至少可追溯到 Hamilton [23] 与 MacCullagh [44]，19 世纪」[TM2006 p.51；文献 p.238–239]。
 - 圆晕的光点图（ch8）：normal vee（$\mathbf R\mathbf S$、$\mathbf R\mathbf H$ 两段，顶角 $=\alpha$）；最小偏折 ⇔ vee 等腰且 central（vee 平面过球心）⇔ 光路在 normal plane 内且对称；正弦定理给 Eq. (8.1) [TM2006 p.88–89]。「一般问题（非平面光路）Uhler [81] 与 Tape [75] 用解析法处理过，本书用几何法；看一眼解析处理就明白几何法的吸引力」[TM2006 p.88]。
 - 强度：光点图不含强度；ch14 末尾说本章结论依赖晶体倾角很小，「实践中小倾角是例外而非常规」，倾角中等以上时非接触弧在很宽的太阳高度范围内都接触圆晕、弧趋于圆形 [TM2006 p.153]。
 
-**结论（对「光点法」称呼）**：「光点」（light point）与「光点图」（light point diagram）是 Tape 自己的术语，TK1999 p.3 已用 "light point"，TM2006 p.43/p.50 给出定义与命名；番外可放心把 Tape 这一路叫「光点法」。它是否也是 Tricker 1970 的用语，本机无法核对（→ §7）。
+**结论（对方法与称呼分开处理）**：同心圆作图所表达的几何折射法可直接据 TM2006 Figs. 4.5、4.8 介绍和改绘；「光点」（light point）与「光点图」（light point diagram）则是 Tape 文献中可核实的术语，TK1999 p.3 已用 "light point"，TM2006 p.43/p.50 给出定义与命名，番外可放心把 Tape 这一路叫「光点法」。尚无法由本机材料确认的，只是 Tricker 1970 是否采用完全相同的图式、又怎样称呼它（→ §7）。作者判断两者大概率是同一种标准折射作图；在取得原书前，这应标为几何上的推断，而不是 Tricker 原文事实。
 
 ### 3.2 楔角、圆晕半径、锥晶楔角表（ch8, ch9）
 
@@ -291,14 +300,14 @@ type: note
 | 5 | 纤维曲线 $F^{-1}(Y)\subset\mathcal F-\mathcal S$，「无穷多取向点亮同一点」[Tape1980 p.5, p.12] | 定理 8 内层积分里 $\delta(\mathbf x-\cdots)$ 的支撑，即 $F_P^{-1}(\mathbf x)$ | 同物异名 | Tape 只有几何（曲线），没有在纤维上积分的测度（见 #17）。 |
 | 6 | wedge：$(\hat{\mathbf N}_1,\hat{\mathbf N}_2,\hat{\mathbf P})$ [Tape1980 p.1]；$(\mathbf N,\mathbf X)$ 与 wedge frame $\mathbf A,\mathbf B,\mathbf C$ [TK1999 p.3 Eq. (8)] | 展开空间里的面对 $(\mathbf n_a,\tilde{\mathbf n}_b)$ 与 $W=\mathcal S_{\tilde{\mathbf n}_b}\circ\mathcal S_{\mathbf n_a}$（定理 4） | 同物异名 | $\hat{\mathbf N}_1=-\mathbf n_a$、$\hat{\mathbf N}_2=\tilde{\mathbf n}_b$；$\mathbf N=\mathbf n_a$、$\mathbf X=-\tilde{\mathbf n}_b$；$\hat{\mathbf P}=\mathbf B\parallel-\mathbf n_a\times\tilde{\mathbf n}_b$。Tape 的 wedge 永远是**物理**面对（wedge $ij$ 由入射面 $i$、出射面 $j$ 定义 [TK1999 p.27]）；本系列的 $\tilde{\mathbf n}_b$ 是展开后的**虚**面。 |
 | 7 | refracting angle / wedge angle $\alpha$ [Tape1980 p.1; TK1999 p.4; TM2006 p.102 Eq. (9.1)] | 楔角 $A$，$\cos A=-\langle\mathbf n_a,M^{-1}\mathbf n_b\rangle$（ch8 §2） | 同物异名 | 三篇数值都等于 $A$（内/外法向约定不同，见 §5）。TM2006 Eq. (9.1) 与本系列公式逐字相同（$M=I$）。 |
-| 8 | $\mathrm{pr}(\mathbf S,\mathbf N,n_2)=\mathbf S+\lambda\mathbf N$ [TK1999 p.2 Eqs. (2)–(3)]；「光点在垂直于界面的直线上」[TM2006 p.48] | 折射算子 $\mathcal S_{\mathbf n}$，$\mathbf p'=\mathbf p_\parallel+\sigma\sqrt{n_2^2-\|\mathbf p_\parallel\|^2}\mathbf n$（ch8 §1） | 同物异名 | 同一个 Snell；Tape 作用在光点（$-$光线，长度 $=n$），本系列作用在光线方向。ch8 §1 已点明「古典几何路线的光点法，内外两个同心圆，做的就是这件事」。 |
+| 8 | $\mathrm{pr}(\mathbf S,\mathbf N,n_2)=\mathbf S+\lambda\mathbf N$ [TK1999 p.2 Eqs. (2)–(3)]；以折射率为半径的同心天球及其法线投影作图 [TM2006 p.48 Fig. 4.5]，并由 Snell 定律推出 [TM2006 p.51 Fig. 4.8] | 折射算子 $\mathcal S_{\mathbf n}$，$\mathbf p'=\mathbf p_\parallel+\sigma\sqrt{n_2^2-\|\mathbf p_\parallel\|^2}\mathbf n$（ch8 §1） | 同物异名 | 同一个 Snell；Tape 作用在光点（$-$光线，长度 $=n$），本系列作用在光线方向。ch8 §1 所说「内外两个同心圆」就是这些同心天球的二维截面，是通行的几何折射作图，不应归为 Tricker 独有。 |
 | 9 | $\mathbf F(w\mathbf N,w\mathbf X,w\mathbf S)=w\mathbf F(\mathbf N,\mathbf X,\mathbf S)$，$\mathbf H(wu,\alpha,w\mathbf S)=w\mathbf H(u,\alpha,\mathbf S)$ [TK1999 p.4 Eqs. (12)–(13)] | 旋转等变引理 $\mathcal S_{Q\mathbf n}(Q\mathbf r)=Q\mathcal S_{\mathbf n}(\mathbf r)$；$T=R\Phi R^{-1}$（ch8 §1） | 同物异名 | TK1999 只用它做变换规则与 pole；本系列用它把 $M$ 从两次折射中间提出来（定理 4）——**同一个引理，用途不同**。 |
 | 10 | halo-making set（$ZU\subseteq U$）、zenith locus $K=\{u^{-1}\mathbf k\}$、$p:SO(3)\to S^2$ [TK1999 p.7–8 Eqs. (29)–(38)] | 姿态族 $Q=\mathrm{supp}\,\rho$ 的方位不变性；**另一个纤维化**：底 = 天顶在晶体系的方向、纤维 = $Z$ | 部分（本系列未显式写） | 与定理 8 互为「姿态适配」（底 = $\mathbf k$ 在晶体系）与「径向适配」（底 = $\mathbf s$ 在晶体系）的两种切法。TM2006 p.235 脚注 1 同一假设。 |
 | 11 | Spin Vector Assumption $(\psi,\mathbf P_u)$、point / great circle halo [TK1999 p.2, p.6, p.8]；spin vector Table 13.1、contact / non-contact arcs [TM2006 p.145] | ch11 姿态族：片（$\mathbf c=\mathbf N_1$ 竖直）/ 柱 / Parry / Lowitz，各带扩散 $\sigma$；$\dim Q=1/2$ | 部分 | TK1999 多两族（AP、AL）[TK1999 p.28]；本系列多「随机 + 扩散 $\sigma$」与权重（#17）。pole $\mathbf P_u$ = spin vector 在楔系的坐标 = 本系列「晶体系向量经 $u_0^{-1}$ 换到展开楔系」，本系列没有为它起名。 |
 | 12 | 三维/二维/一维晕（generating set 是开集/曲面/曲线）[Tape1980 p.13]；point halo 取向集一维、great circle halo 二维 [TK1999 p.7] | $\dim(\text{晕})=\dim Q-\dim\mathrm{Stab}$（定理 3）/ $\dim Q-\dim(\text{纤维})$（framework §5） | 部分 | Tape 按 $\dim Q$ 分；本系列按 $\dim Q-\dim(\text{纤维})$ 分（多了「纤维」项——平行光路的 dimension collapse），对纯折射楔两者一致（纤维零维）。 |
 | 13 | 奇点、$\ker JF$（Prop. 2 Eq. (21)–(22)）、caustic = 奇点集的像 [Tape1980 p.1, p.5, p.14] | $DF$ 降秩、Jacobian focusing（framework §4） | 同物异名 | Tape 给了显式核公式与「核 ⟂ $\mathcal N$ 法向」判据 [Tape1980 p.14–15]，本系列只有定义；**ch10 应直接引用 Prop. 2 与 Eq. (34)**。 |
 | 14 | 二维晕 case (i)/(ii)：$X\in\mathcal S$（与圆晕 caustic 重合的点）vs $X\notin\mathcal S$ [Tape1980 p.14] | framework §4 表的「Jacobian focusing」一列 | 同物异名 | Tape 的 $\mathcal S$（$\theta=90,\mu=\mu_M(90)$）= 本系列 22° 晕的 fold 奇点线 $D(i)\simeq D_{\min}+\frac12D''(i-i_0)^2$。 |
-| 15 | Whitney fold / pleat [Tape1980 p.14]；「pleat 真实吗」[Tape1980 p.15] | fold 局部律 $I\sim1/\sqrt{D-D_{\min}}$（framework §4）；pleat / cusp 数值确认列为未决（framework §7） | 部分 | Tape 有 pleat 的位置（Figs. 15–16）没有强度；本系列有 fold 强度律没有 pleat。 |
+| 15 | Whitney fold / pleat [Tape1980 p.14]；「pleat 真实吗」[Tape1980 p.15]；Tape 1982 *Folds, pleats, and halos*；Tape 1983 *Halos and Singularities*（1982 文的技术扩展，DOI `10.1364/MO.1983.FA4`） | fold 局部律 $I\sim1/\sqrt{D-D_{\min}}$（framework §4）；pleat / cusp 数值确认列为未决（framework §7） | 部分 | fold / pleat 并非 1983 才出现：1980 原文已有判据和位置，1982 作科普展开，1983 再作技术扩展。Tape 有 pleat 的位置（Figs. 15–16）没有强度；本系列有 fold 强度律没有 pleat。 |
 | 16 | 最小偏折轨迹 ≠ caustic（除切弧与幻日）[Tape1980 p.15] | 无独立对象 | Tape 有而本系列没有 | ch10 写「最小偏折 = fold caustic」时必须加 Tape 的限定：只对切弧 / 幻日 / 圆晕成立；side arc 上最小偏折轨迹一般不是 caustic。 |
 | 17 | 姿态分布 $\rho$ | $\rho$、$\mu_{\rm sky}=(F_P)_*[\rho\,w_P\,dq]$、$SO(3)$ 上的群卷积 $\rho_0*k_\sigma$（framework §0, §4, §5） | **本系列多出（Tape 没有）** | 依据：Tape 1980「若参数取随机或加权值就得到 Greenler 式仿真」[Tape1980 p.1]，note 22 承认 $(\theta,\mu)$ 等距不等于取向均匀 [Tape1980 p.18]，理想化「不偏离优先取向」[Tape1980 p.13]；TK1999「不做强度计算，所有光线等权，忽略遮挡」[TK1999 p.1]，Fig. 31 MC「取向假定完美」[TK1999 p.39]；TM2006 只定性说倾角使弧变圆 [TM2006 p.153]。**弱假设 (29) 与 SVA 只约束 $\mathrm{supp}\,\rho$，不等价于某个 $\rho$ 族**——它们等价于「$\rho$ 是 $Z$-不变集合上的均匀测度」这一个特例（SVA 下 $\rho\propto\mathbf 1_{U(K(\psi,\mathbf P_u))}$）。 |
 | 18 | $D_P(\mathbf u)$ 与纤维化积分（定理 8 的二重积分） | — | **本系列多出（Tape 没有积分，有坐标）** | Tape 1980 有纤维化的**坐标**（#4）与纤维**曲线**（#5），TK1999 有另一纤维化的**定理**（#10），但三篇都没有把 $\mu_{\rm sky}$ 写成对底与纤维的积分——因为没有 $\rho$（#17）与 $w_P$。 |
@@ -313,9 +322,10 @@ type: note
 | 27 | Angle x [TM2006 p.7, p.101, p.123]；$\tan x=\frac{\sqrt3}{2}\frac ac|\frac lh|$ [TM2006 p.108 Eq. (9.6)] | 参数 $c/a$（定理 7；锥面法向与 c 轴夹 $62.0°=90°-28°$） | 同物异名（框架层面） | 见 §3.4：Tape 的「search」是哪个值为真 + 是否还有别的楔角；本系列只承接「给定 $c/a$ 后一切可算」这半句。 |
 | 28 | light point / light point diagram [TM2006 p.43, p.50]；「光点」[TK1999 p.3] | 番外用语「光点法」 | 同物异名 | 是 Tape 自己的术语（TM2006 命名）；几何折射定律溯源 Hamilton、MacCullagh 1837 [TM2006 p.51]。 |
 | 29 | caustic 的解析处理：Eq. (21) 显式核、Eq. (33)–(34) 奇点集方程数值解、Figs. 15–16 [Tape1980 p.5, p.15, p.11] | — | Tape 有而本系列没有 | issue 点名的那一项。本系列 ch10 计划「22° 晕的 $F$、$DF$ 数值」（roadmap）应以 Prop. 2 为起点而不是重推。 |
-| 30 | 「caustic 强度没有简单解析度量」[Tape1980 p.16] | fold 律 $1/\sqrt{D-D_{\min}}$ + $\rho\,w_P$ 权重 + $SO(3)$ 卷积（framework §4–5） | 本系列多出 | 正是 Tape 自陈的缺口；番外可以把这句话当「古典几何到现代代数」的交接点引。 |
+| 30 | Tape 1980 自陈「caustic 强度没有简单解析度量」[Tape1980 p.16]；Können 1983 在五个理想化假设下给出近晕角解析强度分布与 halocaustic 形状 [Können1983 p.1, p.3, p.10] | fold 律 $1/\sqrt{D-D_{\min}}$ + $\rho\,w_P$ 权重 + $SO(3)$ 卷积（framework §4–5） | 部分 | 不能再把 Tape 1980 的自陈写成后续文献一直未补的缺口；Können 1983 已补理想化解析强度，本系列多出的是任意 $\rho$、光路权重与卷积的统一 pushforward 语言。Können 1998 主要研究内边缘偏振，只把辐亮度陡峭度当作偏振可见性的因素 [Können1998 p.4]。 |
+| 31 | Tricker 1973：六棱柱侧面的逐次镜像；平行底面上的入、出折射等量；长六棱柱就是简单万花筒 [Tricker1973 p.4, Fig. 4] | 内反射总矩阵 $M$；平行光路 $W=I$、$\Phi=M$（ch3、ch7、framework §2–3） | 同物异名（限平行光路） | Tricker 用镜像点逐步作图，本系列把同一串反射合成为一个 $O(3)$ 元素。它是一条具体光路机制，不含一般 $M\circ W$ 分解，也不含 12 类 / 34 类的分类。 |
 
-**总括**：Tape 三篇 = 本系列 $W$ 那一半（#6–9）+ 取向 → 光点映射的两种纤维化几何（#3–5、#10）+ 奇点/caustic 的解析工具（#13–16、#29）+ 一套按 $(\alpha,\text{pole})$ 的连续分类与 atlas（#11、#21–25）。本系列多出的是：折叠 $M$ 与 $\Phi=M\circ W$ 的分解（#19）、不看姿态的 signature 商与有限类数（#20）、姿态分布 $\rho$ 与 pushforward 测度（#17–18、#30）。Tape 有而本系列没有的是：caustic 解析（#29）、最小偏折 ≠ caustic 的警示（#16）、contact / nonempty 定理（#24）、太阳高度变换规则（#25）、atlas 产品（#21）。
+**总括**：Tricker 1973 给出 $W=I$ 时逐次镜像合成 $M$ 的古典实例（#31）；Tape 三篇给出本系列 $W$ 那一半（#6–9）+ 取向 → 光点映射的两种纤维化几何（#3–5、#10）+ 奇点/caustic 的解析工具（#13–16、#29）+ 一套按 $(\alpha,\text{pole})$ 的连续分类与 atlas（#11、#21–25）。Können 1983 又补上理想化条件下的近晕角强度解析（#30）。本系列的合流点是把两边放进同一个 $\Phi=M\circ W$：再做不看姿态的 signature 商与有限类数（#20），并加入任意姿态分布 $\rho$ 与光路权重下的 pushforward / 卷积语言（#17–18、#30）。Tape 有而本系列没有的是：caustic 解析（#29）、最小偏折 ≠ caustic 的警示（#16）、contact / nonempty 定理（#24）、太阳高度变换规则（#25）、atlas 产品（#21）。
 
 ## 5. 记号差异表
 
@@ -366,18 +376,18 @@ type: note
 
 **判断：A60-10 在 Tape 的 wedge 框架里没有位置（三篇的范围声明都排除内反射）；折叠 $M$ 在他们那里只以「一次反射 → 反射一下 $\mathbf H_u$、再画一本 atlas」的形式出现 [TK1999 p.15]，没有被当作独立于楔的第二个分类维度。** 对片晶可以借 Rule 1 把它写成「幻日转 120°」，但这恰恰说明了番外的落点：**古典几何能解释这一个实例（幻日，甚至它转 120° 的复制品），现代代数分类的是「楔 × 折叠」这个结构**——A60-10 是「同一个楔（幻日的楔）× 一个非平凡折叠」，$W$ 这一半 Tape 已经做完，$M$ 这一半是本系列加的。子任务 3 的第二个互证目标建议取：片晶、$\Sigma=0$，用 TK1999 的 $\mathbf H(u,60,\mathbf S)$ 算 Plate 3 5 光点轨迹，$\mathrm{zrot}(120°)$ 后与本系列 `phi(M=fold_matrix(3-4-5-7), 3, 7)` 在片晶姿态上的光点轨迹逐点比（预期逐点相等到浮点精度）；再用柱晶姿态跑同一比较，预期 Tape 侧**无对应对象**，只能与本系列自己的 $\Phi_{35}$ 经 $RMR^{-1}$ 共轭的结果比——这一步就是「Tape 框架到此为止」的可展示证据。
 
-## 7. 待作者核对清单
+## 7. 文献核对清单（含已解决项）
 
-不在本机的文献涉及的断言、以及阅读中遇到的不确定点。每条注明为什么要核对、与正文哪条断言相关。**正文（§1–§6）不含这些断言。**
+不在本机的文献涉及的断言、阅读中遇到的不确定点，以及后续检索已经解决的项目。每条注明为什么要核对、与正文哪条断言相关；已解决项保留在原编号上，避免番外提纲中的转写表漂移。
 
 | # | 待核对 | 为什么 | 关联 |
 |---|---|---|---|
-| 1 | Tricker 1970 *Introduction to Meteorological Optics*（本机无）：书里的构造法是否就是「光点」/ 两个同心圆的几何作图；Tricker 用的名字是什么（"point of light"? 别的?） | 番外要说「Tricker 光线几何构造 → Tape 取向空间到光点空间的映射」，Tricker 那一环的措辞现在只能靠 Tape 的转述：Tape 1980 说其结果「类似 Tricker 的」并引 Tricker 1970/1972/1979 [Tape1980 p.1, p.18 refs 1, 2, 14]；TK1999 说「最接近的先驱是 Tricker [2]（1979，锥晶优先取向的晕）」[TK1999 p.2]；TM2006 说几何折射定律「至少可追溯到 Hamilton、MacCullagh 1837」[TM2006 p.51]，没提 Tricker | §3.1 结论、§4 #28、番外提纲 |
+| 1 | **部分解决（作者补充，2026-09-21）**：同心圆作图本身不再待核——TM2006 Figs. 4.5、4.8 直接说明 [TM2006 p.48, p.51]。Tricker 1973 又直接确认了另一件事：他确实用六棱柱侧面的逐次镜像分析「万花筒」光路，并说明平行底面上的入、出折射等量 [Tricker1973 p.4]。仍待核的是 Tricker 1970 是否使用同心圆图式、用的名字是什么（"point of light"? 别的?） | 番外可分别据 TM2006 写标准同心球折射作图、据 Tricker 1973 写万花筒式纯折叠；不能把两者未经原书便合并成「Tricker 1970 的光点图」。作者判断它们属于同一古典几何传统，但直接继承关系仍应标为推断 | §T、§3.1、§4 #8/#28/#31、番外提纲 |
 | 2 | 「光点法」这个称呼是否 Tape 自己的用语：本笔记已核实 "light point" [TK1999 p.3]、"light point diagram" [TM2006 p.50] 是 Tape 的术语；Tape 1980 用的是 "point of light" [Tape1980 p.1, p.18 note 18]。**待核对的只剩**：Tricker 1970 是否也这么叫（同上条）；ch2 正文引用 Tape 时用的原话是什么 | 番外标题用词 | §3.1 |
 | 3 | Tape 1994 *Atmospheric Halos*（本机无）：TK1999 [11] 与 TM2006 [76] 多处引它——TK1999 p.35 说 Sturm 照片在 Ref. 11 p.92、p.39 说 MC 方法在 Ref. 11 pp.132–133；TM2006 p.61 说光路图与更多仿真在 [76]；TM2006 p.202 说 Hevel 晕 [76] 也「一无所获」。1994 书里是否已有 pole / spin vector 的雏形（TM2006 p.147 说 pole 是 Können 1990 年代提出，1994 书应尚无），以及 Tricker 万花筒展开在 1994 书里的处理 | 番外若要说「Tape 1994 还没有 pole」需原书页码 | §3.3、§4 #11 |
-| 4 | framework.md §4 表里「Tape 1980 *Analytic foundations*：caustic = halo function 奇点集的像；**1983 fold / pleat**」——fold / pleat 在 Tape 1980 p.14 已经出现（引 Whitney / Callahan 1974）；「1983」指的是哪篇（可能是 Können 1983 *Polarization and intensity distributions of refraction halos*，TK1999 ref 10 [TK1999 p.74]，或 Tape 另一篇）本机无法核 | framework.md 的文献行可能要改；ch10 引用时别写错年份 | §1.4、§4 #15 |
-| 5 | TM2006 [74] "Walter Tape, *The Deviation of Light in a Transparent Wedge*, To appear" [TM2006 p.241]——是否已发表、是否含比 Tape 1980 更完整的 $\Delta_{\max}$ 解析 | TM2006 p.89 引它给 $\Delta_{\max}$ 分段公式；ch10 若要引最大偏折需要正式出处 | §3.1 |
-| 6 | Können 1983（TK1999 ref 10 [TK1999 p.74]）与 Können 1998（ref 9）：inner edge polarization——是否含 caustic 强度的解析处理（Tape 1980 自陈缺口 [Tape1980 p.16]） | §4 #30 说「本系列多出」，若 Können 1983 已做，判定要改为「部分」 | §4 #30 |
+| 4 | **已解决（2026-09-21）**：fold / pleat 在 Tape 1980 p.14 已出现；1982 年是 Tape, *Folds, pleats, and halos*, *American Scientist* 70, 467–474；1983 年另有 Tape, *Halos and Singularities*（DOI `10.1364/MO.1983.FA4`），Optica 摘要明确称其为 1982 文的技术扩展，并点名 folds / pleats。framework §4 已改成这条三阶段文献链 | 原来的「1983」不是 Können 1983，也不应暗示 fold / pleat 到 1983 才出现 | §1.4、§4 #15、framework §4 |
+| 5 | **部分解决（2026-09-21）**：TM2006 [74] 后来高度吻合 Walter Tape, *Maximum deviation of light in a transparent wedge*, *Applied Optics* 47, H44–H51 (2008)，DOI `10.1364/AO.47.000H44`。正式摘要明确求透明楔最大偏折，并说明它等价于圆晕外半径；全文仍需订阅，尚不能确认是否与 2006 的待刊稿逐字相同，或是否完整包含 p.89 的分段式 | ch10 可引用 2008 正式出处；若要逐式核对 $\Delta_{\max}$，仍需全文 | §3.1 |
+| 6 | **已解决（2026-09-21）**：Können 1983 全文确认，在五个理想化假设下以 $I\propto dN/d\omega$ 推出近晕角的简单解析强度分布与 halocaustic 形状 [Können1983 p.1, p.3, p.10]；Können 1998 主旨是 inner-edge polarization，仅把边缘辐亮度陡峭度列为偏振可见性的因素 [Können1998 p.4] | §4 #30 已从「本系列多出」改成「部分」；番外不展开，转交 ch10 | §4 #30 |
 | 7 | **已修正（chore framework-fixes）**：本系列自身：framework §4 原写 $\mathbf x=R\Phi_P(R^{-1}\mathbf s)$，与 `signature.phi(d)`（`d` 为入射传播方向）的符号约定不一致（§5「光线 vs 光点」行）。建议 framework 改写为 $\mathbf x=-R\Phi_P(-R^{-1}\mathbf s)$ 或明注「$\Phi$ 此处按光点约定理解」。本任务不改 framework（越界），上抛。**子任务 3 已按严格写法实现 `crosscheck_bridge.light_point` 并通过全部互证（`data/notes.md` §1、§3），是「该行应改写」的数值证据；仍上抛**——`chore-framework-fixes` 已据此把 framework §4 改为 $\mathbf x=-R\Phi_P(-R^{-1}\mathbf s)$，与本条建议一致 | 子任务 3 逐点比对光点时必须先定这一条 | §5 |
 | 8 | ch8 §6 的「142.56°」是半高点，与 $21.8°+120°=141.8°$ 的锐边理论值差 0.7°——差值是否全部来自半高定义 + 太阳角径 + 截面权重，待子任务 3 用零角径、片晶零倾角的设置重算。**已用 `crosscheck_b.py` 数值验证：锐边理论值 141.8393° = Δ_m(60°) + 120°，与 142.56° 的差归因于半高定义 + 0.5° 桶 + 角径 / 倾角展宽，见 `data/notes.md` §2** | §6.2 的「142° = 幻日转 120°」是精确陈述，数值验收要对到锐边而不是半高 | §6.2 |
 | 9 | Tape 1980 Eq. (32) 的 $\varphi$ 取值表里 "infralateral" 出现两次（$\varphi=-\alpha$ 与 $\varphi=\alpha$）[Tape1980 p.14]——按 $\lambda$ 只定义到 mod 180 [Tape1980 p.13] 应是 $\lambda=0$ 与 $\lambda=180$ 两个分支，不是笔误；若子任务 3 要复现 infralateral 需两支都取 | §1.3 | 
