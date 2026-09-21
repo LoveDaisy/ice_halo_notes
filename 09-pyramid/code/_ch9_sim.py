@@ -10,7 +10,7 @@
 # 渲染口径：默认档 (h/a, tip_ratio) = (1, 0.5)、随机取向（`random_axis()`）、太阳 20°（与 `analysis_h1_t0.5.lumice.json` 同）、D65；
 # **`max_hits = 4`，与 `energy_table.md` 的 MC 口径（`analyze_energy.MC_MAX_LEN = 4`）对齐**——机械核对「族图像素能量 ÷ 全景像素能量 ≈ 表里份额」
 # 的分母必须是同一个宇宙（≤ 4 面链）。过滤器只装长度 ≤ MAX_HITS 的成员（`renderable_members`）：max_hits=4 下长度 5–6 的链根本产生不了，
-# 装不装语义相同；而 Lumice v4.5.1 一份 config 最多 256 个过滤器（MAX_FILTERS），全部 1520 条 / 28° 族 269 条都放不下，≤4 面的 207 条 / 36 条才放得下。
+# 装不装语义相同；而 Lumice v4.5.1 起（4.6.1 未改）一份 config 最多 256 个过滤器（MAX_FILTERS），全部 1520 条 / 28° 族 269 条都放不下，≤4 面的 207 条 / 36 条才放得下。
 # 「能量」= 像素线性亮度（sRGB 8-bit 解码后三通道之和）× 像素立体角（cos lat），`rectangular` 全天图、absolute 曝光、同一光线数，按 intensity
 # 归一后可比：absolute 曝光下像素值与光线数无关（2×10⁷ / 4×10⁷ 实测比 1.0015）、与 intensity 线性（E/i 随 i 收敛）。8-bit 量化对暗像素是净损失
 # （余量图 i=0.2 时丢 17%，i=4 只剩 ~1%），所以每份产出**各自曝光到盘外最亮像素 ≈ TARGET_PX 再按 intensity 归一**（`exposed_render`），不共用一个
@@ -59,7 +59,7 @@ RECT_RESOLUTION = (1440, 720)                # 1/4°/px 全天图（同 ch8 参�
                                              # 本任务 `halo_notes/` 只读，先退回 ch8 已验证的分辨率，bug 记 scratchpad/backlog.md
 FISHEYE_PX = 1800
 PROFILE_BIN_DEG = 0.25                       # 径向剖面桶宽（= 1 px；20°–24° 四圈相邻只差 1°，桶再宽就分不开）
-MAX_FILTERS = 256                            # Lumice v4.5.1 `LUMICE_MAX_CONFIG_FILTERS`（src/include/lumice.h:543，c_api.cpp:2883 超限即 error code 3
+MAX_FILTERS = 256                            # Lumice v4.5.1 起（4.6.1 未改）`LUMICE_MAX_CONFIG_FILTERS`（src/include/lumice.h:543，c_api.cpp:2883 超限即 error code 3
                                              # INVALID_CONFIG，2026-09-20 用 1521 个过滤器的余量 config 实测撞上）；复合过滤器本身占 1 个槽
 
 DISK_DEG = 1.0                               # 太阳盘掩模半径：0° 族无反射光路不偏折，全在太阳 0.5° 盘 + 1 px 内（2×10⁷ 探针：盘内能量 100% 来自 0° 族）
@@ -153,7 +153,7 @@ def renderable_members(wedge: float, tier: tuple[float, float] = TIER, *, max_hi
 
 def _complex_over(members: tuple[tuple[int, ...], ...], *, action: str, symmetry: str = SYMMETRY) -> list[dict]:
     if len(members) + 1 > MAX_FILTERS:
-        raise ValueError(f"{len(members)} 个子过滤器 + 1 个复合过滤器超过 Lumice v4.5.1 上限 {MAX_FILTERS}")
+        raise ValueError(f"{len(members)} 个子过滤器 + 1 个复合过滤器超过 Lumice v4.5.1 起（4.6.1 未改）上限 {MAX_FILTERS}")
     subs = [C.raypath_filter(FILTER_ID + 1 + i, list(seq), symmetry) for i, seq in enumerate(members)]
     return [C.complex_filter(FILTER_ID, [f["id"] for f in subs], symmetry, action=action)] + subs
 

@@ -6,7 +6,8 @@
 # 再与 enumerate_signatures.py 同一调用的精确枚举对表：MC 命中集 ⊆ 精确可达集（a01 独立证据链）。
 #
 # 口径：
-# - Lumice 本地 build（`LUMICE_BIN`，Ice Halo 仓 main 未发版），config 落 data/analysis_<ha>.lumice.json（入 git），原始 CSV /
+# - Lumice `analyze` 子命令（release ≥ v4.6.1，`halo_notes.sim.fetch.ensure_lumice` 自动取；现存 `data/` 产物由 4.6.1 发版前的
+#   本地 build 跑出，provenance 已记），config 落 data/analysis_<ha>.lumice.json（入 git），原始 CSV /
 #   lumice.log / provenance.json 落 data/analysis/<ha>/（ignored，见上）；h/a 经 halo_notes.sim.config.hex_prism_height_ratio 换算（Lumice 的 a
 #   是底面直径 = 2×边长）；
 # - MC 侧链面数上限 MC_MAX_LEN = 7 < 精确侧 MAX_LEN = 8：Lumice distinct 链驻留表每 worker 只有 16384 槽（seeded run 单
@@ -170,8 +171,10 @@ def write_md(rows: tuple[PhiRow, ...], results: dict[float, A.AnalysisResult], a
     agg_by_id = {ratio: {row.id: aggs[ratio][row.phi_class] for row in live if row.phi_class in aggs[ratio]}
                  for ratio in RATIOS}
     any_prov = results[RATIOS[0]].provenance
+    build_desc = (f"本地 build，Ice Halo 仓 HEAD `{any_prov['lumice_git_head']}`" if any_prov["local_build"]
+                  else f"release `{any_prov['lumice_version']}`")
     lines = ["# 六棱柱 Φ 类的蒙特卡洛能量份额表与互证（ch8，与 `signature_table.md` 同 34 行同序）", ""]
-    lines.append(f"> 产出：`code/analyze_energy.py`（Lumice `analyze`，本地 build，Ice Halo 仓 HEAD `{any_prov['lumice_git_head']}`，"
+    lines.append(f"> 产出：`code/analyze_energy.py`（Lumice `analyze`，{build_desc}，"
                  f"二进制 sha256 `{any_prov['lumice_bin_sha256'][:12]}…`；`--roi {ROI} --symmetry {SYMMETRY} --rays {rays} "
                  f"--seed {SEED}`，`max_hits={MC_MAX_LEN}`，单波长 550 nm，随机朝向）；每档 h/a 的 config 在 "
                  f"`analysis_<ha>.lumice.json`，原始 CSV / provenance 在 `analysis/<ha>/`，MC 逐行表在 `analysis/rows_<ha>.csv`（目录 ignored，打包为 `analysis.zip` 走 LFS；脚本会自动解包）。")

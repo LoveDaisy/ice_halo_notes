@@ -6,7 +6,8 @@
 # raypaths_<tier>.csv（同一次枚举的 PBD 代表清单）对表：MC 命中集 ⊆ 精确可达集（a01 独立证据链）。
 #
 # 口径：
-# - Lumice 本地 build（`LUMICE_BIN`，`analyze` 子命令 release v4.5.1 还没有），config 落 data/analysis_<tier>.lumice.json（入 git），
+# - Lumice `analyze` 子命令（release ≥ v4.6.1，`halo_notes.sim.fetch.ensure_lumice` 自动取；现存 `data/` 产物由 4.6.1 发版前的
+#   本地 build 跑出，provenance 已记），config 落 data/analysis_<tier>.lumice.json（入 git），
 #   原始 CSV / lumice.log / provenance.json 落 data/analysis/<tier>/（ignored，见上）；锥晶经 halo_notes.sim.analyze.pyramid_analysis_config
 #   → config.pyramid_crystal_from_geometry 换算（三条换算已由 task-pyramid-sim-glue 实测钉死）；
 # - **MC 侧链面数上限 MC_MAX_LEN = 4 ≪ 精确侧 L_STAR = 6**：Lumice distinct 链驻留表每 worker 只有 16384 槽，锥晶 finest 链
@@ -269,8 +270,10 @@ def write_md(results: dict[Tier, A.AnalysisResult], fams: dict[Tier, dict[float,
     tiers = list(results)
     labels = [f"({ha:g}, {tr:g})" for ha, tr in tiers]
     any_prov = results[tiers[0]].provenance
+    build_desc = (f"本地 build，Ice Halo 仓 HEAD `{any_prov['lumice_git_head']}`" if any_prov["local_build"]
+                  else f"release `{any_prov['lumice_version']}`")
     lines = ["# 锥晶九种楔角族的蒙特卡洛能量份额表与互证（ch9，与 `signature_table.md` 同 9 行同序）", ""]
-    lines.append(f"> 产出：`code/analyze_energy.py`（Lumice `analyze`，本地 build，Ice Halo 仓 HEAD `{any_prov['lumice_git_head']}`，"
+    lines.append(f"> 产出：`code/analyze_energy.py`（Lumice `analyze`，{build_desc}，"
                  f"二进制 sha256 `{any_prov['lumice_bin_sha256'][:12]}…`；`--roi {ROI} --symmetry {SYMMETRY} --rays {rays} "
                  f"--seed {SEED}`，`max_hits={MC_MAX_LEN}`，单波长 550 nm，随机朝向）；每档的 config 在 `analysis_<tier>.lumice.json`，"
                  "原始 CSV / provenance 在 `analysis/<tier>/`，MC 逐行表在 `analysis/rows_<tier>.csv`（目录 ignored，打包为 `analysis.zip` 走 LFS；"

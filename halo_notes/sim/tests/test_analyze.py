@@ -11,6 +11,8 @@ from pathlib import Path
 import pytest
 
 from lumice_integral.geometry import HexPrism
+
+from halo_notes.sim import fetch
 from lumice_integral.geometry.enumerate import RaypathRecord, enumerate_raypaths
 from lumice_integral.geometry.feasibility import LatLonGrid
 from halo_notes.math import reflection_group as rg
@@ -171,7 +173,7 @@ def test_run_analysis_release_path_records_version(tmp_path, monkeypatch):
     binary = _script(tmp_path, FAKE_OK)
     monkeypatch.setattr(A, "ensure_lumice", lambda: binary)
     res = A.run_analysis(A.analysis_config(1.0, max_len=3, rays=10), tmp_path / "out", workers=2, backend="cpu")
-    assert res.provenance["local_build"] is False and res.provenance["lumice_version"] == "v4.5.1"
+    assert res.provenance["local_build"] is False and res.provenance["lumice_version"] == fetch.LUMICE_VERSION
     assert res.provenance["lumice_git_head"] is None
     assert "--workers" in res.provenance["cli_args"] and "--backend" in res.provenance["cli_args"]
 
