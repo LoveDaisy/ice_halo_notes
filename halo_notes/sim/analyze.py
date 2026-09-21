@@ -1,7 +1,9 @@
 """Lumice ``analyze`` 子命令胶水：随机朝向晶体的全天光路分析 CSV → 面序列行 → Φ 类聚合 / 与精确枚举互证。
 
 与 :mod:`.run` 平行（config → subprocess → 解析产物 → ``provenance.json``），但 CLI 形态不同：子命令 ``analyze``、
-产物是 CSV（``--csv``）而非渲染图。全部接口事实按 2026-09-15 本地 build（Ice Halo 仓 ``9232bccb``）实测钉死：
+产物是 CSV（``--csv``）而非渲染图。全部接口事实按 2026-09-15 本地 build（Ice Halo 仓 ``9232bccb``）实测钉死；
+release v4.6.1 起 ``analyze`` 进入正式发行，CLI 选项与本模块所用一致（``--roi / --symmetry / --rays / --seed / --csv``；
+4.6.1 新增 ``--chain-capacity``，本模块未用）：
 
 - ``max_hits`` = 链的**面数上限（含入射面）**：``max_hits=3`` 最长链 3 面、``=7`` 7 面、``=8`` 8 面（不是 CUDA 后端注释里的
   ``1 + max_hits``）。要对齐精确枚举器 ``max_len``，传 ``max_hits = max_len``

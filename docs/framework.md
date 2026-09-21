@@ -199,9 +199,9 @@ $D_P$ 的定义因此带两个负号（$D_P(\mathbf u)=\angle(-\Phi_P(-\mathbf u
 - `07-reflection-group/code/check_group.py` — 定理 1、2、3、5，及「特征值只得 5 类」。
 - `08-wedge-times-fold/code/check_signature.py` — 定理 5′。
 - `08-wedge-times-fold/code/enumerate_signatures.py` — 定理 5″（产出 `data/signature_table*`）；`check_ground_truth_signature.py` — ch3 ground truth 对表（产出 `data/ground_truth_signature.md`）。
-- `08-wedge-times-fold/code/analyze_energy.py` — 定理 5″ 的 MC 独立复核 + 每类能量份额（产出 `data/analysis/`（ignored，打包为 `data/analysis.zip` 走 LFS）、`data/energy_table.md`；需 `LUMICE_BIN` 指向带 `analyze` 子命令的本地 build）。
+- `08-wedge-times-fold/code/analyze_energy.py` — 定理 5″ 的 MC 独立复核 + 每类能量份额（产出 `data/analysis/`（ignored，打包为 `data/analysis.zip` 走 LFS）、`data/energy_table.md`；Lumice release ≥ v4.6.1 自带 `analyze`；现存产物为发版前本地 build 所出）。
 - `09-pyramid/code/check_pyramid.py` — 定理 6、7。
 - `09-pyramid/code/enumerate_signatures.py` — 定理 7′（产出 `data/signature_table.md`、`data/signature_table_<tier>.csv`、`data/raypaths_<tier>.csv`）。
-- `09-pyramid/code/analyze_energy.py` — 定理 7′ 的 MC 独立复核 + 每族能量份额（产出 `data/analysis/`（ignored，打包为 `data/analysis.zip` 走 LFS）、`data/energy_table.md`；需 `LUMICE_BIN` 指向带 `analyze` 子命令的本地 build）。
+- `09-pyramid/code/analyze_energy.py` — 定理 7′ 的 MC 独立复核 + 每族能量份额（产出 `data/analysis/`（ignored，打包为 `data/analysis.zip` 走 LFS）、`data/energy_table.md`；Lumice release ≥ v4.6.1 自带 `analyze`；现存产物为发版前本地 build 所出）。
 
 ch7 / ch9 bootstrap 时迁入各章 `code/`。
