@@ -1,5 +1,5 @@
 ---
-type: directors-cut
+type: note
 status: outline
 ---
 # 现代冰晕研究漫谈(番外): Tape 光点法与矩阵法

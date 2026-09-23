@@ -18,7 +18,7 @@
 | 7 | `07-reflection-group/` | [为什么恰好是十二个](07-reflection-group/为什么恰好是十二个.md) | published | [p/2082646907952821740](https://zhuanlan.zhihu.com/p/2082646907952821740) | `[[现代冰晕研究漫谈(7)： 十二种矩阵背后的数学结构]]` |
 | 8 | `08-wedge-times-fold/` | [三种楔子、十二种折叠](08-wedge-times-fold/三种楔子-十二种折叠.md) | published | [p/2084963224814990674](https://zhuanlan.zhihu.com/p/2084963224814990674) | `[[现代冰晕研究漫谈(8)： 楔角光路]]` |
 | 9 | `09-pyramid/` | [锥晶：结构还是巧合](09-pyramid/锥晶-结构还是巧合.md) | outline | — | — |
-| 番外 | `ex-tape-vs-matrix/` | [Tape 光点法与矩阵法](ex-tape-vs-matrix/Tape光点法与矩阵法.md) | outline | — | — |
+| 番外 | `ex-tape-vs-matrix/` | [从古典几何到现代矩阵](ex-tape-vs-matrix/从古典几何到现代矩阵.md) | draft | — | — |
 | 12 | `12-halo-detection/` | [变换法探测冰晕](12-halo-detection/变换法探测冰晕.md) | outline | — | — |
 
 状态取值：`outline`（只有提纲）/ `draft`（写作中）/ `published`（已发表，正文冻结为导演剪辑版）。每章 md 的 frontmatter 是状态与链接的权威来源，本表随之同步。番外目录名用 `ex-<slug>`，不占章号，落点见 `docs/roadmap.md` 番外表。
