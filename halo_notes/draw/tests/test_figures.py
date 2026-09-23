@@ -78,8 +78,9 @@ FIGURES = {
     "8.1": f"{CH8}/fig_unfold_wedge_fold.py",
     "8.2": f"{CH8}/fig_five_wedges.py",
     "8.4": f"{CH8}/fig_direction_scan.py",
-    "ex-tape.1": f"{EX_TAPE}/fig_kaleidoscope_and_spheres.py",
-    "ex-tape.2": f"{EX_TAPE}/fig_unfold_3457.py",
+    "ex-tape.1": f"{EX_TAPE}/fig_kaleidoscope.py",
+    "ex-tape.2": f"{EX_TAPE}/fig_concentric_projection.py",
+    "ex-tape.3": f"{EX_TAPE}/fig_unfold_3457.py",
 }
 
 
