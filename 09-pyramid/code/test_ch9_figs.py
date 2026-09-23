@@ -1,6 +1,6 @@
 """task-draw-ch9-figs：ch9 十一张正文插图的机械核验——**唯一权威位置**（每图一条语义断言，fig 脚本不再内联重复判据）。
 被检量都由对应 `fig_*.py` / `_ch9_fig.py` 里的纯函数给出，这里只 import 调用、断言正文图题的语义；图面美观不在此列（owner 签核）。
-不跑 Lumice：图 4/5/6/8/9 只读已入库渲染，图 11 读已入库的 `data/plate_arcs*` 产物。"""
+不跑 Lumice：图 4/5/6/9/10 读返工 R1 入库的天顶渲染（`data/zenith/*.zip`），图 8 读上一轮入库渲染，图 11 读已入库的 `data/plate_arcs*` 产物。"""
 
 from __future__ import annotations
 
@@ -8,6 +8,7 @@ import math
 import sys
 from pathlib import Path
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 
@@ -110,30 +111,81 @@ def test_rect_pixel_is_energy_not_radiance():
     assert lin[hi].mean() < 0.6 * lin[lo].mean()
 
 
-def test_rect_to_fisheye_is_equidistant_and_centered():
-    """合成一张「只有与中心夹角 ∈ [20°, 21°] 的环是亮的」rectangular 图（像素值按像素语义 ∝ cos lat），重投影后亮环半径 = 20.5/60 × 半径。"""
-    render = {"lens": {"type": "rectangular"}, "resolution": [1440, 720]}
-    dirs, w = F.rectangular_pixel_directions(render)
-    center = S.sun_direction()
-    theta = np.degrees(np.arccos(np.clip(dirs @ center, -1, 1)))
-    lin = np.where((theta >= 20) & (theta <= 21), 0.5, 0.0) * w
-    img = F._srgb_encode(np.repeat(lin[..., None], 3, axis=-1))
-    out = F.rect_to_fisheye(img, render, center, 600, 60.0).astype(float).sum(axis=-1)
-    row = out[300, 300:]                                     # 圆心向右一条半径
-    r_px = float(np.average(np.arange(row.size) + 0.5, weights=row))
-    assert r_px == pytest.approx(20.5 / 60.0 * 300, abs=1.5)
-    assert out[300, :].sum() == pytest.approx(out[:, 300].sum(), rel=0.05)     # 上下 / 左右对称：中心确在圆心
+# ---- 返工 R1：太阳天顶 + 一景两渲（dual fisheye 等距显示 / 等面积取数）----
+
+ZENITH_SCENES = ("panorama", "panorama_h3_t0.25", "panorama_h0.3_t0.85", "remainder", "w52.4", "w63.8", "13-15-26-28")
+
+
+@pytest.mark.parametrize("scene", ZENITH_SCENES)
+def test_zenith_two_projections_same_total_energy(scene):
+    """同一景两种投影（同 config、同一批光线）的全天总能量相对偏差 < 2%：渲染时 float32 原图的数字（meta）与从 zip 复算的数字都要过；
+    且这一景确实走了 Metal（`run_lumice_npy` 核对日志后写进 meta）。"""
+    sc = F.DualScene(f"zenith/{scene}")
+    raw = sc.meta["total_energy_float32"]
+    assert abs(raw["equidistant"] / raw["equal_area"] - 1) < F.ENERGY_CONSISTENCY_TOL
+    got = sc.total_energy()
+    assert abs(got["equidistant"] / got["equal_area"] - 1) < F.ENERGY_CONSISTENCY_TOL
+    assert got["equal_area"] == pytest.approx(raw["equal_area"], rel=1e-3)          # float16 量化不改变全天能量
+    assert sc.meta["gpu_route"] is True and sc.meta["backend"] == "metal"
+    assert sc.meta["sun_alt"] == 90.0 and sc.meta["lenses"] == list(F.DUAL_LENSES)
+
+
+def test_zenith_pixel_mapping_agrees_between_projections():
+    """两种投影各自的「像素 → 与太阳夹角」反解（`dual_theta`）互相独立：同一景按 1° 桶的能量分布两边一致（中位偏差 < 1%，
+    除盘心 / 盘沿外每桶 < 5%），否则至少有一边的映射写错了。"""
+    sc = F.DualScene("zenith/panorama")
+    H, W = sc.ea.shape
+    edges = np.arange(0.0, 181.0, 1.0)
+    e = {}
+    for lens, Y in (("dual_fisheye_equal_area", sc.ea), ("dual_fisheye_equidistant", sc.ed[..., 1])):
+        th = F.dual_theta(W, H, lens)
+        m = ~np.isnan(th)
+        e[lens], _ = np.histogram(th[m], bins=edges, weights=Y[m].astype(np.float64))
+    ratio = e["dual_fisheye_equidistant"][2:178] / e["dual_fisheye_equal_area"][2:178]
+    assert abs(np.median(ratio) - 1) < 0.01 and np.all(np.abs(ratio[:86] - 1) < 0.05) and np.all(np.abs(ratio[-86:] - 1) < 0.05)
+
+
+def plotted(fig) -> dict[str, tuple[object, np.ndarray, np.ndarray]]:
+    """图里所有 gid 以 ``profile:`` 开头的曲线：{gid: (axes, x, y)}。"""
+    out = {}
+    for ax in fig.axes:
+        for ln in ax.get_lines():
+            if (ln.get_gid() or "").startswith("profile:"):
+                out[ln.get_gid()] = (ax, np.asarray(ln.get_xdata()), np.asarray(ln.get_ydata()))
+    return out
+
+
+def assert_absolute(curve, c: np.ndarray, r: np.ndarray) -> None:
+    """画上去的曲线就是绝对单位的原剖面（逐点相等，没有任何归一化 / 缩放）。"""
+    _, x, y = curve
+    idx = np.searchsorted(c, x)
+    assert np.allclose(c[idx], x) and np.allclose(r[idx], y, rtol=1e-12, atol=0)
 
 
 # ---- 图 4：族外余量 ----
 
 
 def test_fig4_remainder_has_no_ring():
-    c, r = G4.profile()
+    prof = G4.profiles()
+    c, r = prof["remainder"]
     assert S.detect_peaks(c, r) == []                         # 没有任何局部极大高过 3 × 局部背景
     assert np.all(r[c >= S.DISK_ZONE_DEG] < G4.threshold_curve(c, r)[c >= S.DISK_ZONE_DEG])
     s = G4.shares()
     assert s["area"]["off"] > 50 and s["energy"]["off"] + s["energy"]["single"] < 20       # 面积过半、能量不到两成
+    sc = G4.scenes()
+    share = sc["remainder"].total_energy()["equal_area"] / sc["total"].total_energy()["equal_area"] * 100
+    assert share == pytest.approx(s["energy"]["off"] + s["energy"]["single"], abs=1.0)    # 渲染像素能量与 MC 份额互证
+
+
+def test_fig4_profiles_share_one_absolute_axis():
+    fig, _ = G4.build()
+    lines = plotted(fig)
+    prof = G4.profiles()
+    assert set(lines) == {"profile:total", "profile:remainder"}
+    assert lines["profile:total"][0] is lines["profile:remainder"][0]                    # 同一个 axes
+    for k in ("total", "remainder"):
+        assert_absolute(lines[f"profile:{k}"], *prof[k])
+    plt.close(fig)
 
 
 # ---- 图 5：18° 晕单独拿出来 ----
@@ -144,19 +196,45 @@ def test_fig5_isolated_18_is_sharp_panorama_is_shoulder():
         c, fam, pan = G5.profiles(w)
         R = ES.min_deviation_deg(w)
         assert R <= G5.inner_edge_deg(c, fam) <= R + 1.0       # 内缘（升过半峰）紧贴最小偏向角外 1° 内
-        assert fam[(c < R - 0.5) & (c > R - 5)].max() == 0    # 最小偏向角以内是黑的（留 0.5°：太阳盘直径 + 1 桶）
+        # 最小偏向角以内是黑的（留 0.5°：太阳盘直径 + 1 桶）。上一轮 8-bit png 在这里恰好是 0；npy 是浮点，量化底不再把 MC 的零星
+        # 光线抹成 0，实测 ≤ 2×10⁻⁷ 倍峰值，判据写成相对峰值 1e-4
+        assert fam[(c < R - 0.5) & (c > R - 5)].max() < 1e-4 * fam.max()
     c, _, pan = G5.profiles(G5.TARGET_WEDGE)
     peaks = S.assign_peaks(S.detect_peaks(c, pan))
     assert peaks[G5.TARGET_WEDGE] is None and peaks[G5.COMPARISON_WEDGE] is not None
+
+
+def test_fig5_profiles_share_one_absolute_axis():
+    fig, _ = G5.build()
+    lines = plotted(fig)
+    assert set(lines) == {"profile:panorama", f"profile:w{G5.TARGET_WEDGE:g}", f"profile:w{G5.COMPARISON_WEDGE:g}"}
+    assert len({id(v[0]) for v in lines.values()}) == 1                                    # 三条在同一个 axes
+    for w in (G5.TARGET_WEDGE, G5.COMPARISON_WEDGE):
+        c, fam, pan = G5.profiles(w)
+        assert_absolute(lines[f"profile:w{w:g}"], c, fam)
+        assert_absolute(lines["profile:panorama"], c, pan)
+    plt.close(fig)
 
 
 # ---- 图 6：三档全景 ----
 
 
 def test_fig6_same_wedges_different_visible_rings():
-    vis = {name: tuple(G6.visible_halos(name)) for name, _ in G6.TIERS}
+    prof = G6.profiles()
+    vis = {key: tuple(G6.visible(*prof[key])) for key, _, _ in G6.TIERS}
     assert len(set(vis.values())) == 3                        # 三档点亮的环互不相同
-    assert [G6.tier_numbers(n)["tier"] for n, _ in G6.TIERS] == [[3.0, 0.25], [1.0, 0.5], [0.3, 0.85]]
+    assert [G6.scene(k).meta["tier"] for k, _, _ in G6.TIERS] == [[3.0, 0.25], [1.0, 0.5], [0.3, 0.85]]
+
+
+def test_fig6_profiles_share_one_absolute_axis():
+    fig, _ = G6.build()
+    lines = plotted(fig)
+    prof = G6.profiles()
+    axes = [lines[f"profile:{k}"][0] for k, _, _ in G6.TIERS]
+    assert all(axes[0].get_shared_y_axes().joined(axes[0], a) for a in axes[1:])          # 三栏共用纵轴
+    for k, _, _ in G6.TIERS:
+        assert_absolute(lines[f"profile:{k}"], *prof[k])
+    plt.close(fig)
 
 
 # ---- 图 8：拥挤团加总 ----
@@ -174,15 +252,18 @@ def test_fig8_sum_loses_18_and_23():
 # ---- 图 9：族外光路搬到反日侧 ----
 
 
-def test_fig9_light_is_moved_to_antisolar_ring():
+def test_fig9_light_is_moved_to_antisolar_band():
     R = G9.min_deviation()
     assert R == pytest.approx(22.19, abs=0.01) and G9.wedge_deg() == 60.7
     c, r = G9.profile()
-    near = (c >= R - 2) & (c <= R + 5)
-    assert r[near].max() == 0                                  # 楔角给出的半径附近一点光都没有
     obs = G9.observed(c, r)
-    assert obs["peak_deg"] > 170 and obs["is_local_max"] and obs["ratio"] >= S.PEAK_RATIO   # 反日点旁的锐环
+    near = (c >= R - 2) & (c <= R + 5)
+    assert r[near].max() < 1e-4 * obs["peak"]                  # 楔角给出的半径附近没有光（浮点 npy：相对峰值 1e-4，同图 5 注）
+    assert obs["peak_deg"] > 170 and obs["is_local_max"] and obs["ratio"] >= S.PEAK_RATIO   # 反日点旁的锐利内缘
     assert r[-1] < 0.2 * obs["peak"]                           # 正中暗洞
+    n = G9.numbers()
+    assert n["energy_frac_antisolar_hemisphere"] > 0.999       # 光全在反日半球（所以太阳半球不画）
+    assert n["energy_quantiles_psi_deg"]["q90"] - n["energy_quantiles_psi_deg"]["q10"] > 20     # 很宽的一片环带
 
 
 # ---- 图 10：族外锐边密集区（几何直接积分）----

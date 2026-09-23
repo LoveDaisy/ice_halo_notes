@@ -1,13 +1,14 @@
-# 产出 ../img/family_remainder.png（图 4「族外余量全天图及径向剖面」）：参考几何、随机取向、全天减去 9 族（≤ 4 面全部代表的
-# `filter_out`）后剩下的光——族外多次反射 + 单面外反射。三块：
-#   左：以太阳为中心的**全天**等距鱼眼（圆心 = 太阳，外圈 = 180° = 反日点；半径 ∝ 与太阳的夹角，与右上剖面横轴一一对应），
-#       从已入库 `data/odd_radius_remainder/rect/img_01.png` 重投影（`_ch9_fig.rect_to_fisheye`，不重渲）；
-#   右上：径向剖面（对数纵轴；按 Lumice 像素语义现算，见 `_ch9_fig` 天空图一节——numbers.json 里的旧剖面多乘了一次 cos(lat)），叠一条
-#       「3 × 局部背景」虚线——`_ch9_sim` 的成环判据（峰 / 局部背景 ≥ 3），剖面没有一处局部极大越过它，淡灰竖线 = 八个经典晕半径；
+# 产出 ../img/family_remainder.png（图 4「族外余量全天图及径向剖面」）+ ../data/family_remainder.numbers.json：参考几何、随机取向，
+# 全天减去 9 族（≤ 4 面全部代表的 `filter_out`）后剩下的光——族外多次反射 + 单面外反射。返工 R1：太阳放天顶重渲（`render_zenith.py` 的
+# panorama / remainder 两景，10⁹ 光线），不再从已入库 rectangular 重投影。
+#   左栏三行，每行一张 dual fisheye 等距全天图（左盘圆心 = 太阳、右盘圆心 = 反日点，两盘盘沿都是与太阳成 90° 的那一圈）：
+#     (a) 全天总晕图；(b) 族外余量，**与 (a) 同一绝对亮度标尺**；(c) 族外余量提亮 REMAINDER_GAIN 倍（倍数写在图上）；
+#   右上：径向剖面（dual_fisheye_equal_area 取数），全景与余量画在**同一绝对纵轴**上（对数），另一条虚线 = 余量的「3 × 局部背景」
+#     ——`_ch9_sim` 的成环判据（峰 / 局部背景 ≥ 3 才算可辨的环），图例里写明；余量剖面没有一处局部极大越过它；淡灰竖线 = 八个经典晕半径；
 #   右下：同一参考几何下「方向集面积」与「能量」的份额对照——面积来自 `signature_table.md` 汇总行（族内 / 族外面积），能量来自
-#       `odd_radius_families.numbers.json` 的 MC 份额（9 族 / 族外 / 单面外反射）。百分数取整进图面。
-# 设计偏离 plan（plan：rectangular 原图）：换成太阳中心全天等距鱼眼，理由同图 6，且让天空图半径与剖面横轴同一刻度（progress DECISION）。
-# 读者要看出：族外是太阳周围的雾 + 反日侧的弥散，不是环；方向集面积过半，能量却只有一成多。
+#     `odd_radius_families.numbers.json` 的 MC 份额（9 族 / 族外 / 单面外反射）。百分数取整进图面。
+# 渲染侧的余量能量份额（余量 / 全景像素能量）另记 numbers.json，与 MC 份额互证。
+# 读者要看出：同一亮度标尺下族外几乎看不见；提亮之后能看出几道暗弧，但没有一处过得了可辨阈值；方向集面积过半，能量却只有一成多。
 from __future__ import annotations
 
 import json
@@ -20,23 +21,24 @@ import _ch9_fig as F
 import _ch9_sim as S
 
 NAME = "family_remainder"
-WIDTH, HEIGHT, DPI = 2400, 1120, 200
-DISK_PX = 1000
+WIDTH, HEIGHT, DPI = 2400, 2000, 200
 PAL = F.PAL
 FONT = {"family": list(F.CHART_FONTS)}
-PRODUCT = "odd_radius_remainder"
-DISPLAY_GAIN = 2.5        # 只作用于左侧天空图的显示（线性亮度 ×2.5，太阳旁的雾仍不削顶）；余量是全天最暗的成分，按原曝光几乎看不见。剖面取数不受影响
+REMAINDER_GAIN = 40.0      # (c) 的显示增益（线性亮度乘数）：余量最亮处约为全景最亮处的 1/45，×40 才看得清；只作用于 (c) 的显示
+WHITE_HEADROOM = 1.3
 
 
-def numbers() -> dict:
-    return S.read_numbers(PRODUCT)
+def scenes() -> dict[str, F.DualScene]:
+    return {"total": F.DualScene("zenith/panorama"), "remainder": F.DualScene("zenith/remainder")}
 
 
-def profile() -> tuple[np.ndarray, np.ndarray]:
-    """径向剖面：按 Lumice 像素语义从入库渲染现算（`_ch9_fig.radiance_profile`，0.25° 桶，与 numbers.json 同分桶）。"""
-    img, cfg = S.load_product(PRODUCT, "rect")
-    c, r, _ = F.radiance_profile(img, cfg["render"][0], S.sun_direction())
-    return c, r
+def profiles() -> dict[str, tuple[np.ndarray, np.ndarray]]:
+    """全景与余量的径向剖面（绝对单位：每单位发射能量每 sr），右上栏画的就是它们，不做归一化。"""
+    out = {}
+    for k, sc in scenes().items():
+        c, r, _ = sc.profile()
+        out[k] = (c, r)
+    return out
 
 
 def threshold_curve(centers: np.ndarray, radiance: np.ndarray) -> np.ndarray:
@@ -55,37 +57,40 @@ def shares() -> dict[str, dict[str, float]]:
             "energy": {"in": e_in, "off": mc["off"], "single": mc["single"]}}
 
 
-def draw_disk(ax) -> None:
-    img, cfg = S.load_product(PRODUCT, "rect")
-    bg = tuple(int(PAL["background"][k:k + 2], 16) for k in (1, 3, 5))
-    ax.imshow(F.rect_to_fisheye(img, cfg["render"][0], S.sun_direction(), DISK_PX, 180.0, background=bg, gain=DISPLAY_GAIN),
-              interpolation="none", extent=(-180, 180, -180, 180))
-    t = np.linspace(0, 2 * np.pi, 361)
-    for r in (45, 90, 135):
-        ax.plot(r * np.cos(t), r * np.sin(t), color="white", lw=0.5, alpha=0.25, ls=(0, (3, 3)))
-        ax.text(r * np.cos(np.radians(-40)), r * np.sin(np.radians(-40)), F.deg(r), color="white", alpha=0.6, fontsize=8.5,
-                ha="left", va="top", **FONT)
-    ax.text(0, -198, "外圈 180° = 反日点", ha="center", va="top", fontsize=10, color=PAL["ink_soft"], **FONT)
-    ax.text(0, 9, "太阳", ha="center", va="bottom", fontsize=9, color="white", alpha=0.8, **FONT)
-    ax.set_xlim(-185, 185)
-    ax.set_ylim(-215, 185)
-    ax.set_axis_off()
+def numbers(prof: dict, sc: dict) -> dict:
+    c, r = prof["remainder"]
+    e = {k: v.total_energy()["equal_area"] for k, v in sc.items()}
+    return {"remainder_peaks": S.detect_peaks(c, r), "render_energy_share_pct": 100 * e["remainder"] / e["total"],
+            "mc_off_plus_single_pct": shares()["energy"]["off"] + shares()["energy"]["single"],
+            "remainder_gain": REMAINDER_GAIN, "total_energy": e}
 
 
-def draw_profile(ax) -> None:
-    c, r = profile()
-    thr = threshold_curve(c, r)
+def draw_dual(fig, rect, scene: F.DualScene, white: float, gain: float, title: str) -> None:
+    x, y, w, h = rect
+    dw = w / 2
+    for k, (hemi, center) in enumerate((("sun", "太阳"), ("anti", "反日点"))):
+        ax = fig.add_axes([x + k * dw, y, dw, h])
+        rad, _ = F.disc_radiance(scene, hemi, 90.0)
+        F.show_disc(ax, F.tone(rad, white, gain=gain), 90.0, rings=(30.0, 60.0), ring_labels=False, center=center)
+    fig.text(x + 0.005, y + h + 0.004, title, ha="left", va="bottom", fontsize=12, color=PAL["ink"], **FONT)
+
+
+def draw_profile(ax, prof: dict) -> None:
     F.mark_radii(ax, sorted(S.KNOWN_RADII.values()))
-    ax.plot(c, r, color=F.SUM_COLOR, lw=1.4, label="族外余量的径向剖面")
-    ax.plot(c, thr, color=PAL["face_3"], lw=1.0, ls=(0, (4, 3)), label="3 × 局部背景（成环判据）")
+    c, tot = prof["total"]
+    _, rem = prof["remainder"]
+    m = c >= 1.0
+    ax.plot(c[m], tot[m], color=PAL["slate"], lw=1.2, label="(a) 全天总晕", gid="profile:total")
+    ax.plot(c[m], rem[m], color=F.SUM_COLOR, lw=1.5, label="(b) 族外余量", gid="profile:remainder")
+    ax.plot(c[m], threshold_curve(c, rem)[m], color=PAL["face_3"], lw=1.0, ls=(0, (4, 3)),
+            label="余量的 3 × 局部背景：局部极大\n要高过这条线才算一个可辨的环")
     ax.set_yscale("log")
-    ax.set_ylim(0.01, 2.5)
-    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda v, _: f"{v:g}"))
+    ax.yaxis.set_major_formatter(plt.NullFormatter())
+    ax.yaxis.set_minor_formatter(plt.NullFormatter())
     F.theta_axis(ax, 0, 180, 30)
-    ax.set_ylabel("平均亮度（对数）")
-    ax.text(4, 0.03, "太阳周围的雾", fontsize=10.5, color=PAL["ink_soft"], **FONT)
-    ax.text(125, 0.026, "反日侧的弥散", fontsize=10.5, color=PAL["ink_soft"], **FONT)
-    ax.text(21.8, 0.0115, "淡灰竖线：八个经典晕半径", fontsize=9, color=PAL["slate"], **FONT)
+    ax.set_ylabel("平均亮度（对数，两条同一标尺）")
+    ax.text(0.99, 0.02, "淡灰竖线：八个经典晕半径", transform=ax.transAxes, ha="right", va="bottom", fontsize=9, color=PAL["slate"],
+            **FONT)
     ax.legend(loc="upper right", fontsize=9.5)
 
 
@@ -111,17 +116,33 @@ def draw_shares(ax) -> None:
     ax.set_axis_off()
 
 
-def main() -> None:
+def build():
+    """画整张图（不落盘）：返回 ``(fig, numbers)``——单测据此检查画上去的剖面就是绝对单位的原剖面、且同图共用纵轴。"""
     F.apply_style()
-    c, r = profile()
-    assert S.detect_peaks(c, r) == [] and numbers()["peaks"] == []
+    sc = scenes()
+    prof = profiles()
+    nums = numbers(prof, sc)
+    c, tot = prof["total"]
+    white = WHITE_HEADROOM * float(tot[c >= 2].max())
     fig = plt.figure(figsize=((WIDTH + 0.5) / DPI, (HEIGHT + 0.5) / DPI), dpi=DPI)
     fig.patch.set_facecolor(PAL["background"])
-    draw_disk(fig.add_axes([0.0, 0.0, 0.46, 1.0]))
-    draw_profile(fig.add_axes([0.54, 0.39, 0.44, 0.56]))
-    draw_shares(fig.add_axes([0.62, 0.03, 0.36, 0.2]))
+    h, w = 0.285, 0.285 * 2 * HEIGHT / WIDTH
+    rows = [("(a) 全天总晕", sc["total"], 1.0), ("(b) 族外余量：与 (a) 同一亮度标尺", sc["remainder"], 1.0),
+            (f"(c) 族外余量：提亮 {REMAINDER_GAIN:g} 倍", sc["remainder"], REMAINDER_GAIN)]
+    for i, (title, s, gain) in enumerate(rows):
+        draw_dual(fig, (0.01, 1 - (i + 1) * 0.325 + 0.01, w, h), s, white, gain, title)
+    fig.text(0.012, 0.012, "每行两个圆：左圆心是太阳、右圆心是反日点，两圆边缘都是与太阳成 90° 的那一圈；虚线圈为 30° / 60°",
+             ha="left", va="bottom", fontsize=9.5, color=PAL["slate"], **FONT)
+    draw_profile(fig.add_axes([0.02 + w + 0.07, 0.42, 1 - w - 0.11, 0.53]), prof)
+    draw_shares(fig.add_axes([0.02 + w + 0.14, 0.08, 1 - w - 0.18, 0.2]))
+    return fig, nums
+
+
+def main() -> None:
+    fig, nums = build()
+    S.write_numbers(NAME, nums)
     fig.savefig(F.out_png(NAME), dpi=DPI, facecolor=fig.get_facecolor(), metadata=F.PNG_META)
-    print(f"saved {F.out_png(NAME)}")
+    print(f"saved {F.out_png(NAME)}  {nums}")
 
 
 if __name__ == "__main__":

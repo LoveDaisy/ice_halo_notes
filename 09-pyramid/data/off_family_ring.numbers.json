@@ -1,0 +1,18 @@
+{
+  "wedge_deg": 60.7,
+  "min_deviation_deg": 22.192623919376047,
+  "observed_peak": {
+    "peak_deg": 176.5,
+    "peak": 0.000698125492215207,
+    "background": 0.00019805503781244172,
+    "ratio": 3.5249065104636843,
+    "is_local_max": true,
+    "detected": true
+  },
+  "energy_frac_antisolar_hemisphere": 1.0,
+  "energy_quantiles_psi_deg": {
+    "q10": 18.5,
+    "q50": 38.5,
+    "q90": 52.5
+  }
+}

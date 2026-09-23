@@ -1,6 +1,6 @@
 # ch9 十一张正文插图（task-draw-ch9-figs）共用的画图侧工具，与仿真侧 `_ch9_sim.py` 分工：
 #   - `_ch9_sim.py` 管「怎么渲染 / 怎么从渲染取数」（过滤器、曝光、径向剖面、峰判据），本文件**不改它、只 import 它**；
-#   - 本文件管「怎么把数画成图」：曲线图外观（沿用 ch8 `_ch8_plot.py` 的一份实现，不复制）、族配色、天空图重投影 / 裁窗、
+#   - 本文件管「怎么把数画成图」：曲线图外观（沿用 ch8 `_ch8_plot.py` 的一份实现，不复制）、族配色、天顶 dual fisheye 渲染的读取 / 裁窗 / 显示、
 #     多曲线按能量加总、片晶弧计数判据。函数随各 fig 脚本按最小必要增量加入，不预设接口。
 # 仿真参数（太阳高度、光线数、h/a……）不进图面，留在各脚本头注释与 provenance（ch8 惯例）。
 from __future__ import annotations
@@ -50,7 +50,7 @@ PNG_META = {"Software": None}
 
 
 # ======================================================================================================
-# 天空图：Lumice rectangular 像素语义 + 重投影成以某方向为中心的等距鱼眼（不重渲）
+# 天空图：Lumice rectangular 像素语义（上一轮入库渲染的取数；返工 R1 的新图走下文「太阳放天顶」一节，不再从 rectangular 重投影）
 # ======================================================================================================
 # **像素语义**：Lumice 渲染的一个像素存的是「辐亮度在该像素立体角上的积分」（Lumice 源码 `src/core/lens_proj_build.hpp:157`
 # "A rendered pixel holds a radiance INTEGRATED over its own solid angle"）。rectangular 全天图的像素立体角 ∝ cos(lat)，所以
@@ -63,10 +63,7 @@ PNG_META = {"Software": None}
 
 import numpy as np  # noqa: E402
 
-from halo_notes.sim.projection import project_rectangular, rectangular_pixel_directions  # noqa: E402
-
-SUPERSAMPLE = 3          # 每个输出像素 3×3 个子样本，在线性亮度里平均
-
+from halo_notes.sim.projection import rectangular_pixel_directions  # noqa: E402
 
 def _srgb_decode(img: np.ndarray) -> np.ndarray:
     a = np.asarray(img, float) / 255.0
@@ -99,11 +96,6 @@ def linear_radiance(lin: np.ndarray, render: dict) -> np.ndarray:
     return out
 
 
-def rect_radiance(image: np.ndarray, render: dict) -> np.ndarray:
-    """rectangular 图（8-bit sRGB）→ 每像素线性辐亮度 (H, W, 3)（:func:`linear_radiance`）。"""
-    return linear_radiance(_srgb_decode(image), render)
-
-
 def radiance_profile(image: np.ndarray, render: dict, center_dir: np.ndarray, *, bin_deg: float = 0.25,
                      max_deg: float = 180.0) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """以 ``center_dir`` 为极点的径向剖面（正确像素语义）：``(桶中心, 平均辐亮度 ΣL/Σcos(lat), 桶能量 ΣL)``，L = 三通道线性亮度之和。
@@ -129,60 +121,6 @@ def product_profile(name: str, variant: str, *, bin_deg: float = 0.25, center_di
     render = cfg["render"][0]
     c, rad, _ = radiance_profile(img, render, S.sun_direction() if center_dir is None else center_dir, bin_deg=bin_deg)
     return c, rad / float(render["intensity_factor"])
-
-
-def center_frame(center_dir: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """``(c, up, right)``：c = 中心方向；up = 天顶在垂直于 c 的平面上的投影（画面「上」）；right = c × up（面向 c、天顶朝上时的右手边）。"""
-    c = np.asarray(center_dir, float)
-    c = c / np.linalg.norm(c)
-    z = np.array([0.0, 0.0, 1.0])
-    up = z - (z @ c) * c
-    if np.linalg.norm(up) < 1e-9:
-        up = np.array([1.0, 0.0, 0.0]) - c[0] * c
-    up /= np.linalg.norm(up)
-    return c, up, np.cross(c, up)
-
-
-def fisheye_directions(center_dir: np.ndarray, size_px: int, max_theta_deg: float, *, sub: int = 1) -> tuple[np.ndarray, np.ndarray]:
-    """等距鱼眼每个（子）像素的天空方向 (N, N, 3) 与「在圆内」掩码 (N, N)，N = size_px·sub。
-    半径 r（像素）↔ 与中心方向的夹角 θ = r / (size_px/2) · max_theta（等距：半径直接读角度）；方位角以画面「上」= 天顶一侧起算。"""
-    c, up, right = center_frame(center_dir)
-    n = size_px * sub
-    t = (np.arange(n) + 0.5) / sub - size_px / 2.0             # 像素中心相对圆心（输出像素单位）
-    X, Y = np.meshgrid(t, -t)                                   # Y 朝上
-    r = np.hypot(X, Y)
-    theta = np.radians(r / (size_px / 2.0) * max_theta_deg)
-    inside = theta <= np.radians(max_theta_deg)
-    phi = np.arctan2(X, Y)                                      # 0 = 上、顺时针到右
-    st = np.sin(theta)
-    d = (np.cos(theta)[..., None] * c + (st * np.cos(phi))[..., None] * up + (st * np.sin(phi))[..., None] * right)
-    return d, inside
-
-
-def rect_to_fisheye(image: np.ndarray, render: dict, center_dir: np.ndarray, size_px: int, max_theta_deg: float, *,
-                    background: tuple[int, int, int] = (0, 0, 0), sub: int = SUPERSAMPLE, gain: float = 1.0) -> np.ndarray:
-    """rectangular 全天图（8-bit sRGB）→ 以 ``center_dir`` 为中心、半径 = ``max_theta_deg`` 的等距鱼眼 (size, size, 3) uint8。
-    先按像素语义换成辐亮度（:func:`rect_radiance`，赤道处数值不变、所以曝光与原图一致），子样本在其上双线性插值，
-    再 sub×sub 平均、编码回 sRGB；圆外填 ``background``。``gain``：显示增益（线性亮度乘数，只为看清暗成分，不进任何取数）。"""
-    lin = rect_radiance(image, render) * gain
-    H, W = lin.shape[:2]
-    d, inside = fisheye_directions(center_dir, size_px, max_theta_deg, sub=sub)
-    uv = project_rectangular(d.reshape(-1, 3), render)
-    u = uv[:, 0] - 0.5                                          # 像素中心在 i + ½
-    v = np.clip(uv[:, 1] - 0.5, 0.0, H - 1.0)
-    j0 = np.floor(u).astype(int)
-    i0 = np.clip(np.floor(v).astype(int), 0, H - 2)
-    fu, fv = (u - j0)[:, None], (v - i0)[:, None]
-    j0m, j1m = j0 % W, (j0 + 1) % W                            # 经度方向环绕
-    val = ((1 - fu) * (1 - fv) * lin[i0, j0m] + fu * (1 - fv) * lin[i0, j1m]
-           + (1 - fu) * fv * lin[i0 + 1, j0m] + fu * fv * lin[i0 + 1, j1m])
-    n = size_px * sub
-    val = val.reshape(n, n, 3) * inside[..., None]
-    val = val.reshape(size_px, sub, size_px, sub, 3).mean(axis=(1, 3))
-    cover = inside.reshape(size_px, sub, size_px, sub).mean(axis=(1, 3))
-    bg = _srgb_decode(np.array(background, float))
-    out = val + (1 - cover)[..., None] * bg                    # 圆周上的像素按覆盖比例混合背景
-    return _srgb_encode(out)
 
 
 # ======================================================================================================
@@ -358,7 +296,7 @@ class DualScene:
         return {"equidistant": float(self.ed[..., 1].sum(dtype=np.float64)), "equal_area": float(self.ea.sum(dtype=np.float64))}
 
     def profile(self, bin_deg: float = 0.25, max_deg: float = 180.0) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-        """``(桶中心 θ, 平均辐亮度, 桶能量)``：等面积盘，θ = 到太阳的角距离；辐亮度 = ΣY / (像素数 × 2/r²)（每单位发射能量每 sr）。"""
+        """``(桶中心 θ, 平均辐亮度, 桶能量)``：等面积盘，θ = 到太阳的角距离；辐亮度 = ΣY / (有效像素数 × 2/r²)（每单位发射能量每 sr）。"""
         return equal_area_profile(self.ea, bin_deg=bin_deg, max_deg=max_deg)
 
 
@@ -382,6 +320,15 @@ def dual_theta(W: int, H: int, lens: str) -> np.ndarray:
     return out
 
 
+def disc_coverage(W: int, H: int) -> np.ndarray:
+    """每个像素落在所属圆盘内的面积比例（盘沿一圈 0–1，近似为 r + ½ − 像素中心到圆心距离，截到 [0, 1]；盘内 1、盘外 0）。
+    盘沿像素只有一部分立体角属于半球，按整像素计数会让 θ = 90° 那一桶的平均辐亮度凭空下陷。"""
+    r, cxl, cxr, cy = _disc_geometry(W, H)
+    ys, xs = np.mgrid[0:H, 0:W] + 0.5
+    cx = np.where(xs < W / 2, cxl, cxr)
+    return np.clip(r + 0.5 - np.hypot(xs - cx, ys - cy), 0.0, 1.0)
+
+
 def equal_area_profile(Y: np.ndarray, *, bin_deg: float = 0.25, max_deg: float = 180.0) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     H, W = Y.shape
     r = _disc_geometry(W, H)[0]
@@ -389,7 +336,7 @@ def equal_area_profile(Y: np.ndarray, *, bin_deg: float = 0.25, max_deg: float =
     m = ~np.isnan(th)
     edges = np.arange(0.0, max_deg + bin_deg / 2, bin_deg)
     e, _ = np.histogram(th[m], bins=edges, weights=Y[m].astype(np.float64))
-    n, _ = np.histogram(th[m], bins=edges)
+    n, _ = np.histogram(th[m], bins=edges, weights=disc_coverage(W, H)[m])     # 有效像素数（盘沿按面积比例计）
     rad = np.divide(e, n * (2.0 / r ** 2), out=np.zeros_like(e), where=n > 0)
     return (edges[:-1] + edges[1:]) / 2, rad, e
 
@@ -419,7 +366,9 @@ def disc_radiance(scene: DualScene, hemisphere: str, max_deg: float = 90.0) -> t
 def tone(rad_xyz: np.ndarray, white: float, *, gain: float = 1.0, background: str | None = None) -> np.ndarray:
     """辐亮度 XYZ → 显示 sRGB (n, n, 3) float 0–1：线性曝光，Y = ``white / gain`` 处满白（削顶保色相按最大通道等比压回）；
     窗外（NaN）填 ``background``（默认页面底色）。同一 ``white`` 的两张图就是同一绝对亮度标尺。"""
-    lin = np.nan_to_num(rad_xyz) @ XYZ_TO_SRGB.T * (gain / white)
+    xyz = np.nan_to_num(rad_xyz)
+    # 2-D reshape 再乘：numpy + Accelerate 对 (N, N, 3) @ (3, 3) 的批量 matmul 会 SIGSEGV（backlog 已记，projection.py 同一个坑）
+    lin = (xyz.reshape(-1, 3) @ XYZ_TO_SRGB.T).reshape(xyz.shape) * (gain / white)
     lin = np.clip(lin, 0.0, None)
     mx = lin.max(axis=-1, keepdims=True)
     lin = np.where(mx > 1.0, lin / np.maximum(mx, 1e-30), lin)

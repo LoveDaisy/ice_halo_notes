@@ -7,7 +7,9 @@
 #        × 沿途 Fresnel 因子（入射透射 × 每次内反射的反射率（全反射 = 1）× 出射透射，s/p 平均；`fresnel_path_weight`）。
 #   每类剖面 = w 按 θ 分桶再除以环带立体角（→ 平均辐亮度，与渲染剖面同一种量），形状由几何 + Fresnel 定；每类总量按该类 MC 能量份额定标
 #   （MC 份额还含 PBD 对称像与分支概率，几何这边只算代表光路，所以只取形状、不取绝对量），全部类相加 = 加总粗线。
-# 图面：θ ∈ 90°–180°，上下两栏共用横轴、纵轴都从 0 起的线性刻度：上栏细线 = 该窗口内能量最大的 N_THIN 类（同一亮度单位）+ 虚线 `13-24-26`
+# 图面：左 = 族外余量天顶渲染的反日半球（返工 R1，`render_zenith.py` 的 remainder 一景，dual_fisheye_equidistant 右盘：盘心 θ = 180°、
+# 盘沿 θ = 90°，与右栏横轴同一窗口），让「密而小的锐边」与「看上去只有一两道环、其余缓变背景」并排对照；
+# 右：θ ∈ 90°–180°，上下两栏共用横轴、纵轴都从 0 起的线性刻度：上栏细线 = 该窗口内能量最大的 N_THIN 类（同一亮度单位）+ 虚线 `13-24-26`
 # （全篇能量最大的族外类，弥散，没有锐边）；下栏粗线 = 全部族外类加总。
 # 机械对账（`test_ch9_figs.py`，plan Step 10 预先锁定的容差，不随结果调整）：加总曲线在 [110°, 160°) 的峰 / 中位数与族外余量渲染侧
 # 1.55 相对偏差 ≤ 10%，峰位在 124.6° ± 8°。另记同口径（峰 / 中位数、同分桶）的渲染侧数字作参照，见 numbers.json `reconcile`。
@@ -39,7 +41,7 @@ N_THIN = 14
 THIN_SMOOTH, SUM_SMOOTH = 4, 2          # 显示用相邻桶平均：细线 1°、粗线 0.5°（压 MC 采样噪声；对账用原 0.25° 桶）
 DIFFUSE = "13-24-26"
 WORLD_INCIDENT = np.array([0.0, 0.0, -1.0])     # entry_measure 的世界系入射方向（任取；每个 u 配一个把 u 转到它的姿态）
-WIDTH, HEIGHT, DPI = 2200, 1250, 200
+WIDTH, HEIGHT, DPI = 2600, 1250, 200
 PAL = F.PAL
 FONT = {"family": list(F.CHART_FONTS)}
 
@@ -47,28 +49,30 @@ FONT = {"family": list(F.CHART_FONTS)}
 # ---- 取数 ----
 
 
-def off_family_classes() -> list[tuple[str, float]]:
-    """[(pbd_rep, MC 能量 %)]，族外、status ok、长度 ≥ 2，按能量降序。"""
+def _mc_rows() -> list[dict]:
+    """默认档 MC 逐行表（`analysis/rows_<tier>.csv`）。"""
     AE.ensure_unpacked()
     with (AE.CACHE / f"rows_{S.ES.tier_label(TIER)}.csv").open() as fp:
-        rows = list(csv.DictReader(line for line in fp if not line.startswith("#")))
+        return list(csv.DictReader(line for line in fp if not line.startswith("#")))
+
+
+def _energy_by_rep(keep) -> list[tuple[str, float]]:
+    """``keep(row)`` 为真的行按 ``pbd_rep`` 累加 ``energy_pct``，按能量降序（同能量按名字）。"""
     acc: dict[str, float] = {}
-    for r in rows:
-        if r["family"] == "" and r["status"] == "ok" and int(r["length"]) >= 2:
+    for r in _mc_rows():
+        if keep(r):
             acc[r["pbd_rep"]] = acc.get(r["pbd_rep"], 0.0) + float(r["energy_pct"])
     return sorted(acc.items(), key=lambda kv: (-kv[1], kv[0]))
+
+
+def off_family_classes() -> list[tuple[str, float]]:
+    """[(pbd_rep, MC 能量 %)]，族外、status ok、长度 ≥ 2，按能量降序。"""
+    return _energy_by_rep(lambda r: r["family"] == "" and r["status"] == "ok" and int(r["length"]) >= 2)
 
 
 def single_face_classes() -> list[tuple[str, float]]:
     """[(面号, MC 能量 %)]：单面外反射（长度 1，族框架外；族外余量渲染里包含它们）。"""
-    AE.ensure_unpacked()
-    with (AE.CACHE / f"rows_{S.ES.tier_label(TIER)}.csv").open() as fp:
-        rows = list(csv.DictReader(line for line in fp if not line.startswith("#")))
-    acc: dict[str, float] = {}
-    for r in rows:
-        if r["status"] == "single_face":
-            acc[r["pbd_rep"]] = acc.get(r["pbd_rep"], 0.0) + float(r["energy_pct"])
-    return sorted(acc.items(), key=lambda kv: (-kv[1], kv[0]))
+    return _energy_by_rep(lambda r: r["status"] == "single_face")
 
 
 def single_reflection_shape(u: np.ndarray, edges: np.ndarray, n: float = N_ICE) -> np.ndarray:
@@ -233,6 +237,24 @@ def smooth(y: np.ndarray, k: int = 2) -> np.ndarray:
     return np.repeat(y[:n].reshape(-1, k).mean(axis=1), k)
 
 
+RENDER_SCENE = "zenith/remainder"
+WHITE_HEADROOM = 1.15
+
+
+def draw_render(fig) -> None:
+    """左：族外余量渲染（返工 R1 的天顶渲染）的反日半球——等距鱼眼，圆心 = 反日点（θ = 180°），盘沿 = θ = 90°，正好是右栏横轴的窗口。
+    曝光：满白 = WHITE_HEADROOM × 余量剖面在 [90°, 175°] 的最大值（175° 以外是反日点旁那一小撮尖峰，不让它定曝光）。"""
+    sc = F.DualScene(RENDER_SCENE)
+    c, r, _ = sc.profile()
+    white = WHITE_HEADROOM * float(r[(c >= 90) & (c <= 175)].max())
+    s = 1000 / WIDTH
+    ax = fig.add_axes([0.005, (1 - 1000 / HEIGHT) / 2 + 0.03, s, 1000 / HEIGHT])
+    rad, _ = F.disc_radiance(sc, "anti", 90.0)
+    F.show_disc(ax, F.tone(rad, white), 90.0, rings=(30.0, 60.0), ring_labels=False, center="反日点")
+    fig.text(0.005 + s / 2, 0.03, "族外余量的渲染（反日半球）：圆心是反日点，边缘与太阳成 90°", ha="center", va="center", fontsize=10.5,
+             color=PAL["ink_soft"], **FONT)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--recompute", action="store_true", help="重算几何直接积分（约几分钟）；默认读 numbers.json 重画")
@@ -245,9 +267,12 @@ def main() -> None:
     F.apply_style()
     c = np.asarray(d["theta_deg"])
     m = (c >= WINDOW[0]) & (c <= WINDOW[1])
-    fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=((WIDTH + 0.5) / DPI, (HEIGHT + 0.5) / DPI), dpi=DPI,
-                                   gridspec_kw={"height_ratios": [1.25, 1], "hspace": 0.12})
-    fig.subplots_adjust(left=0.07, right=0.97, top=0.95, bottom=0.1)
+    fig = plt.figure(figsize=((WIDTH + 0.5) / DPI, (HEIGHT + 0.5) / DPI), dpi=DPI)
+    fig.patch.set_facecolor(PAL["background"])
+    draw_render(fig)
+    ax1 = fig.add_axes([0.47, 0.5, 0.51, 0.39])
+    ax2 = fig.add_axes([0.47, 0.1, 0.51, 0.36], sharex=ax1)
+    plt.setp(ax1.get_xticklabels(), visible=False)
     colors = [PAL[k] for k in ("face_4", "face_5", "face_6", "face_8", "face_3", "face_7", "sample_1", "sample_3")]
     for i, (rep, v) in enumerate(d["thin"].items()):
         ax1.plot(c[m], smooth(v["profile"], THIN_SMOOTH)[m], color=colors[i % len(colors)], lw=0.9, alpha=0.9)
@@ -256,8 +281,8 @@ def main() -> None:
     ax1.set_yticks([])
     ax1.set_ylabel("平均亮度")
     ax1.grid(axis="y", color=PAL["ink_faint"], lw=0.6, alpha=0.7)
-    ax1.text(0.01, 0.97, f"窗口内能量最大的 {len(d['thin'])} 个族外类，各自一条细线；虚线：{DIFFUSE}（族外能量最大的一类，弥散）",
-             transform=ax1.transAxes, ha="left", va="top", fontsize=10, color=PAL["ink_soft"], **FONT)
+    ax1.text(0.0, 1.03, f"窗口内能量最大的 {len(d['thin'])} 个族外类，各自一条细线\n虚线：{DIFFUSE}（族外能量最大的一类，弥散）",
+             transform=ax1.transAxes, ha="left", va="bottom", fontsize=10, color=PAL["ink_soft"], linespacing=1.4, **FONT)
     ax2.plot(c[m], smooth(d["sum"], SUM_SMOOTH)[m], color=F.SUM_COLOR, lw=2.2)
     ax2.set_ylim(0, None)
     ax2.set_yticks([])
@@ -265,7 +290,7 @@ def main() -> None:
     ax2.text(0.01, 0.95, f"全部 {d['n_classes']} 个族外类按能量加总", transform=ax2.transAxes, ha="left", va="top", fontsize=10,
              color=PAL["ink_soft"], **FONT)
     F.theta_axis(ax2, WINDOW[0], WINDOW[1], 15)
-    fig.savefig(F.out_png(NAME), dpi=DPI, metadata=F.PNG_META)
+    fig.savefig(F.out_png(NAME), dpi=DPI, facecolor=fig.get_facecolor(), metadata=F.PNG_META)
     print(f"saved {F.out_png(NAME)}")
     print("reconcile:", d["reconcile"])
 

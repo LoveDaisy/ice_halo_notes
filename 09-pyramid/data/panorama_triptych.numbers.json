@@ -1,0 +1,122 @@
+{
+  "criterion": {
+    "peak_ratio": 3.0,
+    "bin_deg": 0.25,
+    "impl": "_ch9_sim.detect_peaks + assign_peaks"
+  },
+  "tiers": {
+    "panorama_h3_t0.25": {
+      "label": "棱柱占主导",
+      "tier": [
+        3.0,
+        0.25
+      ],
+      "visible": [
+        "9°",
+        "22°",
+        "24°"
+      ],
+      "peaks": {
+        "28": {
+          "peak_deg": 9.125,
+          "ratio": 21.924
+        },
+        "60": {
+          "peak_deg": 22.375,
+          "ratio": 5.584
+        },
+        "63.8": {
+          "peak_deg": 24.125,
+          "ratio": 5.875
+        }
+      },
+      "vs_previous": {
+        "previous_visible": [
+          "9°",
+          "23°",
+          "24°"
+        ],
+        "previous_source": "data/odd_radius_panorama_h3_t0.25.numbers.json（rectangular 1440×720、2×10⁸、太阳 20°）"
+      }
+    },
+    "panorama": {
+      "label": "参考几何",
+      "tier": [
+        1.0,
+        0.5
+      ],
+      "visible": [
+        "9°",
+        "22°",
+        "23°",
+        "24°"
+      ],
+      "peaks": {
+        "28": {
+          "peak_deg": 9.375,
+          "ratio": 39.632
+        },
+        "60": {
+          "peak_deg": 22.125,
+          "ratio": 3.445
+        },
+        "62": {
+          "peak_deg": 23.125,
+          "ratio": 3.609
+        },
+        "63.8": {
+          "peak_deg": 24.125,
+          "ratio": 6.645
+        }
+      },
+      "vs_previous": {
+        "previous_visible": [
+          "9°",
+          "22°",
+          "24°"
+        ],
+        "previous_source": "data/odd_radius_panorama.numbers.json（rectangular 1440×720、2×10⁸、太阳 20°）"
+      }
+    },
+    "panorama_h0.3_t0.85": {
+      "label": "锥面占主导",
+      "tier": [
+        0.3,
+        0.85
+      ],
+      "visible": [
+        "9°",
+        "18°",
+        "20°",
+        "24°"
+      ],
+      "peaks": {
+        "28": {
+          "peak_deg": 9.125,
+          "ratio": 36.992
+        },
+        "52.4": {
+          "peak_deg": 18.625,
+          "ratio": 7.599
+        },
+        "56": {
+          "peak_deg": 20.125,
+          "ratio": 8.323
+        },
+        "63.8": {
+          "peak_deg": 24.125,
+          "ratio": 9.063
+        }
+      },
+      "vs_previous": {
+        "previous_visible": [
+          "9°",
+          "18°",
+          "20°",
+          "24°"
+        ],
+        "previous_source": "data/odd_radius_panorama_h0.3_t0.85.numbers.json（rectangular 1440×720、2×10⁸、太阳 20°）"
+      }
+    }
+  }
+}
