@@ -79,10 +79,11 @@ def _srgb_encode(lin: np.ndarray) -> np.ndarray:
     return np.round(a * 255.0).astype(np.uint8)
 
 
-def rect_radiance(image: np.ndarray, render: dict) -> np.ndarray:
-    """rectangular 图（8-bit sRGB）→ 每像素线性辐亮度 (H, W, 3)：先在每一行上做宽 ≈ 1/cos(lat) 像素的环绕方框平均（该行像素立体角
-    越小、越多像素并成一个「赤道像素」大小的面元，8-bit 量化噪声不会被下一步的 1/cos 放大），再除以 cos(lat)。赤道附近宽度 = 1，原样不动。"""
-    lin = _srgb_decode(image)
+def linear_radiance(lin: np.ndarray, render: dict) -> np.ndarray:
+    """rectangular 图的线性像素值 (H, W, C)（每像素 = 立体角积分能量）→ 每像素辐亮度：先在每一行上做宽 ≈ 1/cos(lat) 像素的环绕方框平均
+    （该行像素立体角越小、越多像素并成一个「赤道像素」大小的面元，8-bit 量化 / MC 噪声不会被下一步的 1/cos 放大），再除以 cos(lat)。
+    赤道附近宽度 = 1，原样不动。"""
+    lin = np.asarray(lin, float)
     H, W = lin.shape[:2]
     _, w = rectangular_pixel_directions(render)
     cos_lat = w[:, 0]
@@ -91,11 +92,16 @@ def rect_radiance(image: np.ndarray, render: dict) -> np.ndarray:
         k = int(min(W, max(1, round(1.0 / cos_lat[i]))))
         row = lin[i]
         if k > 1:
-            pad = np.concatenate([row[-(k // 2):], row, row[: k - k // 2 - 1]]) if k // 2 else np.concatenate([row, row[: k - 1]])
-            cs = np.cumsum(np.vstack([np.zeros((1, 3)), pad]), axis=0)
+            pad = np.concatenate([row[-(k // 2):], row, row[: k - k // 2 - 1]], axis=0) if k // 2 else np.concatenate([row, row[: k - 1]], axis=0)
+            cs = np.cumsum(np.concatenate([np.zeros((1,) + row.shape[1:]), pad], axis=0), axis=0)
             row = (cs[k:] - cs[:-k]) / k
         out[i] = row / cos_lat[i]
     return out
+
+
+def rect_radiance(image: np.ndarray, render: dict) -> np.ndarray:
+    """rectangular 图（8-bit sRGB）→ 每像素线性辐亮度 (H, W, 3)（:func:`linear_radiance`）。"""
+    return linear_radiance(_srgb_decode(image), render)
 
 
 def radiance_profile(image: np.ndarray, render: dict, center_dir: np.ndarray, *, bin_deg: float = 0.25,

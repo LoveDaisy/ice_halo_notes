@@ -23,9 +23,11 @@ import fig_corridor_1_3 as G7  # noqa: E402
 import fig_crowded_profiles as G8  # noqa: E402
 import fig_direct_wedges as G2  # noqa: E402
 import fig_family_remainder as G4  # noqa: E402
+import fig_fold_edge_density as G10  # noqa: E402
 import fig_isolated_ring as G5  # noqa: E402
 import fig_off_family_ring as G9  # noqa: E402
 import fig_panorama_triptych as G6  # noqa: E402
+import fig_plate_arcs as G11  # noqa: E402
 import fig_pyramid_faces as G1  # noqa: E402
 from lumice_integral.geometry import pyramid_face_angle  # noqa: E402
 
@@ -181,3 +183,81 @@ def test_fig9_light_is_moved_to_antisolar_ring():
     obs = G9.observed(c, r)
     assert obs["peak_deg"] > 170 and obs["is_local_max"] and obs["ratio"] >= S.PEAK_RATIO   # 反日点旁的锐环
     assert r[-1] < 0.2 * obs["peak"]                           # 正中暗洞
+
+
+# ---- 图 10：族外锐边密集区（几何直接积分）----
+
+# plan Step 10 预先锁定、不随对账结果调整的容差（工程判断，非严格误差传播）：探针未加权 1.51 与渲染 1.55 两条互不共享失败模式的链路
+# 已知偏差 2.6%，加 Fresnel / 入射截面权重再引入一层差异，取约 4 倍余量 → 相对偏差 ≤ 10%；峰位落在探针锐边密集区 121°–146° 下半段、
+# 与渲染峰同侧 → 124.6° ± 8°。
+RECON_RATIO_TOL = 0.10
+RECON_PEAK_TOL_DEG = 8.0
+
+
+def test_fig10_fresnel_matches_library():
+    from lumice_integral.optics import fresnel_unpolarized_transmittance as T
+    ci, ct = np.array([0.95, 0.6, 0.12]), np.array([0.97, 0.8, 0.66])
+    assert np.allclose(G10._transmittance(1.0, ci, 1.31, ct), [float(T(1.0, a, 1.31, b)) for a, b in zip(ci, ct)])
+    assert np.allclose(G10._transmittance(1.31, ct, 1.0, ci), [float(T(1.31, b, 1.0, a)) for a, b in zip(ci, ct)])
+
+
+def test_fig10_geometry_matches_render_for_top3():
+    """独立链路互证：几何直接积分（entry_measure × Fresnel）的能量分位与 Lumice 单光路渲染（odd_radius_top3）逐条相差 < 3°。"""
+    p = G10.Pyramid(a=1.0, h=1.0, tip_ratio=0.5)
+    u = G10.sample_directions(200_000, seed=1)
+    rot = G10._rotations_to(u, G10.WORLD_INCIDENT)
+    edges = np.arange(0.0, 180.25, 0.25)
+    c = (edges[:-1] + edges[1:]) / 2
+    top = S.read_numbers("odd_radius_top3")["paths"]
+    for key, v in top.items():
+        shape, _ = G10.class_profile(p, tuple(v["faces"]), u, rot, edges)
+        e = shape * np.sin(np.radians(c))
+        cum = np.cumsum(e) / e.sum()
+        for q in ("q10", "q50", "q90"):
+            got = c[np.searchsorted(cum, int(q[1:]) / 100)]
+            assert abs(got - v["energy_quantiles_deg"][q]) < 3.0, (key, q, got)
+
+
+@pytest.mark.xfail(strict=True, reason="2026-09-23 实测未通过、回抛作者（progress.md DECISION）：加总曲线峰/中位数 1.90 vs 预锁参照 1.55（+22%）；"
+                   "参照是渲染余量的峰/局部背景、且余量含单面外反射（7.25%），与几何侧只含族外不同成分 / 不同口径。"
+                   "同口径 + 同成分诊断见 numbers.json reconcile.diagnostics（+1.7%）。判据不放宽")
+def test_fig10_reconciles_with_render_remainder():
+    d = S.read_numbers(G10.NAME)
+    rec = d["reconcile"]
+    assert abs(rec["rel_dev_vs_ref"]) <= RECON_RATIO_TOL, rec
+    assert abs(rec["peak_shift_vs_ref_deg"]) <= RECON_PEAK_TOL_DEG, rec
+
+
+def test_fig10_peak_position_and_like_for_like_diagnostic():
+    """对账里通过的部分：峰位（预锁 ±8°）；同成分（族外 + 单面外反射）同口径（峰/中位数）的诊断数字——这条比较口径是在预锁判据
+    未通过之后才补的，只作诊断记录，不替代上面的预锁判据。"""
+    rec = S.read_numbers(G10.NAME)["reconcile"]
+    assert abs(rec["peak_shift_vs_ref_deg"]) <= RECON_PEAK_TOL_DEG
+    diag = rec["diagnostics"]
+    assert abs(diag["geometry_plus_single"]["peak_deg"] - diag["render_same_metric"]["peak_deg"]) <= 1.0
+    assert abs(diag["rel_dev_plus_single_same_metric"]) <= RECON_RATIO_TOL
+
+
+@pytest.mark.xfail(strict=True, reason="2026-09-23 实测未通过、回抛作者（progress.md DECISION）：加 Fresnel / 入射截面权重后，14 条细线的"
+                   "峰/中位数中位 3.9，加总 2.6，不到预设的 3 倍；只有约三分之一的细线有陡崖式锐边，与正文「细线各自带有锐边」有出入")
+def test_fig10_thin_lines_sharp_sum_smooth():
+    d = S.read_numbers(G10.NAME)
+    c = np.asarray(d["theta_deg"])
+    m = (c >= G10.WINDOW[0]) & (c < G10.WINDOW[1])
+    def sharp(y):                                       # 峰 / 窗口内非零中位数（探针口径）
+        y = np.asarray(y)[m]
+        nz = y[y > 0]
+        return y.max() / np.median(nz)
+    thin = [sharp(v["profile"]) for v in d["thin"].values()]
+    assert len(thin) >= 10 and np.median(thin) > 3 * sharp(d["sum"])     # 细线各自尖锐，加总平缓得多
+    assert sharp(d["diffuse"]["profile"]) < np.median(thin)                # `13-24-26` 比典型细线弥散
+    assert d["n_classes"] >= 200 and d["mc_off_pct"] == pytest.approx(5.79, abs=0.01)
+
+
+# ---- 图 11：片晶姿态 max_hits 三联 ----
+
+
+def test_fig11_more_hits_more_structures():
+    counts = S.read_numbers(G11.NAME)["counts"]
+    s = [counts[f"mh{k}"]["structures"] for k in G11.MAX_HITS]
+    assert s[0] < s[1] < s[2], counts

@@ -1,0 +1,30 @@
+{
+  "tier": [
+    1.0,
+    0.5
+  ],
+  "sun_alt": 10.0,
+  "axis": "plate_axis(zenith_std=1°)",
+  "spectrum": "D65",
+  "ray_num": 200000000,
+  "criterion": {
+    "log10_contrast": 1.0,
+    "min_px": 30,
+    "elongation": 3.0,
+    "sun_mask_deg": 2.0
+  },
+  "counts": {
+    "mh2": {
+      "structures": 15,
+      "arc_like": 10
+    },
+    "mh4": {
+      "structures": 48,
+      "arc_like": 31
+    },
+    "mh8": {
+      "structures": 84,
+      "arc_like": 40
+    }
+  }
+}
