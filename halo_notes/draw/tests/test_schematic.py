@@ -2,9 +2,10 @@ import numpy as np
 import pytest
 
 from halo_notes.draw.geometry import unit
+from halo_notes.draw.geometry2d import perp2d, reflection2d
 from halo_notes.draw.raypath import N_ICE, EventKind, RayPath2D, face_sequence, refract, verify_path
-from halo_notes.draw.schematic import (ENTRY_FACE, EXIT_FACE, jagged_polyline, split_tree, two_face_medium,
-                                       wavy_polyline, wedge_angle, wedge_apex)
+from halo_notes.draw.schematic import (ENTRY_FACE, EXIT_FACE, concentric_projection, jagged_polyline, split_tree,
+                                       two_face_medium, wavy_polyline, wedge_angle, wedge_apex)
 
 
 @pytest.fixture
@@ -80,3 +81,57 @@ def test_decorative_polylines_keep_endpoints_and_are_deterministic():
     d = unit(b - a)
     along = (w - a) @ d
     assert np.all(np.diff(along) > 0)
+
+
+# ---- concentric_projection：同心圆作图 ---------------------------------------------------------
+
+def _cross2(a, b) -> float:
+    return float(a[0] * b[1] - a[1] * b[0])
+
+
+@pytest.mark.parametrize("sun_deg, normal_deg", [(139.1, 0.0), (200.0, 0.0), (75.0, 120.0), (10.0, -35.0)])
+def test_concentric_projection_points_are_collinear_along_the_normal(sun_deg, normal_deg):
+    s = np.array([np.cos(np.deg2rad(sun_deg)), np.sin(np.deg2rad(sun_deg))])
+    nrm = np.array([np.cos(np.deg2rad(normal_deg)), np.sin(np.deg2rad(normal_deg))])
+    p = concentric_projection(s, nrm, N_ICE)
+    assert np.isclose(np.linalg.norm(p.incident), 1.0, atol=1e-12)
+    assert np.isclose(np.linalg.norm(p.reflected), 1.0, atol=1e-12)
+    assert np.isclose(np.linalg.norm(p.refracted), N_ICE, atol=1e-12)
+    # S、S'、R 三点共线，且直线平行于界面法向
+    for q in (p.reflected, p.refracted):
+        assert abs(_cross2(q - p.incident, p.normal)) < 1e-12
+    # S' 是 S 关于界面（过原点、方向 ⟂ 法向）的镜像：reflection2d 矩阵复算
+    assert np.allclose(reflection2d(perp2d(nrm)) @ s, p.reflected, atol=1e-12)
+    # Snell：相对法向量的入射角 / 折射角满足 1·sinθ1 = n·sinθ2；折射光的法向分量与入射同号（穿过界面）
+    sin1 = abs(_cross2(unit(p.incident), p.normal))
+    sin2 = abs(_cross2(unit(p.refracted), p.normal))
+    assert abs(sin1 - N_ICE * sin2) < 1e-12
+    assert np.sign(p.refracted @ p.normal) == np.sign(p.incident @ p.normal)
+
+
+def test_concentric_projection_agrees_with_vector_refract_and_is_reversible():
+    """与 raypath.refract（向量形式 Snell）同一个结果；从内圆投回外圆恢复原光点（两次折射的可逆性）。"""
+    d = unit([-0.8, 0.35])
+    n_out = np.array([1.0, 0.0])                          # 面 3 外法向；光从外侧射入（d·n < 0）
+    p = concentric_projection(d, n_out, N_ICE)
+    assert np.allclose(unit(p.refracted), refract(d, n_out, 1.0, N_ICE), atol=1e-12)
+    back = concentric_projection(p.refracted, n_out, 1.0)
+    assert np.allclose(back.refracted, d, atol=1e-12)
+    # 三维同样成立（切向分量守恒与维数无关）
+    p3 = concentric_projection(unit([-0.7, 0.3, 0.2]), [1.0, 0.0, 0.0], N_ICE)
+    assert np.isclose(np.linalg.norm(p3.refracted), N_ICE)
+    assert np.allclose(np.cross(p3.refracted - p3.incident, p3.normal), 0.0, atol=1e-12)
+
+
+def test_concentric_projection_counterexamples_fail():
+    """反证：半径传成 1/n 或取错根，Snell / 共线断言就应失败；内圆 → 外圆越过临界角时抛全反射。"""
+    s = np.array([np.cos(np.deg2rad(139.1)), np.sin(np.deg2rad(139.1))])
+    nrm = np.array([1.0, 0.0])
+    wrong = concentric_projection(s, nrm, 1.0 / N_ICE)       # 1/n 半径：切向分量 0.65 < 0.76，仍有解但不是冰
+    sin1 = abs(_cross2(unit(s), nrm))
+    assert abs(sin1 - N_ICE * abs(_cross2(unit(wrong.refracted), nrm))) > 1e-3
+    flipped = concentric_projection(s, -nrm, N_ICE)         # 法向取反：根按新法向重选，仍是同一个折射光点
+    assert np.allclose(flipped.refracted, concentric_projection(s, nrm, N_ICE).refracted, atol=1e-12)
+    grazing_inside = N_ICE * unit([-0.2, 1.0])               # 冰内几乎贴着界面走：投回半径 1 无交点
+    with pytest.raises(ValueError, match="total internal reflection"):
+        concentric_projection(grazing_inside, nrm, 1.0)

@@ -44,6 +44,7 @@ CH1, CH2, CH3 = "01-symmetry/code", "02-raypath-enumeration/code", "03-parallel-
 CH4, CH5, CH6 = "04-render-equation/code", "05-rotation-3d/code", "06-monte-carlo-vs-integration/code"
 CH7 = "07-reflection-group/code"
 CH8 = "08-wedge-times-fold/code"
+EX_TAPE = "ex-tape-vs-matrix/code"
 
 # 图 → 脚本；每个脚本头部自己声明 ``PATHS = {名字: 面序列}``，测试从脚本命名空间读取，不另存一份映射
 #（没有光路的图声明空字典：测试断言它确实一条光路都没画）
@@ -77,6 +78,9 @@ FIGURES = {
     "8.1": f"{CH8}/fig_unfold_wedge_fold.py",
     "8.2": f"{CH8}/fig_five_wedges.py",
     "8.4": f"{CH8}/fig_direction_scan.py",
+    "ex-tape.1": f"{EX_TAPE}/fig_kaleidoscope.py",
+    "ex-tape.2": f"{EX_TAPE}/fig_concentric_projection.py",
+    "ex-tape.3": f"{EX_TAPE}/fig_unfold_3457.py",
 }
 
 

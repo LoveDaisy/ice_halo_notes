@@ -13,7 +13,8 @@ from .scene import (annotate, draw_axes, draw_axis_arrow, draw_raypath, draw_rot
                     frame, new_figure, render_corridor, render_crystal)
 from .scene2d import (annotate_2d, draw_connector, draw_flip_axis, draw_flip_marker, draw_raypath_2d,
                       draw_rotation_arc, draw_wedge_angle, multi_panel, render_medium, render_section)
-from .schematic import SplitTree, split_tree, two_face_medium, wedge_angle, wedge_apex
+from .schematic import (ConcentricProjection, SplitTree, concentric_projection, split_tree, two_face_medium, wedge_angle,
+                        wedge_apex)
 from .sphere import (Sphere, graticule, render_cone, render_curve, render_great_circle,
                      render_point_cloud)
 from .style import FACE_COLORS, PRESETS, Preset
@@ -21,9 +22,9 @@ from .symmetry import FlipAxis, face_permutation, flip, rotate
 from .unfold import Corridor, corridor_faces, straighten, unfold, unfolded_tail
 
 __all__ = [
-    "Camera", "Cone", "Corridor", "CrossSection", "FACE_COLORS", "Face", "FlipAxis", "HexPrism",
+    "Camera", "ConcentricProjection", "Cone", "Corridor", "CrossSection", "FACE_COLORS", "Face", "FlipAxis", "HexPrism",
     "PRESETS", "Polygon2D", "Polyhedron", "Preset", "RayPath", "RayPath2D", "SegmentKind", "SplitTree", "Sphere",
-    "aim", "animate", "annotate", "annotate_2d", "corridor_faces", "draw_axes", "draw_axis_arrow", "draw_connector",
+    "aim", "animate", "annotate", "annotate_2d", "concentric_projection", "corridor_faces", "draw_axes", "draw_axis_arrow", "draw_connector",
     "draw_flip_axis", "draw_flip_marker",
     "draw_raypath", "draw_raypath_2d", "draw_rotation_arc", "draw_rotation_arc_3d", "draw_wedge_angle",
     "export_frames_png", "face_grid_points", "face_permutation", "face_sequence",
