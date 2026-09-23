@@ -153,11 +153,17 @@ def linear_luminance(image: np.ndarray) -> np.ndarray:
     return lin.sum(axis=-1) if lin.ndim == 3 else lin
 
 
+def pixel_energy(image: np.ndarray) -> np.ndarray:
+    """``rectangular`` 参考图每像素能量 = 线性亮度本身：Lumice 像素值已是该像素立体角上积分过的能量（`src/core/lens_proj_build.hpp:157`
+    「A rendered pixel holds a radiance INTEGRATED over its own solid angle」），不再乘 cos(lat)（task-pixel-energy-semantics 修正）。"""
+    return linear_luminance(image)
+
+
 def cap_energy_fractions(image: np.ndarray, render: dict, candidates: dict[str, np.ndarray],
                          cap_deg: float = GLOBE_CAP_DEG) -> dict[str, float]:
-    """参考图（rectangular）上，各候选中心周围 ``cap_deg`` 球冠内的能量占全天的比例（像素按 cos(lat) 立体角加权）。"""
-    dirs, weight = rectangular_pixel_directions(render)
-    energy = linear_luminance(image) * weight
+    """参考图（rectangular）上，各候选中心周围 ``cap_deg`` 球冠内的能量占全天的比例（像素能量见 :func:`pixel_energy`）。"""
+    dirs, _ = rectangular_pixel_directions(render)
+    energy = pixel_energy(image)
     total = energy.sum()
     if total <= 0:
         raise ValueError("参考图全黑：过滤器没有命中任何光线，帧中心无法选取")
@@ -173,9 +179,9 @@ def choose_center(image: np.ndarray, render: dict, candidates: dict[str, np.ndar
 
 
 def sky_energy(image: np.ndarray, render: dict) -> float:
-    """参考图（rectangular、absolute 曝光）的全天线性能量（立体角加权），供两条光路的亮度比对。"""
-    _, weight = rectangular_pixel_directions(render)
-    return float((linear_luminance(image) * weight).sum())
+    """参考图（rectangular、absolute 曝光）的全天线性能量（:func:`pixel_energy` 之和），供两条光路的亮度比对。
+    ``render`` 形参不再用到，保留以免改调用方。"""
+    return float(pixel_energy(image).sum())
 
 
 def azimuth_profile(image: np.ndarray, render: dict, sun_alt: float, *, half_deg: float = 1.5,
@@ -190,6 +196,10 @@ def azimuth_profile(image: np.ndarray, render: dict, sun_alt: float, *, half_deg
     el = np.degrees(np.arcsin(np.clip(dirs[..., 2], -1.0, 1.0)))
     az = np.abs(np.degrees(np.arctan2(dirs[..., 1], dirs[..., 0])))
     strip = np.abs(el - sun_alt) <= half_deg
+    # KNOWN BUG（刻意不修，见 scratchpad/task-pixel-energy-semantics progress.md D1）：与修正前 cap_energy_fractions 同一「多乘 cos(lat)」模式。
+    # 不修的原因：halo_notes/sim/tests/test_figures.py 以 atol 比对按旧口径落盘的 far_side_profile.csv / cross_section_sensitivity_summary.csv，
+    # 重算两份 CSV 须重渲（两脚本无只重算路径）。影响：条带只 ±half_deg 宽，cos(lat) 在条带内近乎常数（太阳 0° 时 ≥ 0.9997、10° 时 0.978–0.991），
+    # 只差一个近乎均匀的比例因子。新代码要像素能量请用 pixel_energy，不要照抄这一行。
     hist, _ = np.histogram(az[strip], bins=edges, weights=(linear_luminance(image) * weight)[strip])
     return (edges[:-1] + edges[1:]) / 2, hist
 
