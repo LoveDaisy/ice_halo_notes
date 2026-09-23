@@ -32,10 +32,11 @@ K = np.array([0.0, 0.0, 1.0])                                   # 天顶
 C = np.array([0.0, 0.0, 1.0])                                   # 晶体系 c 轴
 PLATE_PHI, COLUMN_PSI, COLUMN_THETA = 20.0, -20.0, 0.0   # ψ 离「垂直视线」偏 35°：c 轴基本横着，120° 弧又能看成椭圆
 # 栏：(名字, 晶体, 姿态 R, Rc 箭头长, 弧心沿 Rc 的距离, 弧半径, 标题, 格内说明)
+ARC_PHASE_COLUMN = 132.0   # 柱晶栏：把 120° 弧绕 Rc 转开这么多，免得弧与 Rc 箭杆在投影里压在一起（R1 作者意见）
 PANELS = [
-    ("plate", HexPrism(a=1.25, h=0.45), Rz(PLATE_PHI), 1.75, 1.0, 0.85, "片晶：$RMR^{-1}$ 绕竖直轴转 $120^\\circ$",
+    ("plate", HexPrism(a=1.25, h=0.45), Rz(PLATE_PHI), 1.75, 1.0, 0.85, 0.0, "片晶：$RMR^{-1}$ 绕竖直轴转 $120^\\circ$",
      "旋转轴 $R\\mathbf{c}$ 竖直，与天顶 $\\mathbf{k}$ 重合\n$\\Rightarrow$ 绕天顶转 $120°$，Rule 1 认得"),
-    ("column", HexPrism(a=0.5, h=2.5), column_attitude(COLUMN_PSI, COLUMN_THETA), 2.75, 2.1, 0.8,
+    ("column", HexPrism(a=0.5, h=2.5), column_attitude(COLUMN_PSI, COLUMN_THETA), 2.75, 1.55, 0.8, ARC_PHASE_COLUMN,
      "柱晶：$RMR^{-1}$ 绕水平轴转 $120^\\circ$", "旋转轴 $R\\mathbf{c}$ 水平，与天顶 $\\mathbf{k}$ 垂直\n$\\Rightarrow$ 绕水平轴翻 $120°$，Rule 1 不认"),
 ]
 K_LEN = 2.5
@@ -68,7 +69,14 @@ def perpendicular(v: np.ndarray) -> np.ndarray:
     return unit(up) if np.linalg.norm(up) > 1e-9 else unit(np.cross(v, np.array([1.0, 0.0, 0.0]))) * -1
 
 
-def draw_panel(ax, crystal, R, c_len, arc_at, arc_r, note, camera) -> None:
+def rotate_about(v: np.ndarray, axis: np.ndarray, deg: float) -> np.ndarray:
+    """把 v 绕 axis 右手转 deg（Rodrigues）——只用来挪弧的起点相位，不改弧的轴与转角。"""
+    t = np.deg2rad(deg)
+    k = unit(axis)
+    return v * np.cos(t) + np.cross(k, v) * np.sin(t) + k * (k @ v) * (1.0 - np.cos(t))
+
+
+def draw_panel(ax, crystal, R, c_len, arc_at, arc_r, arc_phase, note, camera) -> None:
     body = crystal.transformed(R)
     axis, angle = axis_angle(conjugated(R))
     xy = camera.project_xy(horizon_points())
@@ -84,7 +92,8 @@ def draw_panel(ax, crystal, R, c_len, arc_at, arc_r, note, camera) -> None:
     draw_axis_arrow(ax, np.zeros(3), R @ C, c_len, camera=camera, preset=PRESET, semantic="arc_roll", occluder=body)
     cx, cy = camera.project_xy(R @ C * (c_len + 0.1))[0]                # 标签放在箭头尖左边：片晶里 Rc 与 k 共线
     ax.text(cx - 0.2, cy, r"$R\mathbf{c}$", ha="right", va="center", **PRESET.text_kwargs("axis_label"))
-    draw_rotation_arc_3d(ax, axis, arc_r, perpendicular(axis), angle, camera=camera, preset=PRESET,
+    start = rotate_about(perpendicular(axis), axis, arc_phase)
+    draw_rotation_arc_3d(ax, axis, arc_r, start, angle, camera=camera, preset=PRESET,
                          semantic="arc_roll", center=axis * arc_at, label=r"$120^\circ$")
     ax.text(0.03, 0.97, note, transform=ax.transAxes, ha="left", va="top", linespacing=1.6,
             **PRESET.text_kwargs(TEXT16))
@@ -96,12 +105,12 @@ def main() -> None:
     scene = extent + [b.vertices for b in bodies]
     distance = solve_camera_distance(scene, azimuth=AZIMUTH, elevation=ELEVATION, target_fov_deg=FOV_DEG)
     camera = Camera(azimuth=AZIMUTH, elevation=ELEVATION, distance=distance)
-    fig, axes = multi_panel(1, 2, WIDTH, HEIGHT, DPI, preset=PRESET, titles=[p[6] for p in PANELS], title_frac=0.1)
+    fig, axes = multi_panel(1, 2, WIDTH, HEIGHT, DPI, preset=PRESET, titles=[p[7] for p in PANELS], title_frac=0.1)
     limits = frame(camera, scene, WIDTH // 2, int(HEIGHT * 0.9), margin=0.1)
     ylo, yhi = limits[1]
     limits = (limits[0], (ylo, yhi + (yhi - ylo) * 0.12))       # 顶上给格内说明留地方
-    for ax, (_, crystal, R, c_len, arc_at, arc_r, _, note) in zip(axes[0], PANELS):
-        draw_panel(ax, crystal, R, c_len, arc_at, arc_r, note, camera)
+    for ax, (_, crystal, R, c_len, arc_at, arc_r, arc_phase, _, note) in zip(axes[0], PANELS):
+        draw_panel(ax, crystal, R, c_len, arc_at, arc_r, arc_phase, note, camera)
         finish(ax, *limits)
     fig.savefig(OUT, dpi=DPI, facecolor=fig.get_facecolor())
     print(f"saved {OUT}")
