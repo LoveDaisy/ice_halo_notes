@@ -216,3 +216,268 @@ def mark_radii(ax, radii, *, labels: dict | None = None, color: str = PAL["ink_f
         if labels and r in labels:
             ax.text(r, y, labels[r], transform=ax.get_xaxis_transform(), ha="center", va="bottom", fontsize=8.5,
                     color=PAL["slate"])
+
+
+# ======================================================================================================
+# 返工 R1：太阳放天顶 + 一景两渲（dual_fisheye_equidistant 显示 / dual_fisheye_equal_area 取数），Lumice `--format npy`
+# ======================================================================================================
+# 随机取向下天空只是「到太阳的角距离」θ 的函数，太阳位置任选：放天顶（altitude 90°）后 dual fisheye 的两个圆盘天然就是
+# 「太阳半球 | 反日半球」——左盘圆心 = 太阳（θ = 0，盘沿 θ = 90°），右盘圆心 = 反日点（θ = 180°，盘沿 θ = 90°）。
+# 同一份 config 挂两个 render unit（id 1 等距、id 2 等面积），同一批光线同时落进两张图，两者只差 `lens.type`。
+# Lumice dual fisheye 的像素映射（v4.6.1 `src/core/shared/projection_shared.h` `ProjectExitToPixel` / `DualFisheyeToPixelXY`，overlap 默认 0）：
+#   天空方向 s（= −出射方向），上半球 s_z ≥ 0 进左盘（圆心 (W/2 − r, H/2)），下半球进右盘（圆心 (W/2 + r, H/2)），r = min(W/2, H)/2；
+#   盘内归一半径 ρ：等距 ρ = θ_pole / 90°，等面积 ρ = √2 · sin(θ_pole / 2)（θ_pole = 到该盘极点的角距离）。
+# 像素语义（同 rectangular）：一个像素存的是辐亮度在该像素立体角上的积分。等面积盘每像素立体角恒为 2/r²（半球 2π sr 摊在 πr² 像素上），
+# 所以剖面 = 同一 θ 桶的像素求和 / 像素数，不需要任何 Jacobian；等距盘的像素立体角 = (π/2)² sinθ_p / (θ_p r²)，显示前除掉它（→ 辐亮度）。
+# npy 是未曝光的线性 XYZ 累加器（raw），除以 sidecar 的 `emitted_energy` 后跨场景、跨光线数可比——这就是「同一绝对亮度标尺」。
+# 入库形态：每景一个确定性 zip `data/<scene>.zip`（LFS）：`equidistant.npy`（XYZ）+ `equal_area.npy`（只留 Y），float16，各自乘一个
+# 标度（最亮像素 → 60000，标度记进 `meta.json`）；float16 相对量化误差 < 0.05%（暗到次正规数时量化步长 = 最亮像素的 1e-12）。
+# 全天总能量在量化**之前**用 float32 原图各算一次记进 meta，两种投影的一致性闸（< 2%）既在渲染时硬断言，也由单测从 zip 复算。
+
+import io  # noqa: E402
+import json  # noqa: E402
+import platform  # noqa: E402
+import subprocess  # noqa: E402
+import time  # noqa: E402
+import zipfile  # noqa: E402
+
+ZENITH_SUN_ALT = 90.0
+DUAL_RES = (2560, 1280)            # 每盘半径 640 px：等距 0.14°/px；等面积盘心 0.11°/px、盘沿 0.18°/px
+DUAL_LENSES = ("dual_fisheye_equidistant", "dual_fisheye_equal_area")
+ZENITH_RAY_NUM = 1_000_000_000
+ZENITH_BACKEND = "metal"
+F16_PEAK = 60000.0
+ENERGY_CONSISTENCY_TOL = 0.02
+
+
+def run_lumice_npy(config: dict, out_dir: Path, binary: Path, *, backend: str | None = None) -> tuple[list[np.ndarray], list[dict]]:
+    """跑一次 Lumice（`--format npy`，raw），落 config / lumice.log / provenance.json / img_XX.json，返回每个 render unit 的
+    ``(H, W, 3)`` XYZ 与 sidecar（npy 本身读进内存后删掉，由调用方打包）。``backend="metal"`` 时核对日志里确实走了 Metal
+    （Lumice 的 `--backend metal` 不可用时会**静默**回落 CPU），没走就报错。`halo_notes.sim.run.render` 只收 png / jpg，
+    这是本章 npy 渲染的唯一实现（fig_plate_arcs 与返工 R1 的天顶渲染共用）；run.render 支持 npy 后删掉（backlog）。"""
+    from halo_notes.sim.fetch import LUMICE_VERSION, sha256_of
+    from halo_notes.sim.run import config_sha256
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+    cfg_path = out_dir / "config.json"
+    cfg_path.write_text(json.dumps(config, indent=2, ensure_ascii=False) + "\n")
+    cmd = [str(binary), "-f", str(cfg_path), "-o", str(out_dir), "--format", "npy"]
+    if backend is not None:
+        cmd += ["--backend", backend]
+    t0 = time.monotonic()
+    proc = subprocess.run(cmd, capture_output=True, text=True)
+    wall = time.monotonic() - t0
+    (out_dir / "lumice.log").write_text(f"$ {' '.join(cmd)}\n--- stdout ---\n{proc.stdout}\n--- stderr ---\n{proc.stderr}\n")
+    if proc.returncode != 0:
+        raise RuntimeError(f"Lumice 退出码 {proc.returncode}，见 {out_dir / 'lumice.log'}")
+    log = proc.stdout + proc.stderr
+    gpu = "routing via MetalTraceBackend" in log and "gpu_route=true" in log
+    if backend == "metal" and not gpu:
+        raise RuntimeError(f"要求 --backend metal，但日志里没有走 Metal（回落 CPU？），见 {out_dir / 'lumice.log'}")
+    n = len(config["render"])
+    arrays, sidecars = [], []
+    for k in range(1, n + 1):
+        npy = out_dir / f"img_{k:02d}.npy"
+        arrays.append(np.load(npy))
+        npy.unlink()
+        sidecars.append(json.loads((out_dir / f"img_{k:02d}.json").read_text()))
+    prov = {"lumice_version": LUMICE_VERSION, "lumice_bin": str(binary), "lumice_bin_sha256": sha256_of(binary),
+            "config_sha256": config_sha256(config), "wall_clock_s": round(wall, 3),
+            "platform": f"{platform.system()} {platform.release()} {platform.machine()}", "workers": None, "backend": backend,
+            "gpu_route": gpu, "format": "npy", "cli_args": cmd[1:],
+            "images": [f"img_{k:02d}.npy（打包进 zip）" for k in range(1, n + 1)], "ray_num": config["scene"]["ray_num"]}
+    (out_dir / "provenance.json").write_text(json.dumps(prov, indent=2, ensure_ascii=False) + "\n")
+    return arrays, sidecars
+
+
+def dual_config(crystal: dict, filters: list[dict], *, ray_num: int = ZENITH_RAY_NUM, max_hits: int = 4) -> dict:
+    """太阳天顶、D65、``filters`` 非空时 entry 挂顶层过滤器（id = `_ch9_sim.FILTER_ID`）；两个 render unit：id 1 等距、id 2 等面积。"""
+    import _ch9_sim as S
+    from halo_notes.sim import config as C
+
+    entry = C.entry(1, filter=S.FILTER_ID) if filters else C.entry(1)
+    scene = C.scene(C.sun(ZENITH_SUN_ALT), ray_num, [entry], max_hits=max_hits)
+    renders = [C.render_unit(i + 1, C.lens(t), list(DUAL_RES), visible="full", background=[0, 0, 0], ev_mode="absolute",
+                             intensity_factor=1.0) for i, t in enumerate(DUAL_LENSES)]
+    return C.build_config([crystal], filters, scene, renders)
+
+
+def _f16(a: np.ndarray) -> tuple[np.ndarray, float]:
+    s = F16_PEAK / float(a.max()) if a.max() > 0 else 1.0
+    return (a.astype(np.float64) * s).astype(np.float16), s
+
+
+def pack_dual(zip_path: Path, arrays: list[np.ndarray], sidecars: list[dict], extra: dict) -> dict:
+    """确定性 zip：``equidistant.npy``（XYZ）、``equal_area.npy``（Y）、``meta.json``。返回 meta。
+    量化前先算两种投影的全天总能量（Y / emitted_energy，float64 累加），相对偏差超 ENERGY_CONSISTENCY_TOL 直接报错。"""
+    ed, ea = arrays
+    em = [float(s["emitted_energy"]) for s in sidecars]
+    e_ed, e_ea = float(ed[..., 1].sum(dtype=np.float64) / em[0]), float(ea[..., 1].sum(dtype=np.float64) / em[1])
+    if abs(e_ed / e_ea - 1) >= ENERGY_CONSISTENCY_TOL:
+        raise RuntimeError(f"{zip_path.name}: 两种投影全天总能量不一致 {e_ed} vs {e_ea}")
+    q_ed, s_ed = _f16(ed)
+    q_ea, s_ea = _f16(ea[..., 1])
+    meta = {"lenses": list(DUAL_LENSES), "resolution": list(DUAL_RES), "emitted_energy": em,
+            "f16_scale": {"equidistant": s_ed, "equal_area": s_ea},
+            "total_energy_float32": {"equidistant": e_ed, "equal_area": e_ea}, "sidecars": sidecars, **extra}
+    zip_path.parent.mkdir(parents=True, exist_ok=True)
+    with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
+        for name, payload in (("equidistant.npy", q_ed), ("equal_area.npy", q_ea), ("meta.json", None)):
+            if payload is None:
+                data = (json.dumps(meta, indent=2, ensure_ascii=False) + "\n").encode()
+            else:
+                buf = io.BytesIO()
+                np.save(buf, payload)
+                data = buf.getvalue()
+            info = zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0))
+            info.compress_type = zipfile.ZIP_DEFLATED
+            info.external_attr = 0o644 << 16
+            zf.writestr(info, data)
+    return meta
+
+
+class DualScene:
+    """一景天顶渲染（从 zip 读回）：``ed`` = 等距 XYZ、``ea`` = 等面积 Y，都已换回「每单位发射能量」的像素能量（float32）。"""
+
+    def __init__(self, name: str, root: Path | None = None):
+        path = (root or CHAPTER) / "data" / f"{name}.zip"
+        if path.stat().st_size < 1024 and path.read_bytes().startswith(b"version https://git-lfs"):
+            raise RuntimeError(f"{path} 是 LFS 指针，先 `git lfs pull`")
+        with zipfile.ZipFile(path) as zf:
+            self.meta = json.loads(zf.read("meta.json"))
+            ed = np.load(io.BytesIO(zf.read("equidistant.npy")))
+            ea = np.load(io.BytesIO(zf.read("equal_area.npy")))
+        em = self.meta["emitted_energy"]
+        sc = self.meta["f16_scale"]
+        self.name = name
+        self.ed = ed.astype(np.float32) / np.float32(sc["equidistant"] * em[0])
+        self.ea = ea.astype(np.float32) / np.float32(sc["equal_area"] * em[1])
+
+    def total_energy(self) -> dict[str, float]:
+        """两种投影各自的全天总能量（Y / emitted_energy），从量化后的数组复算。"""
+        return {"equidistant": float(self.ed[..., 1].sum(dtype=np.float64)), "equal_area": float(self.ea.sum(dtype=np.float64))}
+
+    def profile(self, bin_deg: float = 0.25, max_deg: float = 180.0) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """``(桶中心 θ, 平均辐亮度, 桶能量)``：等面积盘，θ = 到太阳的角距离；辐亮度 = ΣY / (像素数 × 2/r²)（每单位发射能量每 sr）。"""
+        return equal_area_profile(self.ea, bin_deg=bin_deg, max_deg=max_deg)
+
+
+def _disc_geometry(W: int, H: int) -> tuple[float, float, float, float]:
+    r = min(W // 2, H) / 2.0
+    return r, W / 2.0 - r, W / 2.0 + r, H / 2.0
+
+
+def dual_theta(W: int, H: int, lens: str) -> np.ndarray:
+    """dual fisheye 每个像素中心到**太阳（天顶）**的角距离（度，H × W）；盘外 NaN。盘沿外半个像素内的像素（中心略出盘、但光线会落进来）
+    归到盘沿（θ = 90°）。"""
+    r, cxl, cxr, cy = _disc_geometry(W, H)
+    ys, xs = np.mgrid[0:H, 0:W] + 0.5
+    out = np.full((H, W), np.nan)
+    for upper, cx in ((True, cxl), (False, cxr)):
+        rn = np.hypot(xs - cx, ys - cy) / r
+        m = (rn <= 1 + 1 / r) & ((xs < W / 2) if upper else (xs >= W / 2))
+        rn = np.minimum(rn, 1.0)
+        tp = 90.0 * rn if lens == "dual_fisheye_equidistant" else np.degrees(2 * np.arcsin(rn / np.sqrt(2)))
+        out[m] = (tp if upper else 180.0 - tp)[m]
+    return out
+
+
+def equal_area_profile(Y: np.ndarray, *, bin_deg: float = 0.25, max_deg: float = 180.0) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    H, W = Y.shape
+    r = _disc_geometry(W, H)[0]
+    th = dual_theta(W, H, "dual_fisheye_equal_area")
+    m = ~np.isnan(th)
+    edges = np.arange(0.0, max_deg + bin_deg / 2, bin_deg)
+    e, _ = np.histogram(th[m], bins=edges, weights=Y[m].astype(np.float64))
+    n, _ = np.histogram(th[m], bins=edges)
+    rad = np.divide(e, n * (2.0 / r ** 2), out=np.zeros_like(e), where=n > 0)
+    return (edges[:-1] + edges[1:]) / 2, rad, e
+
+
+XYZ_TO_SRGB = np.array([[3.2406, -1.5372, -0.4986], [-0.9689, 1.8758, 0.0415], [0.0557, -0.2040, 1.0570]])
+
+
+def disc_radiance(scene: DualScene, hemisphere: str, max_deg: float = 90.0) -> tuple[np.ndarray, np.ndarray]:
+    """等距盘裁窗：``hemisphere`` = ``"sun"``（左盘，圆心太阳）/ ``"anti"``（右盘，圆心反日点）；返回 ``(辐亮度 XYZ (n, n, 3), 到盘心角距离 (n, n))``，
+    n = 2·⌈max_deg/90 · r⌉，窗外 NaN。辐亮度 = 像素能量 / 像素立体角（等距：(π/2)² sinθ_p / (θ_p r²)），与 :meth:`DualScene.profile` 同一单位。"""
+    H, W = scene.ed.shape[:2]
+    r, cxl, cxr, cy = _disc_geometry(W, H)
+    cx = cxl if hemisphere == "sun" else cxr
+    half = int(np.ceil(max_deg / 90.0 * r))
+    x0, y0 = int(round(cx)) - half, int(round(cy)) - half
+    crop = scene.ed[y0:y0 + 2 * half, x0:x0 + 2 * half].astype(np.float64)
+    ys, xs = np.mgrid[y0:y0 + 2 * half, x0:x0 + 2 * half] + 0.5
+    tp = np.radians(90.0 * np.hypot(xs - cx, ys - cy) / r)
+    rel = np.where(tp > 1e-9, np.sin(tp) / np.maximum(tp, 1e-9), 1.0)
+    omega = (np.pi / 2) ** 2 * rel / r ** 2
+    rad = crop / omega[..., None]
+    deg_ = np.degrees(tp)
+    rad[deg_ > max_deg] = np.nan
+    return rad, np.where(deg_ <= max_deg, deg_, np.nan)
+
+
+def tone(rad_xyz: np.ndarray, white: float, *, gain: float = 1.0, background: str | None = None) -> np.ndarray:
+    """辐亮度 XYZ → 显示 sRGB (n, n, 3) float 0–1：线性曝光，Y = ``white / gain`` 处满白（削顶保色相按最大通道等比压回）；
+    窗外（NaN）填 ``background``（默认页面底色）。同一 ``white`` 的两张图就是同一绝对亮度标尺。"""
+    lin = np.nan_to_num(rad_xyz) @ XYZ_TO_SRGB.T * (gain / white)
+    lin = np.clip(lin, 0.0, None)
+    mx = lin.max(axis=-1, keepdims=True)
+    lin = np.where(mx > 1.0, lin / np.maximum(mx, 1e-30), lin)
+    out = _srgb_encode(lin).astype(float) / 255.0
+    bg = np.array([int((background or PAL["background"])[k:k + 2], 16) for k in (1, 3, 5)]) / 255.0
+    out[np.isnan(rad_xyz[..., 0])] = bg
+    return out
+
+
+def show_disc(ax, rgb: np.ndarray, max_deg: float, *, rings: tuple[float, ...] = (), ring_labels: bool = True,
+              label_angle_deg: float = -40.0, center: str | None = None, ring_color: str = "white") -> None:
+    """把 :func:`tone` 的圆盘画进 ``ax``（坐标 = 到盘心的角距离，度；等距投影下半径线性），叠同心刻度圈。"""
+    ax.imshow(rgb, extent=(-max_deg, max_deg, -max_deg, max_deg), interpolation="antialiased")
+    t = np.linspace(0, 2 * np.pi, 361)
+    a = np.radians(label_angle_deg)
+    for rr in rings:
+        ax.plot(rr * np.cos(t), rr * np.sin(t), color=ring_color, lw=0.5, alpha=0.35, ls=(0, (3, 3)))
+        if ring_labels:
+            ax.text(rr * np.cos(a), rr * np.sin(a), deg(rr), color=ring_color, alpha=0.7, fontsize=8, ha="left", va="top",
+                    family=list(CHART_FONTS))
+    if center:
+        ax.text(0, max_deg * 0.03, center, ha="center", va="bottom", fontsize=8.5, color=ring_color, alpha=0.8,
+                family=list(CHART_FONTS))
+    ax.set_xlim(-max_deg * 1.01, max_deg * 1.01)
+    ax.set_ylim(-max_deg * 1.01, max_deg * 1.01)
+    ax.set_aspect("equal")
+    ax.set_axis_off()
+
+
+# ======================================================================================================
+# 晶体截面与面分组配色（图 1 / 图 7 共用；原在 fig_pyramid_faces.py，图 7 横向 import 它——code-review Minor 1 收进这里）
+# ======================================================================================================
+
+FACE_GROUPS = {                               # 组名 → (面号, 颜色)
+    "底面": ((1, 2), PAL["ink_soft"]),
+    "柱面": (tuple(range(3, 9)), PAL["face_4"]),
+    "上锥面": (tuple(range(13, 19)), PAL["face_3"]),
+    "下锥面": (tuple(range(23, 29)), PAL["face_6"]),
+}
+FACE_COLOR = {f: c for faces, c in FACE_GROUPS.values() for f in faces}
+
+
+def section_polygon(p: Pyramid) -> np.ndarray:
+    """y = 0 截面（xz 平面）：全部 20 个半平面 n·x ≤ d 限制在 y = 0 上，逐个裁一个大方框（凸多边形，逆时针）。"""
+    poly = [np.array(v, float) for v in ((-9, -9), (9, -9), (9, 9), (-9, 9))]
+    for f in p.faces:
+        n = np.asarray(p.normal(f), float)
+        d = float(n @ p.face_vertices(f)[0])
+        n2 = np.array([n[0], n[2]])
+        if np.linalg.norm(n2) < 1e-12:
+            continue
+        out: list[np.ndarray] = []
+        for i, a in enumerate(poly):
+            b = poly[(i + 1) % len(poly)]
+            sa, sb = a @ n2 - d, b @ n2 - d
+            if sa <= 1e-12:
+                out.append(a)
+            if (sa <= 1e-12) != (sb <= 1e-12):
+                out.append(a + (b - a) * (sa / (sa - sb)))
+        poly = out
+    return np.array(poly)

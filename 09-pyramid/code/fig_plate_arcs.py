@@ -3,8 +3,8 @@
 # 全天 rectangular 1440×720。探针 `scratchpad/probe-plate-arcs/probe.py` 的正式版：去掉绝对路径与裸二进制路径，二进制走
 # `_ch9_sim.ensure_lumice_version()`（release、拒绝 LUMICE_BIN），光谱从探针的 550 nm 换成 D65（与本章其余渲染一致），光线数 5×10⁷ → 2×10⁸。
 # 输出用 Lumice `--format npy`（未曝光线性 XYZ float32）：弧的判据要在同一把「相对背景」的尺子上量，8-bit png 装不下弧与背景之间 4 个量级的
-# 动态范围。`halo_notes.sim.run.render` 只收 png / jpg（本任务不改 `halo_notes/sim`），所以这里用一个薄封装 `render_npy` 直接调 CLI，
-# provenance 字段与 `run.render` 同形（版本 / 二进制 sha256 / config sha256 / 墙钟 / 命令行）。npy 不在 LFS 规则里，三份打成
+# 动态范围。`halo_notes.sim.run.render` 只收 png / jpg（本任务不改 `halo_notes/sim`），npy 渲染走 `_ch9_fig.run_lumice_npy`（与返工 R1 的
+# 天顶渲染共用一份实现），provenance 字段与 `run.render` 同形（版本 / 二进制 sha256 / config sha256 / 墙钟 / 命令行）。npy 不在 LFS 规则里，三份打成
 # `data/plate_arcs.zip`（确定性 zip，走 LFS），`data/plate_arcs/mh<k>/` 只留 config / provenance / lumice.log / img_01.json。
 # 「结构数」判据沿用探针（机械核验用，不进图面）：像素辐亮度（Y / cos(lat)，`_ch9_fig.linear_radiance`）除以太阳 2° 外中位数得对比度，
 # log10 对比度 ≥ ARC_LOG_CONTRAST 的像素做 8 邻接连通域，面积 ≥ MIN_PX 的计一个结构，PCA 主 / 次轴比 ≥ ARC_ELONGATION 的计「弧状」。
@@ -16,9 +16,6 @@ from __future__ import annotations
 import argparse
 import io
 import json
-import platform
-import subprocess
-import time
 import zipfile
 from pathlib import Path
 
@@ -30,9 +27,7 @@ import _ch9_fig as F
 import _ch9_sim as S
 import enumerate_signatures as ES
 from halo_notes.sim import config as C
-from halo_notes.sim.fetch import LUMICE_VERSION, sha256_of
 from halo_notes.sim.projection import rectangular_pixel_directions
-from halo_notes.sim.run import config_sha256
 
 NAME = "plate_arcs"
 MAX_HITS = (2, 4, 8)
@@ -63,27 +58,9 @@ def variant_dir(max_hits: int, root: Path | None = None) -> Path:
 
 
 def render_npy(config: dict, out_dir: Path, binary: Path) -> np.ndarray:
-    """跑一次 Lumice（`--format npy`），落 config / lumice.log / provenance.json / img_01.json，返回 (H, W, 3) XYZ。"""
-    out_dir.mkdir(parents=True, exist_ok=True)
-    cfg_path = out_dir / "config.json"
-    cfg_path.write_text(json.dumps(config, indent=2, ensure_ascii=False) + "\n")
-    cmd = [str(binary), "-f", str(cfg_path), "-o", str(out_dir), "--format", "npy"]
-    t0 = time.monotonic()
-    proc = subprocess.run(cmd, capture_output=True, text=True)
-    wall = time.monotonic() - t0
-    (out_dir / "lumice.log").write_text(f"$ {' '.join(cmd)}\n--- stdout ---\n{proc.stdout}\n--- stderr ---\n{proc.stderr}\n")
-    if proc.returncode != 0:
-        raise RuntimeError(f"Lumice 退出码 {proc.returncode}，见 {out_dir / 'lumice.log'}")
-    prov = {"lumice_version": LUMICE_VERSION, "lumice_bin": str(binary), "lumice_bin_sha256": sha256_of(binary),
-            "config_sha256": config_sha256(config), "wall_clock_s": round(wall, 3),
-            "platform": f"{platform.system()} {platform.release()} {platform.machine()}", "workers": None, "backend": None,
-            "format": "npy", "cli_args": cmd[1:], "images": ["img_01.npy（打包在 data/plate_arcs.zip）"],
-            "ray_num": config["scene"]["ray_num"]}
-    (out_dir / "provenance.json").write_text(json.dumps(prov, indent=2, ensure_ascii=False) + "\n")
-    npy = out_dir / "img_01.npy"
-    xyz = np.load(npy)
-    npy.unlink()
-    return xyz
+    """跑一次 Lumice（`--format npy`），返回 (H, W, 3) XYZ；实现在 `_ch9_fig.run_lumice_npy`（本章 npy 渲染的唯一实现）。"""
+    arrays, _ = F.run_lumice_npy(config, out_dir, binary)
+    return arrays[0]
 
 
 def pack(arrays: dict[int, np.ndarray], zip_path: Path = ZIP) -> None:
@@ -137,7 +114,7 @@ def count_structures(xyz: np.ndarray) -> dict[str, int]:
     return {"structures": structures, "arc_like": arcs}
 
 
-XYZ_TO_SRGB = np.array([[3.2406, -1.5372, -0.4986], [-0.9689, 1.8758, 0.0415], [0.0557, -0.2040, 1.0570]])
+XYZ_TO_SRGB = F.XYZ_TO_SRGB
 
 
 def display(xyz: np.ndarray) -> np.ndarray:

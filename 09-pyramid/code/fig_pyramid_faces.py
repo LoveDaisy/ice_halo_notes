@@ -23,13 +23,8 @@ PRESET = PRESETS["ice_filled"]
 PRESET = PRESET.replace(geom=PRESET.geom.replace(face_number_style=FaceNumberStyle.FLAT, label_hidden_faces=False))
 PAL = F.PAL
 
-GROUPS = {                               # 组名 → (面号, 颜色)
-    "底面": ((1, 2), PAL["ink_soft"]),
-    "柱面": (tuple(range(3, 9)), PAL["face_4"]),
-    "上锥面": (tuple(range(13, 19)), PAL["face_3"]),
-    "下锥面": (tuple(range(23, 29)), PAL["face_6"]),
-}
-FACE_COLOR = {f: c for faces, c in GROUPS.values() for f in faces}
+GROUPS = F.FACE_GROUPS
+FACE_COLOR = F.FACE_COLOR
 SECTION_FACES = (1, 2, 3, 6, 13, 16, 23, 26)   # 过 c 轴、含 +x 的截面切到的面（法向落在 xz 平面内）
 FONT = {"family": list(F.CHART_FONTS)}
 
@@ -56,25 +51,7 @@ def face_angle_deg(p: Pyramid | None = None) -> float:
     return float(np.degrees(np.arccos(n[2] / np.linalg.norm(n))))
 
 
-def section_polygon(p: Pyramid) -> np.ndarray:
-    """y = 0 截面（xz 平面）：全部 20 个半平面 n·x ≤ d 限制在 y = 0 上，逐个裁一个大方框（凸多边形，逆时针）。"""
-    poly = [np.array(v, float) for v in ((-9, -9), (9, -9), (9, 9), (-9, 9))]
-    for f in p.faces:
-        n = np.asarray(p.normal(f), float)
-        d = float(n @ p.face_vertices(f)[0])
-        n2 = np.array([n[0], n[2]])
-        if np.linalg.norm(n2) < 1e-12:
-            continue
-        out: list[np.ndarray] = []
-        for i, a in enumerate(poly):
-            b = poly[(i + 1) % len(poly)]
-            sa, sb = a @ n2 - d, b @ n2 - d
-            if sa <= 1e-12:
-                out.append(a)
-            if (sa <= 1e-12) != (sb <= 1e-12):
-                out.append(a + (b - a) * (sa / (sa - sb)))
-        poly = out
-    return np.array(poly)
+section_polygon = F.section_polygon
 
 
 def draw_view(ax, p: Pyramid, view: str) -> None:

@@ -1,8 +1,8 @@
 # 产出 ../img/corridor_1_3.png（图 7「`1-3` 走廊的截面」）：h/a = 1、截顶比例 0.5（截断较浅）与 0.8（顶面只剩两成）两个锥晶，
-# 过 c 轴、含面 3 法向的截面并排。截面里画从顶面 1 折入的一族光线：只画**能从柱面 3 出射**的方向带——折入后与 c 轴成
-# 90° − θc … θc（θc = arcsin(1/n) 临界角，现场算），太平的在面 3 全反射，太陡的到不了面 3——起点铺满整条顶面线段。
-#   截顶比例 0.5：一部分光线落在柱面 3 上（直通，蓝），其余先撞锥面 13（红叉）；
-#   截顶比例 0.8：顶面收窄、锥面变长，整条方向带全撞在锥面 13 上，一条也到不了面 3。
+# 过 c 轴、含面 3 法向的截面并排。每个截面只画**一条**代表光线（返工 R1：光线太密不好看）：以「能从柱面 3 折出的方向带」
+# （折入后与 c 轴成 90° − θc … θc，θc = arcsin(1/n) 临界角，现场算）正中的角度、从顶面 1 靠左处折入——两档同一相对起点、同一方向：
+#   截顶比例 0.5：落在柱面 3 上并折出（蓝）；截顶比例 0.8：顶面收窄、锥面变长，同一条光线先撞上锥面 13（红叉）。
+# 整条方向带 × 整条顶面线段的二维扇形（`trace_fan`）不再画出，只留作单测：0.5 时有光落到面 3、0.8 时全撞 13。
 # 截面内的光线是示意（截面平面内的二维追迹）；机械结论用三维的可行方向集：`admissible_directions(…, (1, 3), …).area_sr`
 # 截顶比例 0.5 时 > 0、0.8 时 = 0（单测钉住；同 `halo_notes/math/tests/test_pyramid_signature_data.py` 的见证测试）。
 # 右图下方注明该档 90° 族最短代表的字长（读 `data/raypaths_h1_t0.8.csv`，不手填）。
@@ -18,7 +18,6 @@ from matplotlib.patches import Polygon
 
 import _ch9_fig as F
 import enumerate_signatures as ES
-import fig_pyramid_faces as PF
 from lumice_integral.geometry import Pyramid, admissible_directions
 from lumice_integral.geometry.core import N_ICE
 from lumice_integral.geometry.feasibility import LatLonGrid
@@ -32,6 +31,7 @@ FONT = {"family": list(F.CHART_FONTS)}
 CRIT = math.degrees(math.asin(1 / N_ICE))          # 49.8°
 BAND = (90.0 - CRIT, CRIT)                          # 折入后与 −c 的夹角：能在面 3 透射出去的方向带
 N_START, N_DIR = 17, 5
+REP_START = -0.8
 OPEN_COLOR, BLOCK_COLOR = PAL["face_4"], PAL["face_3"]
 
 
@@ -56,6 +56,19 @@ def _edge_faces(p: Pyramid) -> list[tuple[int, float, np.ndarray]]:
     return out
 
 
+def _first_hit(planes, o: np.ndarray, d: np.ndarray) -> tuple[np.ndarray, int]:
+    """截面内从 o 沿 d 走，第一次碰到的半平面边界：``(交点, 面号)``。"""
+    best, face = np.inf, None
+    for num, dist, n2 in planes:
+        den = n2 @ d
+        if den <= 1e-12:
+            continue
+        t = (dist - n2 @ o) / den
+        if 1e-9 < t < best:
+            best, face = t, num
+    return o + best * d, face
+
+
 def trace_fan(tip: float) -> list[tuple[np.ndarray, np.ndarray, int]]:
     """截面内从顶面 1 折入的光线：[(起点, 终点, 撞到的面号)]。起点均布在顶面线段上（两端各缩 4%），方向在 BAND 内均布、朝 +x 偏。"""
     p = crystal(tip)
@@ -67,16 +80,19 @@ def trace_fan(tip: float) -> list[tuple[np.ndarray, np.ndarray, int]]:
         for a in np.linspace(*BAND, N_DIR):
             d = np.array([math.sin(math.radians(a)), -math.cos(math.radians(a))])
             o = np.array([x0, top])
-            best, face = np.inf, None
-            for num, dist, n2 in planes:
-                den = n2 @ d
-                if den <= 1e-12:
-                    continue
-                t = (dist - n2 @ o) / den
-                if 1e-9 < t < best:
-                    best, face = t, num
-            rays.append((o, o + best * d, face))
+            rays.append((o, *_first_hit(planes, o, d)))
     return rays
+
+
+def representative_ray(tip: float) -> tuple[np.ndarray, np.ndarray, int]:
+    """图面上唯一画出的那条光线：从顶面 1 上 REP_START（相对顶面半宽，负 = 远离面 3 的一侧）处、以方向带正中的角度折入
+    （两档同一相对起点、同一方向——楔角没变，只是晶体变了）。"""
+    p = crystal(tip)
+    top = p.h / 2 + p.a * p.c_over_a * p.tip_ratio
+    half_top = p.a * (1 - p.tip_ratio) * math.sqrt(3) / 2
+    a = math.radians(sum(BAND) / 2)
+    o, d = np.array([REP_START * half_top, top]), np.array([math.sin(a), -math.cos(a)])
+    return (o, *_first_hit(_edge_faces(p), o, d))
 
 
 def first_length_90(tip: float) -> int:
@@ -88,7 +104,7 @@ def first_length_90(tip: float) -> int:
 
 def draw_panel(ax, tip: float) -> None:
     p = crystal(tip)
-    poly = PF.section_polygon(p)
+    poly = F.section_polygon(p)
     ax.add_patch(Polygon(poly, closed=True, facecolor=PAL["ice"], edgecolor=PAL["ice_edge"], lw=1.4, zorder=1))
     half = p.a * math.sqrt(3) / 2
     z_ring = p.h / 2
@@ -99,13 +115,21 @@ def draw_panel(ax, tip: float) -> None:
     ax.plot([half, half], [-z_ring, z_ring], color=PAL["ink_soft"], lw=3.2, solid_capstyle="butt", zorder=3)
     for num, xy, ha in ((1, (0, top + 0.12), "center"), (3, (half + 0.1, 0), "left"),
                         (13, ((half + half_top) / 2 + 0.12, (z_ring + top) / 2 + 0.05), "left")):
-        ax.text(*xy, str(num), ha=ha, va="center", fontsize=13, fontweight="bold", color=PF.FACE_COLOR[num], **FONT)
-    for o, e, face in trace_fan(tip):
-        if face == 3:
-            ax.plot([o[0], e[0]], [o[1], e[1]], color=OPEN_COLOR, lw=0.9, alpha=0.75, zorder=4)
-        else:
-            ax.plot([o[0], e[0]], [o[1], e[1]], color=BLOCK_COLOR, lw=0.7, alpha=0.45, zorder=4)
-            ax.plot(e[0], e[1], marker="x", ms=4, mew=1.0, color=BLOCK_COLOR, zorder=5)
+        ax.text(*xy, str(num), ha=ha, va="center", fontsize=13, fontweight="bold", color=F.FACE_COLOR[num], **FONT)
+    o, e, face = representative_ray(tip)
+    color = OPEN_COLOR if face == 3 else BLOCK_COLOR
+    ax.annotate("", xy=e, xytext=o, arrowprops=dict(arrowstyle="-|>", color=color, lw=2.0, mutation_scale=14,
+                                                    shrinkA=0, shrinkB=0), zorder=5)
+    if face == 3:                                  # 从面 3 折出去（Snell，截面内）
+        n2 = np.array([1.0, 0.0])
+        d = (e - o) / np.linalg.norm(e - o)
+        ci = float(d @ n2)
+        st = N_ICE * math.sqrt(max(0.0, 1 - ci ** 2))
+        out = np.array([math.sqrt(1 - st ** 2), math.copysign(st, d[1])])
+        ax.annotate("", xy=e + 0.4 * out, xytext=e, arrowprops=dict(arrowstyle="-|>", color=color, lw=2.0, mutation_scale=14,
+                                                                     shrinkA=0, shrinkB=0), zorder=5)
+    else:
+        ax.plot(e[0], e[1], marker="x", ms=11, mew=2.4, color=color, zorder=6)
     ax.set_xlim(-1.6, 1.9)
     tallest = crystal(max(TIPS))                   # 两图同一比例尺、同一视野：按较高的那个晶体取景
     zt = tallest.h / 2 + tallest.a * tallest.c_over_a * tallest.tip_ratio
@@ -128,8 +152,8 @@ def main() -> None:
         draw_panel(ax, tip)
         fig.text(b[0] + b[2] / 2, 0.135, t1, ha="center", va="center", fontsize=13, color=PAL["ink"], **FONT)
         fig.text(b[0] + b[2] / 2, 0.085, t2, ha="center", va="center", fontsize=11, color=PAL["ink_soft"], **FONT)
-    fig.text(0.5, 0.025, f"截面内只画能从柱面 3 折出的方向（折入后与 c 轴成 {BAND[0]:.1f}°–{BAND[1]:.1f}°）；"
-             "蓝：落在面 3 上，红叉：先撞到锥面 13", ha="center", va="center", fontsize=10.5, color=PAL["ink_soft"], **FONT)
+    fig.text(0.5, 0.025, f"两边是同一条光线：从顶面 1 靠左处折入，与 c 轴成 {sum(BAND) / 2:.0f}°（能从柱面 3 折出的方向带 "
+             f"{BAND[0]:.1f}°–{BAND[1]:.1f}° 的正中）", ha="center", va="center", fontsize=10.5, color=PAL["ink_soft"], **FONT)
     fig.savefig(F.out_png(NAME), dpi=DPI, facecolor=fig.get_facecolor(), metadata=F.PNG_META)
     print(f"saved {F.out_png(NAME)}")
 
