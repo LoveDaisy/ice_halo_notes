@@ -26,7 +26,7 @@ from PIL import Image
 
 from lumice_integral.geometry import Polyhedron, fold_matrix
 from lumice_integral.geometry.feasibility import area_eps, corridor_polygons, geometric_ok
-from ..math.signature import phi
+from lumice_integral.symmetry.signature import phi
 from . import config as C
 from .projection import rectangular_pixel_directions
 from .run import RenderResult, render

@@ -15,10 +15,10 @@ from crosscheck_bridge import (
     angular_distance, haar_so3, light_point, light_point_batch, plate_attitude, s_centered, sun_direction,
     unfolded_normals, wedge_orientation,
 )
-from halo_notes.math.attitude import column_attitude
-from halo_notes.math.reflection_group import Rz
+from lumice_integral.symmetry.attitude import column_attitude
+from lumice_integral.symmetry.reflection_group import Rz
 from halo_notes.math.sampling import uniform_s2
-from halo_notes.math.signature import phi
+from lumice_integral.symmetry.signature import phi
 
 CRYSTAL = HexPrism.from_ratio(1.0)
 I3 = np.eye(3)

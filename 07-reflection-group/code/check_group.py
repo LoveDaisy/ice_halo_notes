@@ -1,9 +1,9 @@
 # 核验 docs/framework.md 定理 1/2/3/5：六棱柱镜面生成群 |G|=12、共轭类 = ch3 发表的 6 类、
 # 特征值只得 5 类（#11 并入 #2）、与 Rz 对易的元素、可能的楔角余弦。
 # 冰晶标准坐标同 ch3：面 1/2 为 ±z 底面，面 3..8 为方位角 0°,60°,...,300° 的侧面。
-# 计算本体在 halo_notes.math.reflection_group（12 矩阵权威表，图 3 / 5 / 6 与单测共用）；本脚本只跑一遍并打印，
+# 计算本体在 lumice_integral.symmetry.reflection_group（12 矩阵权威表，图 3 / 5 / 6 与单测共用）；本脚本只跑一遍并打印，
 # 断言同时进 halo_notes/math/tests/test_reflection_group.py。
-from halo_notes.math.reflection_group import (ELEMENTS, GROUP, GROWTH, PUBLISHED, commuting_with_rz, conjugacy_classes,
+from lumice_integral.symmetry.reflection_group import (ELEMENTS, GROUP, GROWTH, PUBLISHED, commuting_with_rz, conjugacy_classes,
                                               eigenvalue_classes, key, published_classes, wedge_cosines)
 
 seen = {key(g) for g in GROUP}

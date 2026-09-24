@@ -10,7 +10,7 @@
 #     列 = 姿态族（随机 / 片晶 / 柱晶 / Parry / Lowitz，framework §5 的列序）。
 # 两张表都用同一对语义色标出 `3-5`（紫）与 `3-4-5-7`（橙）：左表里二者都是 60° 楔、片晶取向，落进同一格；右表里二者是
 # 不同的 Φ 类（A60-12：M = e；A60-10：M = R_z(±120°)），分居两行。`3-4-5-7` 含内反射、不在 TM2006 那张表的收录范围里，
-# 左表里它的 chip 用虚线描边，图例交代。取向类 / 姿态族是示意标签，不是计算输出；楔角、Φ 类、节选行全部由 halo_notes.math.signature 算出。
+# 左表里它的 chip 用虚线描边，图例交代。取向类 / 姿态族是示意标签，不是计算输出；楔角、Φ 类、节选行全部由 lumice_integral.symmetry.signature 算出。
 # 读者要看出：同样两条光路在左表同格、右表异格——左表按楔角分列，右表按离散且有限的光路类分行。
 from pathlib import Path
 
@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from lumice_integral.geometry import HexPrism, fold_matrix
 
-from halo_notes.math.signature import phi_class, phi_class_table, wedge_angle
+from lumice_integral.symmetry.signature import phi_class, phi_class_table, wedge_angle
 
 from _ex_fig import CH8_GRID, GRID_PAL, grid_box, grid_chip, grid_header, grid_row_label, grid_text
 

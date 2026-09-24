@@ -1,5 +1,5 @@
 # 产出 ../data/ground_truth_signature.md：ch3 `raypath_ground_truth.txt` 的 93 条光路（按晕名分组）逐条过
-# halo_notes.math.signature.phi_class（片晶 h/a = 0.2），核对「同组同 Φ 类」以及 0° 组与 ch7 发表的 6 类
+# lumice_integral.symmetry.signature.phi_class（片晶 h/a = 0.2），核对「同组同 Φ 类」以及 0° 组与 ch7 发表的 6 类
 # （reflection_group.HALO_NAMES）的对应；不一致的条目逐条列出（标题 / ch3 标签 / Φ 类三者互相对照）。
 # 这是 framework §2 定理 5″ 升 [算] 的必要条件之一；单测 halo_notes/math/tests/test_signature_data.py 把本脚本的结论钉成回归锁。
 from __future__ import annotations
@@ -9,11 +9,13 @@ from pathlib import Path
 import numpy as np
 
 from lumice_integral.geometry import HexPrism, fold_matrix
-from halo_notes.math.ground_truth import GroundTruthRow, ground_truth_groups
-from halo_notes.math import reflection_group as rg
-from halo_notes.math.signature import PhiRow, phi_batch, phi_class, phi_class_table
+from lumice_integral.symmetry.ground_truth import GroundTruthRow, ground_truth_groups
+from lumice_integral.symmetry import reflection_group as rg
+from lumice_integral.symmetry.signature import PhiRow, phi_batch, phi_class, phi_class_table
 
 DATA = Path(__file__).resolve().parent.parent / "data"
+# ch3 原始清单用本仓这份（LI 包内副本默认路径不指向本仓；两份逐字节一致由 halo_notes/math/tests/test_ground_truth_data_sync.py 锁住）
+GROUND_TRUTH_PATH = Path(__file__).resolve().parents[2] / "03-parallel-raypaths" / "data" / "raypath_ground_truth.txt"
 CRYSTAL = HexPrism.from_ratio(0.2)          # ground truth 是片晶光路
 
 # ch3 文件里的晕名 → ch7 HALO_NAMES 片晶列的写法（只差空格 / 度号 / 用词）
@@ -57,7 +59,7 @@ def analyse() -> tuple[dict[str, dict[str, list[tuple[GroundTruthRow, int]]]], t
     rows = phi_class_table(CRYSTAL)
     by_class = {r.phi_class: r for r in rows}
     out: dict[str, dict[str, list[tuple[GroundTruthRow, int]]]] = {}
-    for name, members in ground_truth_groups().items():
+    for name, members in ground_truth_groups(GROUND_TRUTH_PATH).items():
         buckets = out.setdefault(name, {})
         for row in members:
             cid, fold = classify_row(row, by_class)

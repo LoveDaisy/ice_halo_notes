@@ -27,7 +27,7 @@ from lumice_integral.geometry import HexPrism, fold_matrix
 from crosscheck_bridge import (
     K_HAT, angular_distance, haar_so3, light_point_batch, plate_attitude, sun_direction, wedge_orientation,
 )
-from halo_notes.math.attitude import column_attitude
+from lumice_integral.symmetry.attitude import column_attitude
 from halo_notes.math.sampling import uniform_s2
 from tape_halo_function import halo_point_batch, standard_normals, zrot
 

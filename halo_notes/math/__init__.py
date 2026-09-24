@@ -1,8 +1,10 @@
-"""系列级共享数学：C6 / D6 群在面编号上的置换表示（:mod:`group`）、S² / S³ 均匀采样与最近邻角距离
-（:mod:`sampling`）、最近邻角距离的解析 pdf 与两种数值算法（:mod:`density`）、六棱柱内反射群的 12 矩阵权威表
-（:mod:`reflection_group`）、光路 signature 规范型与方向映射 Φ 的分类（:mod:`signature`）、ch3 光路 ground truth 清单解析（:mod:`ground_truth`，2026-09-18 自已删除的
-``halo_notes.geometry`` 迁来——它是文本解析，与几何无关）。
+"""系列级共享数学：S² / S³ 均匀采样与最近邻角距离（:mod:`sampling`）、最近邻角距离的解析 pdf 与两种数值算法
+（:mod:`density`）。
 
-与 :mod:`halo_notes.draw` 无依赖关系：draw 管几何与渲染，这里只管数字。:mod:`signature` 依赖
-:mod:`lumice_integral.geometry`（面法向与光学判据），方向是 math → geometry，反向不允许（见该模块 docstring）。
+对称性模块（C6 / D6 置换表示 ``group``、内反射群 12 矩阵权威表 ``reflection_group``、signature 规范型与 Φ 分类
+``signature``、ch3 光路 ground truth 清单解析 ``ground_truth``、柱晶姿态 ``attitude``）自 2026-09-24 起由
+:mod:`lumice_integral.symmetry` 提供（公开名称 1:1），本包不再持有副本；``attitude.sun_vector`` 对应
+:func:`lumice_integral.camera.sun_direction`。
+
+与 :mod:`halo_notes.draw` 无依赖关系：draw 管几何与渲染，这里只管数字。
 """

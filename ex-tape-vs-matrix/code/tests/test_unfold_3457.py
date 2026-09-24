@@ -10,7 +10,7 @@ import fig_unfold_3457 as fig
 from halo_notes.draw import CrossSection, solve_raypath_2d
 from halo_notes.draw.raypath import face_sequence
 from halo_notes.draw.tests.test_figures import run_figure
-from halo_notes.math import reflection_group as rg
+from lumice_integral.symmetry import reflection_group as rg
 
 SCRIPT = "ex-tape-vs-matrix/code/fig_unfold_3457.py"
 

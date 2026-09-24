@@ -511,7 +511,7 @@ def test_6_1_pose_clouds_match_their_main_axes(monkeypatch):
 
 def _normal_permutation(M: np.ndarray) -> dict[int, int]:
     """矩阵 M 作用在侧面法向上诱导的置换 ``{原位置上的面号: 现在落在该位置的面号}``（与 symmetry.face_permutation 同一约定）。"""
-    from halo_notes.math import reflection_group as rg
+    from lumice_integral.symmetry import reflection_group as rg
     out = {}
     for k in range(3, 9):
         target = int(np.argmin([np.linalg.norm(M @ rg.NORMALS[k] - rg.NORMALS[j]) for j in range(3, 9)])) + 3
@@ -524,7 +524,7 @@ def test_7_1_four_mirrors_axes_are_the_three_side_mirrors(monkeypatch):
     （从 CrossSection 反推，不硬编码）；侧视 inset：正交相机、视线沿 −y（观察者在 −y 侧），画的是 h/a > 1.5 的柱晶，贴的面编号
     == 该视线下 `visible_faces` 推导出的可见面集合（{7, 8}，测试独立重算），外加一条水平的底面镜轴。"""
     from halo_notes.draw.projection import visible_faces
-    from halo_notes.math import reflection_group as rg
+    from lumice_integral.symmetry import reflection_group as rg
     cap, ns = run_figure(FIGURES["7.1"], monkeypatch)
     section = ns["SECTION"]
     mirrors = ns["MIRRORS"]
@@ -589,7 +589,7 @@ def test_7_3_grid_cells_are_the_twelve_elements(monkeypatch):
     """每格 (列符号, 行符号) 合成矩阵 == 权威表里该编号的矩阵（< 1e-12），12 格编号恰为 1–12 各一次；格内截面的面编号置换 ==
     该 xy 操作作用在面上的置换；格下晕名 == 该编号发表类型的晕名（查权威表）；列序 = 正文第 92 行；下行格各画一个翻转标记；
     旋转列画弧（张角 ±120° / 0）、反射列画轴（方向 = 该 S_φ 的不变线）。"""
-    from halo_notes.math import reflection_group as rg
+    from lumice_integral.symmetry import reflection_group as rg
     cap, ns = run_figure(FIGURES["7.3"], monkeypatch)
     cells, base = ns["CELLS"], ns["BASE"]
     assert tuple(ns["COLUMNS"]) == ("e", "r+", "r-", "s90", "s30", "s-30") and tuple(ns["ROWS"]) == (1, -1)
@@ -660,8 +660,8 @@ def test_7_5_pose_to_sky_compresses_theta_for_br_but_not_for_s(monkeypatch):
     R2-2：中栏相机由显式搜索得到（可行域 = R1-2 展开条件；约束最优 ≥ 0.9 × 无约束最优、5° 网格上无更优、出射朝右），
     入射 / 出射在画面上的投影夹角 ≥ 0.9 × 真实夹角（R1-2）；每枚晶体贴了朝向观察者的面编号（== visible_faces）。"""
     from halo_notes.draw.projection import visible_faces
-    from halo_notes.math import reflection_group as rg
-    from halo_notes.math.attitude import column_attitude, sky_direction
+    from lumice_integral.symmetry import reflection_group as rg
+    from lumice_integral.symmetry.attitude import column_attitude, sky_direction
     cap, ns = run_figure(FIGURES["7.5"], monkeypatch)
     P = sys.modules["_pose_to_sky"]
     rows, psi0, thetas = ns["ROW_DATA"], ns["PSI0"], ns["THETAS"]
@@ -834,8 +834,8 @@ def test_7_5_gif_sky_point_holds_still_for_br_and_moves_for_s(monkeypatch):
     """每帧光路可行且面序列 == 声明；只有一段 ψ（= ψ0，R1-3）、θ 在 [θa, θb] ⊂ [0°, 60°] 内来回；br 版：所有帧天空点两两距离
     < 1e-9、都在特里克尔弧上；s 版：天空点沿曲线单调移动（相邻步方向不反转、步长 > 0）；所有帧尺寸相同；θ 区间来自 1° 扫描
     并写进脚本注释。"""
-    from halo_notes.math import reflection_group as rg
-    from halo_notes.math.attitude import sky_direction
+    from lumice_integral.symmetry import reflection_group as rg
+    from lumice_integral.symmetry.attitude import sky_direction
     cap, ns = run_figure(FIGURES["7.5g"], monkeypatch)
     P = sys.modules["_pose_to_sky"]
     frames, rows = ns["FRAMES"], ns["ROWS"]

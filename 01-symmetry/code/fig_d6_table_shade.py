@@ -6,7 +6,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 
 from group_table import draw_group_table
-from halo_notes.math.group import Fd, Ff, R, elements
+from lumice_integral.symmetry.group import Fd, Ff, R, elements
 
 OUT = Path(__file__).resolve().parent.parent / "img" / "d6_table_shade.png"
 WIDTH, HEIGHT, DPI = 1486, 1486, 200  # = 旧图分辨率

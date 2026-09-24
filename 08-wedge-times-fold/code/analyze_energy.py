@@ -28,8 +28,8 @@ from pathlib import Path
 from enumerate_signatures import ENTRY_FACES, GRID, MAX_LEN, RATIOS, ha_label
 from lumice_integral.geometry import HexPrism, fold_matrix
 from lumice_integral.geometry.enumerate import RaypathRecord, enumerate_raypaths
-from halo_notes.math import reflection_group as rg
-from halo_notes.math.signature import PhiRow, phi_class, phi_class_table
+from lumice_integral.symmetry import reflection_group as rg
+from lumice_integral.symmetry.signature import PhiRow, phi_class, phi_class_table
 from halo_notes.sim import analyze as A
 
 DATA = Path(__file__).resolve().parent.parent / "data"

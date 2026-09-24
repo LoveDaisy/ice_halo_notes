@@ -17,7 +17,7 @@ import numpy as np  # noqa: E402
 import pytest  # noqa: E402
 
 from halo_notes.math.density import l1_distance, s2_nearest_neighbor_pdf, s3_nearest_neighbor_pdf  # noqa: E402
-from halo_notes.math.group import elements, latex  # noqa: E402
+from lumice_integral.symmetry.group import elements, latex  # noqa: E402
 from halo_notes.math.tests.test_density import numerical_error_assertions  # noqa: E402
 from halo_notes.math.tests.test_group import TABLE_1_4, TABLE_1_7, parse  # noqa: E402
 

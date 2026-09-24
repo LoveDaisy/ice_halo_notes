@@ -4,7 +4,7 @@ import itertools
 
 import pytest
 
-from halo_notes.math.group import (IDENTITY, SIDE_FACES, Fd, Ff, R, apply, apply_path, compose, elements, inverse,
+from lumice_integral.symmetry.group import (IDENTITY, SIDE_FACES, Fd, Ff, R, apply, apply_path, compose, elements, inverse,
                                    latex, multiplication_table)
 
 # ---- 旧图 1.7 `img/legacy/d6_table_shade.png` 逐格转录（12 行 × 12 列，行列顺序 = 表头顺序）----

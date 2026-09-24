@@ -9,7 +9,7 @@
 - :func:`s_centered`：TK1999 的 S-centered 坐标 $(\\Delta,\\tau)$ [TK1999 p.16–17 Eq. (53)]。
 
 姿态族与采样：:func:`plate_attitude`（片晶 $R=\\mathrm{zrot}(\\phi)$，$\\mathbf n_1=\\mathbf k$）、
-`halo_notes.math.attitude.column_attitude`（柱晶）、:func:`haar_so3`（QR 分解 Haar 均匀 $SO(3)$）、
+`lumice_integral.symmetry.attitude.column_attitude`（柱晶）、:func:`haar_so3`（QR 分解 Haar 均匀 $SO(3)$）、
 `halo_notes.math.sampling.uniform_s2`（$S^2$）。
 """
 
@@ -20,8 +20,8 @@ import math
 import numpy as np
 from lumice_integral.geometry import Polyhedron
 
-from halo_notes.math.reflection_group import Rz
-from halo_notes.math.signature import phi_batch
+from lumice_integral.symmetry.reflection_group import Rz
+from lumice_integral.symmetry.signature import phi_batch
 from tape_halo_function import orientation_from_normals
 
 
@@ -46,7 +46,7 @@ def wedge_orientation(crystal: Polyhedron, M: np.ndarray, a: int, b: int, R: np.
 
 def light_point_batch(crystal: Polyhedron, M: np.ndarray, a: int, b: int, R: np.ndarray, S: np.ndarray) -> np.ndarray:
     """本系列侧光点，批量：``R (K, 3, 3)`` 或 ``(3, 3)``，``S (K, 3)`` 或 ``(3,)`` → ``(K, 3)``，定义域外的行为 ``NaN``
-    （与 :func:`halo_notes.math.signature.phi_batch` 同语义）。$\\mathbf H_i=-R_i\\,\\Phi(-R_i^{T}\\mathbf S_i)$。"""
+    （与 :func:`lumice_integral.symmetry.signature.phi_batch` 同语义）。$\\mathbf H_i=-R_i\\,\\Phi(-R_i^{T}\\mathbf S_i)$。"""
     R = np.asarray(R, float)
     S = np.asarray(S, float)
     if R.ndim == 2:

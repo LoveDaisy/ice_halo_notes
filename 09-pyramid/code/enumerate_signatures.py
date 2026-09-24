@@ -26,8 +26,8 @@ from lumice_integral.geometry import Pyramid, fold_matrix
 from lumice_integral.geometry.core import N_ICE
 from lumice_integral.geometry.enumerate import RaypathRecord, enumerate_raypaths_with_stats
 from lumice_integral.geometry.feasibility import LatLonGrid
-from halo_notes.math import reflection_group as rg
-from halo_notes.math.signature import PhiClass, phi_class
+from lumice_integral.symmetry import reflection_group as rg
+from lumice_integral.symmetry.signature import PhiClass, phi_class
 
 DATA = Path(__file__).resolve().parent.parent / "data"
 TIERS: tuple[tuple[float, float], ...] = ((1.0, 0.5), (0.5, 0.3), (2.0, 0.8), (1.0, 0.8), (3.0, 0.25), (0.3, 0.85))
@@ -220,7 +220,7 @@ def write_md(results: dict[tuple[float, float], TierResult]) -> Path:
                  "`signature_table_<tier>.csv`，全部可行光路清单在 `raypaths_<tier>.csv`（`<tier>` = `h<h/a>_t<tip_ratio>`）。")
     lines.append("> 档位 = (h/a, tip_ratio)：h/a 是棱柱段高度 / 六边形边长（`Pyramid(a=1, h=h/a)`），tip_ratio 是锥台截顶位置占理论锥高的比例；"
                  f"锥面倾角固定 c/a = {Pyramid().c_over_a:g}（62.0°）。")
-    lines.append("> 族 = 精确 Φ 类楔角（`halo_notes.math.signature.phi_class`，0.1°）落在定理 7 的 9 个可透射楔角 ± 容差内；晕名按最小偏向角 "
+    lines.append("> 族 = 精确 Φ 类楔角（`lumice_integral.symmetry.signature.phi_class`，0.1°）落在定理 7 的 9 个可透射楔角 ± 容差内；晕名按最小偏向角 "
                  f"$2\\arcsin(n\\sin(A/2))-A$（$n={N_ICE:g}$）取整。")
     lines.append("> 格子 = 类数 / 光路条数（PBD 代表）/ 面积（sr，全部代表光路可行方向集面积逐条求和，每个对称轨道计一次）；† = 细缝格"
                  f"（格内全部光路的最小入射角都 > {SLIVER_DEG:g}°，压在临界角 49.8° 下的贴棱掠射，同 ch8 判据）。")
