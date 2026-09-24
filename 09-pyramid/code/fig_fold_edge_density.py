@@ -2,7 +2,7 @@
 # 参考几何 (1, 0.5)、随机取向。探针 `scratchpad/probe-fold-edges/probe_edges.py` 的正式版——不跑 Lumice，几何直接积分：
 #   随机取向 ⇔ 晶体系里入射方向 u 在球面均匀。对每个族外类（`analysis/rows_h1_t0.5.csv` 里 family 空、status ok、长度 ≥ 2 的 MC 行按
 #   `pbd_rep` 分组，共 ~250 类，与 `_ch9_sim.top_out_of_family` 同一分组口径），取 N_DIRS 个均匀 u（固定种子），
-#   θ(u) = ∠(Φ(u), u)（`halo_notes.math.signature.phi_batch`，出射与入射传播方向的夹角 = 天上离太阳的角距），权重
+#   θ(u) = ∠(Φ(u), u)（`lumice_integral.symmetry.signature.phi_batch`，出射与入射传播方向的夹角 = 天上离太阳的角距），权重
 #   w(u) = 入射截面 `lumice_integral.geometry.entry_measure_batch`（几何走廊 + 入射 / 出射约束下的有效截面，探针没用）
 #        × 沿途 Fresnel 因子（入射透射 × 每次内反射的反射率（全反射 = 1）× 出射透射，s/p 平均；`fresnel_path_weight`）。
 #   每类剖面 = w 按 θ 分桶再除以环带立体角（→ 平均辐亮度，与渲染剖面同一种量），形状由几何 + Fresnel 定；每类总量按该类 MC 能量份额定标
@@ -26,7 +26,7 @@ import numpy as np
 import _ch9_fig as F
 import _ch9_sim as S
 import analyze_energy as AE
-from halo_notes.math.signature import phi_batch
+from lumice_integral.symmetry.signature import phi_batch
 from lumice_integral.geometry import Pyramid, entry_measure_batch, fold_matrix
 from lumice_integral.geometry.core import N_ICE
 

@@ -6,7 +6,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 
-from halo_notes.math.group import Element, latex, multiplication_table
+from lumice_integral.symmetry.group import Element, latex, multiplication_table
 
 matplotlib.use("Agg")
 # 表头要粗斜体：mathtext 只有 custom 字体集能指定字重，正文格显式走 stix 常规斜体（同一字形家族）

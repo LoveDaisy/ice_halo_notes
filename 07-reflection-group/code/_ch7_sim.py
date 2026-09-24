@@ -9,7 +9,7 @@
 # 记录见 scratchpad progress.md。
 from __future__ import annotations
 
-from halo_notes.math import reflection_group as rg
+from lumice_integral.symmetry import reflection_group as rg
 from halo_notes.sim import config as C
 
 FILTER_ID = 1          # 复合过滤器的 id；scattering entry 引用它

@@ -12,11 +12,12 @@ import pytest
 from halo_notes.draw.raypath import events_for_faces, face_sequence, trace
 from lumice_integral.geometry import HexPrism, fold_matrix
 from lumice_integral.geometry.feasibility import LatLonGrid, admissible_directions, entry_points, external_directions
-from halo_notes.math.ground_truth import ground_truth_groups
-from halo_notes.math import reflection_group as rg
-from halo_notes.math.signature import phi_batch, phi_class, phi_class_table
+from lumice_integral.symmetry.ground_truth import ground_truth_groups
+from lumice_integral.symmetry import reflection_group as rg
+from lumice_integral.symmetry.signature import phi_batch, phi_class, phi_class_table
 
 DATA = Path(__file__).resolve().parents[3] / "08-wedge-times-fold" / "data"
+GROUND_TRUTH_PATH = Path(__file__).resolve().parents[3] / "03-parallel-raypaths" / "data" / "raypath_ground_truth.txt"
 RATIOS = (0.2, 0.5, 1.0, 2.0, 5.0)
 GRID = LatLonGrid(180, 360)   # 必须与 08-wedge-times-fold/code/enumerate_signatures.py 的 GRID 同分辨率：csv 里的最短代表是在那张网格上判可行的
 PLATE = HexPrism.from_ratio(0.2)
@@ -119,7 +120,7 @@ def _classify(faces: tuple[int, ...]) -> str:
 
 
 def test_ground_truth_groups_map_to_single_phi_class_except_known_splits():
-    groups = ground_truth_groups()
+    groups = ground_truth_groups(GROUND_TRUTH_PATH)
     assert sum(len(v) for v in groups.values()) == 93 and len(groups) == 16
     for name, members in groups.items():
         counts: dict[str, int] = {}
@@ -134,7 +135,7 @@ def test_ground_truth_groups_map_to_single_phi_class_except_known_splits():
 
 def test_ground_truth_parallel_groups_match_published_classes():
     """0° 组的 Φ 类折叠 = ch7 该发表类型的元素集合；单面外反射的镜子编号也落在本组折叠类里。"""
-    groups = ground_truth_groups()
+    groups = ground_truth_groups(GROUND_TRUTH_PATH)
     for name, t in GROUP_TO_PUBLISHED.items():
         ids = {cid for cid in (_classify(r.faces) for r in groups[name]) if cid != "R"}
         zero = [cid for cid in ids if TABLE[cid].wedge_deg == 0.0]
@@ -151,7 +152,7 @@ def test_split_members_preserve_elevation_like_their_group():
     rng = np.random.default_rng(1)
     dirs = rng.normal(size=(2000, 3))
     dirs /= np.linalg.norm(dirs, axis=1, keepdims=True)
-    groups = ground_truth_groups()
+    groups = ground_truth_groups(GROUND_TRUTH_PATH)
     checked = 0
     for name, expect in (("幻日环", 1), ("映幻日环", -1)):
         for r in groups[name]:

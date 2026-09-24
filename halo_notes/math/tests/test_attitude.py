@@ -17,8 +17,9 @@ import numpy as np  # noqa: E402
 import pytest  # noqa: E402
 
 from halo_notes.draw.geometry import rotation  # noqa: E402
-from halo_notes.math import reflection_group as rg  # noqa: E402
-from halo_notes.math.attitude import Ry, column_attitude, sky_direction, sun_vector  # noqa: E402
+from lumice_integral.symmetry import reflection_group as rg  # noqa: E402
+from lumice_integral.camera import sun_direction  # noqa: E402
+from lumice_integral.symmetry.attitude import Ry, column_attitude, sky_direction  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[3]
 CH3 = ROOT / "03-parallel-raypaths" / "code"
@@ -58,7 +59,7 @@ def test_column_attitude_equals_fig_rotation_steps_r3(monkeypatch):
 
 def test_sky_direction_of_br_reproduces_the_tricker_arc_for_every_theta(tricker):
     br = rg.by_number(3).matrix
-    sun = sun_vector(tricker.SUN_ELEVATION_DEG)
+    sun = sun_direction(tricker.SUN_ELEVATION_DEG)
     psis = np.linspace(0.0, 360.0, 73)
     expected = tricker.tricker_arc(np.radians(psis))
     for theta in (0.0, 17.0, 100.0, 259.5, 359.0):
@@ -75,7 +76,7 @@ def test_sky_direction_of_br_reproduces_the_tricker_arc_for_every_theta(tricker)
 def test_sky_direction_of_s_depends_on_theta(tricker):
     """反例：#2（$S_{90°}$）不与 $R_z(\\theta)$ 对易，同一 ψ 下 θ 变天空点就变（> 2°）。"""
     s_matrix = rg.by_number(2).matrix
-    sun = sun_vector(tricker.SUN_ELEVATION_DEG)
+    sun = sun_direction(tricker.SUN_ELEVATION_DEG)
     p0, p1 = (sky_direction(s_matrix, column_attitude(40.0, th), sun) for th in (10.0, 50.0))
     assert np.linalg.norm(p0 - p1) > np.radians(2.0)
 
@@ -83,7 +84,7 @@ def test_sky_direction_of_s_depends_on_theta(tricker):
 def test_sky_direction_batch_matches_single():
     M = rg.by_number(8).matrix
     R = column_attitude(12.0, 34.0)
-    suns = np.stack([sun_vector(e) for e in (0.0, 10.0, 40.0)])
+    suns = np.stack([sun_direction(e) for e in (0.0, 10.0, 40.0)])
     batch = sky_direction(M, R, suns)
     assert batch.shape == (3, 3)
     for k, sv in enumerate(suns):

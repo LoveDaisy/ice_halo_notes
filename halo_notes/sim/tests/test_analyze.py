@@ -15,8 +15,8 @@ from lumice_integral.geometry import HexPrism
 from halo_notes.sim import fetch
 from lumice_integral.geometry.enumerate import RaypathRecord, enumerate_raypaths
 from lumice_integral.geometry.feasibility import LatLonGrid
-from halo_notes.math import reflection_group as rg
-from halo_notes.math.signature import phi_class_table
+from lumice_integral.symmetry import reflection_group as rg
+from lumice_integral.symmetry.signature import phi_class_table
 from halo_notes.sim import analyze as A
 from halo_notes.sim import config as C
 from halo_notes.sim.run import LumiceError

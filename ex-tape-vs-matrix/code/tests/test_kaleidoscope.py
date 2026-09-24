@@ -8,7 +8,7 @@ import pytest
 
 import fig_kaleidoscope as fig
 from halo_notes.draw.tests.test_figures import run_figure
-from halo_notes.math import reflection_group as rg
+from lumice_integral.symmetry import reflection_group as rg
 
 SCRIPT = "ex-tape-vs-matrix/code/fig_kaleidoscope.py"
 Z = np.array([0.0, 0.0, 1.0])     # 晶体轴 R

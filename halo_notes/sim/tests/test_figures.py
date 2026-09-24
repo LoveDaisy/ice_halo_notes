@@ -176,7 +176,7 @@ def test_halo_columns_complex_filters_are_exactly_the_class_representatives():
     """R2-1 (c)：每张子图的过滤器段 = 一个 complex（id 1，PBD，OR 全部子过滤器）+ 各代表一个 raypath 子过滤器；复合引用的
     子光路集合 == `reflection_group` 该类的 PBD 代表集合；每条子光路的镜面积 ∈ 目标共轭类且折射抵消。"""
     import sys
-    from halo_notes.math import reflection_group as rg
+    from lumice_integral.symmetry import reflection_group as rg
     from halo_notes.sim import config as C
     sys.path.insert(0, str(ROOT / CH7 / "code"))
     import _ch7_sim as S

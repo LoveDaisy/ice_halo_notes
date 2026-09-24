@@ -1,5 +1,5 @@
 # 图 B1（fig_b1_same_class.py）与 B2（fig_b2_unnamed_cell.py）共用的 Lumice 过滤器构造与帧中心选取（一份实现）。
-# 本篇正文里的「格子」是 **Φ 类**（signature 类，`halo_notes.math.signature.phi_class`），不是 ch7 的矩阵共轭类：
+# 本篇正文里的「格子」是 **Φ 类**（signature 类，`lumice_integral.symmetry.signature.phi_class`），不是 ch7 的矩阵共轭类：
 # 同一 Φ 类的全部面序列从 `lumice_integral.geometry.enumerate` 枚举（参数与 `enumerate_signatures.py` 逐字相同：
 # `max_len=8`、`entry_faces=(1, 3)`、PBD 轨道去重、`LatLonGrid(180, 360)`），逐条经 `phi_class` 落类，取 `row.id == class_id`
 # 的全部代表装进 `complex` 复合过滤器（OR）——ch7 图 6 的教训：单条代表光路只占类总能量 0.4%，不能只放最短代表。
@@ -21,8 +21,8 @@ import numpy as np
 from lumice_integral.geometry import HexPrism, fold_matrix
 from lumice_integral.geometry.enumerate import enumerate_raypaths_with_stats
 from lumice_integral.geometry.feasibility import LatLonGrid
-from halo_notes.math import reflection_group as rg
-from halo_notes.math.signature import phi_class, phi_class_table
+from lumice_integral.symmetry import reflection_group as rg
+from lumice_integral.symmetry.signature import phi_class, phi_class_table
 from halo_notes.sim import config as C
 from halo_notes.sim.projection import GLOBE_CAP_DEG, project_rectangular, rectangular_pixel_directions
 

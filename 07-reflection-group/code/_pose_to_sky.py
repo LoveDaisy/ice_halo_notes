@@ -40,8 +40,9 @@ from halo_notes.draw.raypath import face_grid_points, face_sequence
 from halo_notes.draw.scene2d import Z_TEXT
 from halo_notes.draw.style import LineStyle, MarkerStyle, TextStyle
 from halo_notes.draw.style.mapping import CJK_SANS
-from halo_notes.math import reflection_group as rg
-from halo_notes.math.attitude import column_attitude, sky_direction, sun_vector
+from lumice_integral.symmetry import reflection_group as rg
+from lumice_integral.camera import sun_direction
+from lumice_integral.symmetry.attitude import column_attitude, sky_direction
 from halo_notes.sim.projection import frame_center, globe_view_for, project
 
 CODE_DIR = Path(__file__).resolve().parent
@@ -61,7 +62,7 @@ def _load_tricker_arc():
 
 TRICKER = _load_tricker_arc()
 SUN_ELEVATION_DEG = TRICKER.SUN_ELEVATION_DEG          # 10°，与 3.5 同值
-SUN = sun_vector(SUN_ELEVATION_DEG)                    # 指向太阳
+SUN = sun_direction(SUN_ELEVATION_DEG)                 # 指向太阳
 D_IN = -SUN                                            # 入射光方向（固定）
 ANTHELIC = TRICKER.anthelic_point()
 REFERENCE = {3: ANTHELIC, 2: SUN}                      # 每行天空的参考点：上行反日点、下行太阳

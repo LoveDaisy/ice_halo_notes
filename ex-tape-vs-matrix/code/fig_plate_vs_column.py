@@ -18,8 +18,8 @@ from halo_notes.draw import (PRESETS, Camera, HexPrism, draw_axis_arrow, draw_ro
 from halo_notes.draw.geometry import unit
 from halo_notes.draw.style import LineStyle, TextStyle
 from halo_notes.draw.style.mapping import CJK_SANS
-from halo_notes.math.attitude import column_attitude
-from halo_notes.math.reflection_group import Rz
+from lumice_integral.symmetry.attitude import column_attitude
+from lumice_integral.symmetry.reflection_group import Rz
 
 OUT = Path(__file__).resolve().parent.parent / "img" / "plate_vs_column.png"
 WIDTH, HEIGHT, DPI = 3600, 1800, 200

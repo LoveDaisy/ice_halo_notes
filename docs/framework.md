@@ -72,7 +72,7 @@ $\tilde{\mathbf n}_b$ 是把内反射全部展开后出射面在展开空间中�
 
 **定理 5（三种楔）[算]。** $G$ 置换面法向集合，故 $\tilde{\mathbf n}_b$ 仍是 8 个面法向之一。遍历 $M\in G$ 与所有面对，$\langle\mathbf n_a,M^{-1}\mathbf n_b\rangle\in\{0,\pm\tfrac12,\pm1\}$，楔角 $A$（$\cos A=-\langle\mathbf n_a,\tilde{\mathbf n}_b\rangle$）$\in\{0°,60°,90°,120°,180°\}$；$n=1.31$ 下可透射上限 $2\arcsin(1/n)\approx99.5°$，有效楔只有 **0° / 60° / 90°**（平行、22° 族、46° 族），120° 全反射死角。故**六棱柱任意长度光路的方向映射 ⊆ 3 种楔 × 12 种折叠**，再商掉晶体对称与不可达组合。
 
-**signature 与穷举 [算]。** 两条光路方向映射相同 ⇐ $(M,\mathbf n_a,\tilde{\mathbf n}_b)$ 相同；商掉晶体对称后的规范型即 canonical signature（`halo_notes.math.signature`）。用枚举器对每条可达光路算 signature 与 $\Phi$ 类的结果见定理 5″。逆命题（$\Phi$ 相同 ⇒ signature 相同）一般成立但未证。
+**signature 与穷举 [算]。** 两条光路方向映射相同 ⇐ $(M,\mathbf n_a,\tilde{\mathbf n}_b)$ 相同；商掉晶体对称后的规范型即 canonical signature（`lumice_integral.symmetry.signature`，原 `halo_notes.math.signature`）。用枚举器对每条可达光路算 signature 与 $\Phi$ 类的结果见定理 5″。逆命题（$\Phi$ 相同 ⇒ signature 相同）一般成立但未证。
 
 **定理 5′（类数上界）[算]。** 商掉的对称群要取 $D_{6h}$（24 元：$R_z(60k)$、6 个竖直镜，各乘 $b$——比定理 1–3 用的 $G=D_{3h}$（12 元）多一倍，因为 signature 要商的是**面法向标号**的对称，不是光路矩阵的对称）。遍历 $M\in G$ 与全部面对 $(a,b)$，按楔角分组算 signature 类数，再对每类用采样指纹核对 $\Phi=\mathcal S_{\mathbf n_b}\circ M\circ\mathcal S_{\mathbf n_a}$ 在 $D_{6h}$ 共轭下是否进一步合并；定义域是 $\Phi$ 身份的一部分——入射须从外侧进面 $a$（$\langle\mathbf d,\mathbf n_a\rangle<0$），出射须无 TIR 且从外侧离开面 $b$（$\langle\mathbf d',\mathbf n_b\rangle>0$），漏掉入射侧判据会把 60° 的 12 类错误并成 6 类。
 
@@ -86,7 +86,7 @@ $\tilde{\mathbf n}_b$ 是把内反射全部展开后出射面在展开空间中�
 
 可透射（$A<2\arcsin(1/n)\approx99.5°$，$n=1.31$）signature 合计 **42**，$\Phi$ 合计 **34**（$6+12+16$）：**六棱柱任意长度光路的方向映射至多 34 类（带入射面标号则 42 类），分三个半径族 6 / 12 / 16。** 核验：`08-wedge-times-fold/code/check_signature.py`。
 
-**定理 5″（可达类数）[算]。** 上界 34 是可达的：对高径比 $h/a\in\{0.2,0.5,1,2,5\}$ 用 ch2 枚举器的 python 复活（`lumice_integral.geometry.enumerate`，原 `halo_notes.geometry.enumerate`，长度 $\le 8$、PBD 代表、1° 方向网格——2° 时 MC 互证查出五档共 240 个窄窗口代表漏判，1° 全部召回而 0.5° 不再多，耗时约 3.5×）枚举全部几何 + 光学可行光路，逐条经 `halo_notes.math.signature.phi_class` 归类：
+**定理 5″（可达类数）[算]。** 上界 34 是可达的：对高径比 $h/a\in\{0.2,0.5,1,2,5\}$ 用 ch2 枚举器的 python 复活（`lumice_integral.geometry.enumerate`，原 `halo_notes.geometry.enumerate`，长度 $\le 8$、PBD 代表、1° 方向网格——2° 时 MC 互证查出五档共 240 个窄窗口代表漏判，1° 全部召回而 0.5° 不再多，耗时约 3.5×）枚举全部几何 + 光学可行光路，逐条经 `lumice_integral.symmetry.signature.phi_class`（原 `halo_notes.math.signature`）归类：
 
 | $h/a$ | 0.2 | 0.5 | 1 | 2 | 5 | 五档并集 |
 |---|---|---|---|---|---|---|
@@ -204,4 +204,4 @@ $D_P$ 的定义因此带两个负号（$D_P(\mathbf u)=\angle(-\Phi_P(-\mathbf u
 - `09-pyramid/code/enumerate_signatures.py` — 定理 7′（产出 `data/signature_table.md`、`data/signature_table_<tier>.csv`、`data/raypaths_<tier>.csv`）。
 - `09-pyramid/code/analyze_energy.py` — 定理 7′ 的 MC 独立复核 + 每族能量份额（产出 `data/analysis/`（ignored，打包为 `data/analysis.zip` 走 LFS）、`data/energy_table.md`；Lumice release ≥ v4.6.1 自带 `analyze`；现存产物为发版前本地 build 所出）。
 
-ch7 / ch9 bootstrap 时迁入各章 `code/`。
+ch7 / ch9 bootstrap 时迁入各章 `code/`。以上脚本都是薄封装：群表、signature / Φ 分类、ground truth 解析等计算本体自 2026-09-24 起在 Lumice Integral 仓 `lumice_integral.symmetry`（几何与枚举器在 `lumice_integral.geometry`）。

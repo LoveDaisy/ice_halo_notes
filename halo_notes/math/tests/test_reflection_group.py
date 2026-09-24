@@ -9,8 +9,8 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from halo_notes.math import group as D6
-from halo_notes.math import reflection_group as rg
+from lumice_integral.symmetry import group as D6
+from lumice_integral.symmetry import reflection_group as rg
 
 ROOT = Path(__file__).resolve().parents[3]
 CH7_TEXT = ROOT / "07-reflection-group" / "为什么恰好是十二个.md"

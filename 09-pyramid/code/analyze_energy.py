@@ -33,8 +33,8 @@ from pathlib import Path
 from enumerate_signatures import (DATA, KNOWN_WEDGES, L_STAR, TIERS, TOL, family_name, family_of, tier_label,
                                   tier_pyramid)
 from lumice_integral.geometry import fold_matrix
-from halo_notes.math import reflection_group as rg
-from halo_notes.math.signature import A_MAX_DEG, PhiClass, phi_class
+from lumice_integral.symmetry import reflection_group as rg
+from lumice_integral.symmetry.signature import A_MAX_DEG, PhiClass, phi_class
 from halo_notes.sim import analyze as A
 
 CACHE = DATA / "analysis"      # 大体积文本产物（ignored）；打包为 ZIP 走 LFS

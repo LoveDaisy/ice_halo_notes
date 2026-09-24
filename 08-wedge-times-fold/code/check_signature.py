@@ -1,8 +1,8 @@
 # 核验 docs/framework.md 定理 5′（类数上界）：六棱柱 signature (M, n_a, M^-1 n_b) 在晶体点群
 # D6h（24 元，ch7 的 D3h=G 之外再乘绕 z 轴的 60° 旋转）下商掉后，按楔角 A=arccos(-<n_a, M^-1 n_b>)
 # 分组计数；再用采样指纹核对每个 signature 类对应的方向映射 Φ 在 D6h 共轭下是否进一步合并。
-# 算法本体（D6h 构造、规范型、Φ 与带定义域的采样指纹）在 halo_notes.math.signature，本脚本只是薄封装：
-# 遍历 M ∈ G（halo_notes.math.reflection_group 的 12 矩阵权威表）× 全部面对，面法向从 HexPrism 实例取。
+# 算法本体（D6h 构造、规范型、Φ 与带定义域的采样指纹）在 lumice_integral.symmetry.signature，本脚本只是薄封装：
+# 遍历 M ∈ G（lumice_integral.symmetry.reflection_group 的 12 矩阵权威表）× 全部面对，面法向从 HexPrism 实例取。
 #
 # Φ 的定义域是判据的一部分：入射须从外侧进入面 a（<d, n_a> < 0），出射须无 TIR 且从外侧离开面 b
 # （<d', n_b> > 0）——定义域外的方向不算入指纹。漏这一条会把 60° 的 12 个 signature 类错误合并成 6
@@ -12,8 +12,8 @@ import itertools
 import numpy as np
 
 from lumice_integral.geometry import HexPrism
-from halo_notes.math import reflection_group as rg
-from halo_notes.math.signature import A_MAX_DEG, D6H, canonical_signature, phi_fingerprint, wedge_angle
+from lumice_integral.symmetry import reflection_group as rg
+from lumice_integral.symmetry.signature import A_MAX_DEG, D6H, canonical_signature, phi_fingerprint, wedge_angle
 
 assert len({rg.key(g) for g in D6H}) == 24, "D6h 应有 24 个元素"
 

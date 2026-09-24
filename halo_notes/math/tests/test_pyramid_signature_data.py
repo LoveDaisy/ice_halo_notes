@@ -14,7 +14,7 @@ import pytest
 from halo_notes.draw.raypath import events_for_faces, face_sequence, trace
 from lumice_integral.geometry import Pyramid, fold_matrix
 from lumice_integral.geometry.feasibility import LatLonGrid, admissible_directions, entry_points, external_directions
-from halo_notes.math.signature import phi_class
+from lumice_integral.symmetry.signature import phi_class
 
 CH9 = Path(__file__).resolve().parents[3] / "09-pyramid"
 DATA = CH9 / "data"

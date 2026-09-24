@@ -37,8 +37,8 @@ from lumice_integral.geometry import Polyhedron, fold_matrix
 if TYPE_CHECKING:
     from lumice_integral.geometry import Pyramid
 from lumice_integral.geometry.enumerate import RaypathRecord
-from ..math import reflection_group as rg
-from ..math.signature import PhiClass, phi_class
+from lumice_integral.symmetry import reflection_group as rg
+from lumice_integral.symmetry.signature import PhiClass, phi_class
 from . import config as C
 from .fetch import LUMICE_VERSION, ensure_lumice, sha256_of
 from .run import LumiceError, config_sha256

@@ -16,7 +16,7 @@ from halo_notes.draw import (PRESETS, Camera, HexPrism, draw_axes, draw_rotation
                              render_crystal, rotation, solve_camera_distance)
 from halo_notes.draw.style import TextStyle
 from halo_notes.draw.style.mapping import CJK_SANS
-from halo_notes.math import reflection_group as rg
+from lumice_integral.symmetry import reflection_group as rg
 
 OUT = Path(__file__).resolve().parent.parent / "img" / "conjugate_rot90.png"
 WIDTH, HEIGHT, DPI = 4000, 2000, 200

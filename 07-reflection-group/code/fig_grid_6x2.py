@@ -2,7 +2,7 @@
 # $R_z(-120°)$、$S_{90°}$、$S_{30°}$、$S_{-30°}$（正文第 92 行的列序），行 = $z=+1$（上）、$z=-1$（下）。每格：六边形截面，
 # 面编号随 xy 操作走（旋转 = `symmetry.rotate` 转 ±2 格，反射 = 沿不变线翻转 `symmetry.flip`，编号字形随之转 / 镜像）；旋转格画弧形
 # 箭头 + 角度、反射格画反射轴（点划线）、下行格右下加一个「上下翻转」小标记；格下三行小字：#编号（ch3 笔记）、柱晶取向晕名、
-# 片晶取向晕名——全部从 `halo_notes.math.reflection_group` 权威表查，脚本不抄一份。读者要看出：12 的结构 = 3 类 xy（不动 / 转 / 翻）
+# 片晶取向晕名——全部从 `lumice_integral.symmetry.reflection_group` 权威表查，脚本不抄一份。读者要看出：12 的结构 = 3 类 xy（不动 / 转 / 翻）
 # × 2 种 z；同一行里同一类 xy 操作的格子是一个共轭类；#11 在 $e$ 列下行、#2 在 $S_{90°}$ 列上行，相距很远。
 # 反射列的翻转轴映射（plan 附注推导，脚本与 test_figures 都用 face_permutation 对 reflection_group 矩阵机械核验）：
 # $S_{90°}$ → 过顶点 4|5 的轴（面 3/6 的镜子），$S_{30°}$ → 顶点 3|4（面 5/8），$S_{-30°}$ → 顶点 5|6（面 4/7）。
@@ -17,7 +17,7 @@ from halo_notes.draw import (FACE_COLORS, PRESETS, CrossSection, FlipAxis, draw_
                              draw_rotation_arc, face_permutation, finish, flip, multi_panel, render_section, rotate)
 from halo_notes.draw.style import LineStyle, TextStyle
 from halo_notes.draw.style.mapping import CJK_SANS
-from halo_notes.math import reflection_group as rg
+from lumice_integral.symmetry import reflection_group as rg
 
 OUT = Path(__file__).resolve().parent.parent / "img" / "grid_6x2.png"
 WIDTH, HEIGHT, DPI = 4500, 2100, 200

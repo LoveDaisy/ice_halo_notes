@@ -15,7 +15,7 @@ import numpy as np
 from halo_notes.draw import CrossSection, annotate_2d, draw_flip_axis, finish, multi_panel, render_section
 from halo_notes.draw.style import LineStyle, TextStyle
 from halo_notes.draw.style.mapping import CJK_SANS
-from halo_notes.math import reflection_group as rg
+from lumice_integral.symmetry import reflection_group as rg
 
 from _ex_fig import PRESET, SPOKE, TEXT15, azimuth, direction, draw_arc_arrow, draw_circle, draw_line, draw_point, unwrap_to
 

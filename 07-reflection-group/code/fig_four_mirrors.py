@@ -17,7 +17,7 @@ from halo_notes.draw import (FACE_COLORS, PRESETS, Camera, CrossSection, FlipAxi
                              draw_flip_axis, face_permutation, finish, flip, new_figure, render_crystal, render_section)
 from halo_notes.draw.projection import visible_faces
 from halo_notes.draw.scene2d import Z_TEXT
-from halo_notes.math import reflection_group as rg
+from lumice_integral.symmetry import reflection_group as rg
 
 OUT = Path(__file__).resolve().parent.parent / "img" / "four_mirrors.png"
 WIDTH, HEIGHT, DPI = 2800, 1700, 200

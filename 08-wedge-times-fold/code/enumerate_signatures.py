@@ -1,6 +1,6 @@
 # 产出 ../data/signature_table.md（34 个 Φ 类的可达性主表）与 ../data/signature_table_<ha>.csv（42 个 signature 类粒度，
 # 每个高径比一份）：对 h/a ∈ {0.2, 0.5, 1, 2, 5} 用 lumice_integral.geometry.enumerate 枚举长度 ≤ 8 的全部可行光路（PBD 代表），
-# 每条经 halo_notes.math.signature 落到 signature 类 / Φ 类，按类聚合可达 h/a、光路条数、可行方向面积之和、最短代表。
+# 每条经 lumice_integral.symmetry.signature 落到 signature 类 / Φ 类，按类聚合可达 h/a、光路条数、可行方向面积之和、最短代表。
 # 这是 ch8 定理 5′ 上界（34）的下界一侧：framework §2 定理 5″ 的每个数字都从这里的产出文件里来。
 #
 # 口径：
@@ -11,7 +11,7 @@
 #   贴棱掠射条目的同一判据），几何上可达但方向集是一条细缝，主表用 † 标出并在汇总里单独计数，不与扎实可达混算；
 # - 单面序列（外反射 1、3）没有折射、Φ = S_n，不在 34 类框架内，只在 md 末尾记一笔；
 # - 42 类粒度的 csv 行 = 一条规范 signature (M, a, b)，带 phi_class_id 指向所属的 34 类主键（同一份类归属只在
-#   halo_notes.math.signature.phi_class_table 里算一次，csv 只是引用）。
+#   lumice_integral.symmetry.signature.phi_class_table 里算一次，csv 只是引用）。
 from __future__ import annotations
 
 import csv
@@ -23,8 +23,8 @@ import numpy as np
 from lumice_integral.geometry import HexPrism, Pyramid, fold_matrix
 from lumice_integral.geometry.enumerate import RaypathRecord, enumerate_raypaths_with_stats
 from lumice_integral.geometry.feasibility import LatLonGrid
-from halo_notes.math import reflection_group as rg
-from halo_notes.math.signature import PhiRow, phi_class, phi_class_table
+from lumice_integral.symmetry import reflection_group as rg
+from lumice_integral.symmetry.signature import PhiRow, phi_class, phi_class_table
 
 DATA = Path(__file__).resolve().parent.parent / "data"
 RATIOS = (0.2, 0.5, 1.0, 2.0, 5.0)
@@ -132,7 +132,7 @@ def write_md(rows: tuple[PhiRow, ...], cells: dict[float, dict[str, Cell]], sing
     lines.append("")
     lines.append(f"> 产出：`code/enumerate_signatures.py`（`max_len={MAX_LEN}`、`entry_faces={ENTRY_FACES}`、PBD 去重、"
                  f"`LatLonGrid({GRID.n_theta}, {GRID.n_phi})`、粗网格面积）；每个 h/a 的 42 类粒度明细在 `signature_table_<ha>.csv`。")
-    lines.append("> 类编号 `A<楔角>-<序号>` 由 `halo_notes.math.signature.phi_class_table` 按 (楔角, 折叠类最小编号, 规范 signature) 排序确定，与运行顺序无关。")
+    lines.append("> 类编号 `A<楔角>-<序号>` 由 `lumice_integral.symmetry.signature.phi_class_table` 按 (楔角, 折叠类最小编号, 规范 signature) 排序确定，与运行顺序无关。")
     lines.append("> 面积 = 该类在该 h/a 下全部 PBD 代表光路的可行方向集面积（sr）逐条求和，每个对称轨道计一次，不是某一条代表的面积。")
     lines.append("> 最短代表 = 五档 h/a 里按 (长度, 字典序) 最小的代表光路（PBD 轨道代表，即轨道里字典序最小的面序列）。")
     lines.append(f"> † = 细缝格：该格全部光路的最小入射角都 > {SLIVER_DEG:g}°（压在临界角 49.8° 下的贴棱掠射，与子任务 15.2 对 `1-3-4` 的判据相同），"
