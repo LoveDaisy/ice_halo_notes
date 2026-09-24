@@ -21,6 +21,7 @@ import contextlib
 import io
 import runpy
 import sys
+import tempfile
 from pathlib import Path
 
 import matplotlib
@@ -107,8 +108,14 @@ class Capture:
         self.gif_frames: list[tuple[int, int]] = []                           # PillowWriter.grab_frame 逐帧的帧尺寸
 
 
-def install_spies(cap: Capture, monkeypatch) -> None:
-    """把 3D / 2D / 球面渲染入口换成记录到 ``cap`` 的 spy，并让 savefig / gif 落盘变成空操作。"""
+def install_spies(cap: Capture, monkeypatch, gif_dir: Path) -> None:
+    """把 3D / 2D / 球面渲染入口换成记录到 ``cap`` 的 spy，并让 savefig / gif 落盘变成空操作。
+
+    gif 的中和点是**输出路径**（``animate`` 的 ``path`` 参数被重定向到 ``gif_dir``），不是某个 writer 类的
+    ``finish`` 方法：``PaletteWriter``（ch7 7.5g）重写 ``finish`` 且不调 ``super()``，只打基类 ``PillowWriter.finish``
+    的桩会被它绕过（chore-gif-test-leak 根因）。基类桩仍保留作为直接构造 ``PillowWriter`` 场景的第二道防线
+    （见 ``test_spies_capture_sphere_renderers_and_swallow_gif_output``）。
+    """
     real_render, real_draw = scene.render_crystal, scene.draw_raypath
 
     def spy_render(ax, crystal, raypaths=None, **kw):
@@ -196,6 +203,13 @@ def install_spies(cap: Capture, monkeypatch) -> None:
         return real_savefig(self, fname, *a, **k)
 
     monkeypatch.setattr(matplotlib.figure.Figure, "savefig", savefig_unless_file)
+    real_animate = draw.animation.animate
+
+    def spy_animate(render_frame, n_frames, path, **kw):
+        return real_animate(render_frame, n_frames, gif_dir / Path(path).name, **kw)
+
+    for mod in (draw.animation, draw):
+        monkeypatch.setattr(mod, "animate", spy_animate)
     monkeypatch.setattr(matplotlib.animation.PillowWriter, "finish", lambda self: None)
     real_grab = matplotlib.animation.PillowWriter.grab_frame
 
@@ -208,21 +222,22 @@ def install_spies(cap: Capture, monkeypatch) -> None:
 
 def run_figure(script: str, monkeypatch) -> tuple[Capture, dict]:
     cap = Capture()
-    install_spies(cap, monkeypatch)
-    path = ROOT / script
-    monkeypatch.syspath_prepend(str(path.parent))
-    for helper in ("_light_corridor_rp132", "_tricker_arc", "_pose_to_sky"):   # 章内共享 helper 每图重新导入，拿到本次的 spy
-        sys.modules.pop(helper, None)
-    with contextlib.redirect_stdout(io.StringIO()):
-        ns = runpy.run_path(str(path), run_name="__main__")
-    plt.close("all")
+    with tempfile.TemporaryDirectory() as gif_dir:
+        install_spies(cap, monkeypatch, Path(gif_dir))
+        path = ROOT / script
+        monkeypatch.syspath_prepend(str(path.parent))
+        for helper in ("_light_corridor_rp132", "_tricker_arc", "_pose_to_sky"):   # 章内共享 helper 每图重新导入，拿到本次的 spy
+            sys.modules.pop(helper, None)
+        with contextlib.redirect_stdout(io.StringIO()):
+            ns = runpy.run_path(str(path), run_name="__main__")
+        plt.close("all")
     return cap, ns
 
 
 def test_spies_capture_sphere_renderers_and_swallow_gif_output(monkeypatch, tmp_path):
     """既有图脚本既不画球面也不产 gif，触发不到这两个 patch——用最小 stub 直接验证它们生效。"""
     cap = Capture()
-    install_spies(cap, monkeypatch)
+    install_spies(cap, monkeypatch, tmp_path)
     fig, ax = draw.new_figure(100, 100, dpi=50)
     cam = draw.Camera(azimuth=30, elevation=20)
     s = draw.Sphere()
@@ -833,10 +848,13 @@ def test_7_5_overlay_projection_is_aligned_with_the_lumice_backdrop(monkeypatch)
 def test_7_5_gif_sky_point_holds_still_for_br_and_moves_for_s(monkeypatch):
     """每帧光路可行且面序列 == 声明；只有一段 ψ（= ψ0，R1-3）、θ 在 [θa, θb] ⊂ [0°, 60°] 内来回；br 版：所有帧天空点两两距离
     < 1e-9、都在特里克尔弧上；s 版：天空点沿曲线单调移动（相邻步方向不反转、步长 > 0）；所有帧尺寸相同；θ 区间来自 1° 扫描
-    并写进脚本注释。"""
+    并写进脚本注释；不落盘真实 gif（mtime 纹丝不动，而非写了相同字节，见 chore-gif-test-leak）。"""
     from lumice_integral.symmetry import reflection_group as rg
     from lumice_integral.symmetry.attitude import sky_direction
+    gifs = [ROOT / "07-reflection-group/img/pose_to_sky_br.gif", ROOT / "07-reflection-group/img/pose_to_sky_s.gif"]
+    mtimes_before = [g.stat().st_mtime_ns for g in gifs]
     cap, ns = run_figure(FIGURES["7.5g"], monkeypatch)
+    assert [g.stat().st_mtime_ns for g in gifs] == mtimes_before
     P = sys.modules["_pose_to_sky"]
     frames, rows = ns["FRAMES"], ns["ROWS"]
     assert set(frames) == {3, 2}
