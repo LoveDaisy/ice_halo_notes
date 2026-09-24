@@ -26,7 +26,7 @@
       "exposures": {
         "bright": {
           "intensity": 138.67943397566512,
-          "energy_out_per_i": 135.30885664858724,
+          "energy_out_per_i": 186.88211508289248,
           "energy_disk_per_i": 0.0,
           "max_out": 202,
           "max_disk": 0,
@@ -39,13 +39,13 @@
         },
         "dim": null
       },
-      "energy_per_i": 135.30885664858724,
-      "share_render_pct": 0.23779525775565521,
-      "rel_dev": -0.20787722266603864,
+      "energy_per_i": 186.88211508289248,
+      "share_render_pct": 0.290643303442735,
+      "rel_dev": -0.03183443223605943,
       "energy_quantiles_deg": {
         "q10": 79.875,
-        "q50": 96.875,
-        "q90": 113.625
+        "q50": 96.625,
+        "q90": 113.375
       },
       "at_min_deviation": {
         "radius_deg": 6.135178670346924,
@@ -60,22 +60,22 @@
       },
       "observed_peak": {
         "peak_deg": 95.5,
-        "peak": 0.0949031526579553,
-        "background": 0.08612015648513144,
-        "ratio": 1.1019853717328096,
+        "peak": 0.13238060885198646,
+        "background": 0.12057916696050441,
+        "ratio": 1.0978729758130408,
         "is_local_max": true,
         "detected": false,
         "bin_deg": 1.0
       },
       "at_observed_peak": {
         "radius_deg": 95.5,
-        "background": 0.08667470028549376,
+        "background": 0.12106561430918004,
         "coverage": 0.0,
         "n_bins": 72,
         "verdict": "none",
-        "ring_energy_frac": 0.08603092166843579,
-        "radial_peak_deg": 95.625,
-        "radial_ratio": 1.1094646784261561,
+        "ring_energy_frac": 0.08675754263491436,
+        "radial_peak_deg": 96.125,
+        "radial_ratio": 1.0977596379262677,
         "radial_is_local_max": true
       },
       "sharp_ring": false,
@@ -99,7 +99,7 @@
       "exposures": {
         "bright": {
           "intensity": 28.70166711226039,
-          "energy_out_per_i": 136.81882916732698,
+          "energy_out_per_i": 177.9591434262684,
           "energy_disk_per_i": 0.0,
           "max_out": 106,
           "max_disk": 0,
@@ -112,13 +112,13 @@
         },
         "dim": null
       },
-      "energy_per_i": 136.81882916732698,
-      "share_render_pct": 0.24044892221776948,
-      "rel_dev": -0.1639467238603287,
+      "energy_per_i": 177.9591434262684,
+      "share_render_pct": 0.2767660955694358,
+      "rel_dev": -0.037670043221711406,
       "energy_quantiles_deg": {
-        "q10": 105.125,
-        "q50": 119.625,
-        "q90": 133.875
+        "q10": 104.875,
+        "q50": 118.875,
+        "q90": 133.625
       },
       "at_min_deviation": {
         "radius_deg": 11.46976053310685,
@@ -133,26 +133,26 @@
       },
       "observed_peak": {
         "peak_deg": 135.5,
-        "peak": 0.03386685826734933,
-        "background": 0.011335107281382841,
-        "ratio": 2.9877845375996914,
+        "peak": 0.040540107965201376,
+        "background": 0.014335788801462255,
+        "ratio": 2.827895173864885,
         "is_local_max": true,
         "detected": false,
         "bin_deg": 1.0
       },
       "at_observed_peak": {
         "radius_deg": 135.5,
-        "background": 0.011380799451139607,
-        "coverage": 0.5833333333333334,
+        "background": 0.014224721657363945,
+        "coverage": 0.09722222222222222,
         "n_bins": 72,
-        "verdict": "arc",
-        "ring_energy_frac": 0.06541413994800276,
+        "verdict": "spot",
+        "ring_energy_frac": 0.06012766621877214,
         "radial_peak_deg": 136.125,
-        "radial_ratio": 3.2973028713477874,
+        "radial_ratio": 3.1565589463970998,
         "radial_is_local_max": true
       },
       "sharp_ring": false,
-      "verdict": "arc"
+      "verdict": "spot"
     },
     "3_13-15-26-28": {
       "rank": 3,
@@ -172,7 +172,7 @@
       "exposures": {
         "bright": {
           "intensity": 24.18195792627949,
-          "energy_out_per_i": 148.38774724013274,
+          "energy_out_per_i": 172.56573215894565,
           "energy_disk_per_i": 0.0,
           "max_out": 109,
           "max_disk": 0,
@@ -185,13 +185,13 @@
         },
         "dim": null
       },
-      "energy_per_i": 148.38774724013274,
-      "share_render_pct": 0.26078043578765836,
-      "rel_dev": -0.02365991842883431,
+      "energy_per_i": 172.56573215894565,
+      "share_render_pct": 0.268378140056065,
+      "rel_dev": 0.004785249180325605,
       "energy_quantiles_deg": {
-        "q10": 128.625,
-        "q50": 142.875,
-        "q90": 162.625
+        "q10": 128.375,
+        "q50": 142.125,
+        "q90": 161.875
       },
       "at_min_deviation": {
         "radius_deg": 22.192623919376047,
@@ -206,22 +206,22 @@
       },
       "observed_peak": {
         "peak_deg": 176.5,
-        "peak": 0.07785314985637262,
-        "background": 0.02093201208153078,
-        "ratio": 3.7193342691152864,
+        "peak": 0.08286863124807776,
+        "background": 0.022439300171237284,
+        "ratio": 3.693013178472422,
         "is_local_max": true,
         "detected": true,
         "bin_deg": 1.0
       },
       "at_observed_peak": {
         "radius_deg": 176.5,
-        "background": 0.021597086304379523,
-        "coverage": 0.8055555555555556,
+        "background": 0.023155142187832656,
+        "coverage": 0.7916666666666666,
         "n_bins": 72,
         "verdict": "arc",
-        "ring_energy_frac": 0.010766364614631813,
+        "ring_energy_frac": 0.009854105721110423,
         "radial_peak_deg": 176.875,
-        "radial_ratio": 4.32124014868071,
+        "radial_ratio": 4.304691720211185,
         "radial_is_local_max": true
       },
       "sharp_ring": true,

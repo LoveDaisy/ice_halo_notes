@@ -215,6 +215,24 @@ def test_exposure_stats_and_total_energy_per_i():
         S.total_energy_per_i(bad, dim)
 
 
+def test_energy_map_pixel_is_energy_not_radiance():
+    """钉死像素语义的实测证据（task-pixel-energy-semantics；原始证据见 task-draw-ch9-figs 2026-09-23 23:40 DECISION）：随机取向下天空关于太阳
+    旋转对称，已入库余量图 θ∈(65°,72°) 环带上，高纬（lat 70–80°）/ 低纬（40–70°）两段的辐亮度 L/w 一致，而 :func:`energy_map` 给出的像素能量
+    L 本身差 ~2.2 倍——Lumice 像素 = 辐亮度 × 像素立体角，不能再乘 cos(lat)（修正前 energy_map 返回 L·w，L·w/w 在两段也差 2.2 倍，本测试失败）。
+    实测（2026-09-24）：辐亮度 0.0310 / 0.0314（比 0.987），能量比 0.456；阈值取实测余量的 3–4 倍。"""
+    img, cfg = S.load_product("odd_radius_remainder", "rect")
+    energy, w, dirs = S.energy_map(img, cfg["render"][0])
+    assert np.array_equal(energy, S.linear_luminance(img))                          # 能量 = 线性亮度本身
+    theta = np.degrees(np.arccos(np.clip(dirs @ S.sun_direction(), -1, 1)))
+    lat = np.degrees(np.arcsin(np.clip(dirs[..., 2], -1, 1)))
+    ring = (theta > 65) & (theta < 72)
+    hi, lo = ring & (lat >= 70) & (lat < 80), ring & (lat >= 40) & (lat < 70)
+    rad = energy / w
+    assert rad[hi].mean() == pytest.approx(rad[lo].mean(), rel=0.05)
+    assert energy[hi].mean() < 0.6 * energy[lo].mean()
+    assert 0.0297 / 2 < rad[lo].mean() < 0.0297 * 2                                # 锚回 DECISION 记录的实测辐亮度量级
+
+
 def test_energy_quantiles_and_observed_peak():
     centers, prof = _synthetic_profile({120.0: 4.0}, bg=0.0, sigma=3.0)
     e = prof * np.sin(np.radians(centers))

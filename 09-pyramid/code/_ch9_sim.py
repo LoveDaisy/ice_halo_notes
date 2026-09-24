@@ -11,9 +11,11 @@
 # **`max_hits = 4`，与 `energy_table.md` 的 MC 口径（`analyze_energy.MC_MAX_LEN = 4`）对齐**——机械核对「族图像素能量 ÷ 全景像素能量 ≈ 表里份额」
 # 的分母必须是同一个宇宙（≤ 4 面链）。过滤器只装长度 ≤ MAX_HITS 的成员（`renderable_members`）：max_hits=4 下长度 5–6 的链根本产生不了，
 # 装不装语义相同；而 Lumice v4.5.1 起（4.6.1 未改）一份 config 最多 256 个过滤器（MAX_FILTERS），全部 1520 条 / 28° 族 269 条都放不下，≤4 面的 207 条 / 36 条才放得下。
-# 「能量」= 像素线性亮度（sRGB 8-bit 解码后三通道之和）× 像素立体角（cos lat），`rectangular` 全天图、absolute 曝光、同一光线数，按 intensity
-# 归一后可比：absolute 曝光下像素值与光线数无关（2×10⁷ / 4×10⁷ 实测比 1.0015）、与 intensity 线性（E/i 随 i 收敛）。8-bit 量化对暗像素是净损失
-# （余量图 i=0.2 时丢 17%，i=4 只剩 ~1%），所以每份产出**各自曝光到盘外最亮像素 ≈ TARGET_PX 再按 intensity 归一**（`exposed_render`），不共用一个
+# 「能量」= 像素线性亮度（sRGB 8-bit 解码后三通道之和）——Lumice 渲染出的像素值本身已是该像素立体角上积分过的能量（`src/core/lens_proj_build.hpp:157`
+# 「A rendered pixel holds a radiance INTEGRATED over its own solid angle」），**不再乘 cos(lat)**（task-pixel-energy-semantics 修正前多乘了一遍）；
+# 辐亮度 = L / cos(lat)。`rectangular` 全天图、absolute 曝光、同一光线数，按 intensity 归一后可比：absolute 曝光下像素值与光线数无关（2×10⁷ / 4×10⁷ 实测比 1.0015）、与 intensity 线性（E/i 随 i 收敛）。8-bit 量化对暗像素是净损失
+# （余量图 i=0.2 时丢 17%，i=4 只剩 ~1%；这几个百分比按修正前「× cos lat」的能量定义测得，改动后量级预期不变，未重新验证；此 17% 与 notes.md
+# 族能量对账的 17% 容差是不同指标，数字巧合），所以每份产出**各自曝光到盘外最亮像素 ≈ TARGET_PX 再按 intensity 归一**（`exposed_render`），不共用一个
 # intensity。太阳盘（θ ≤ DISK_DEG）单独处理：0° 族里无反射的平行光路（`1-2`、`3-6`…）不偏折、全落在太阳 0.5° 盘内几个像素里，任何能看清晕环的曝光
 # 都把它削顶，所以全景与 0° 族各多渲染一份 dim 曝光只取盘内能量，与 bright 曝光的盘外能量按 intensity 归一后相加。像素积分 vs MC 光子计数是两条
 # 独立链路（D65 vs 550 nm、R+G+B vs Y、量化残余），单轨道探针相对偏差 −2%…+9%，容差在 fig_odd_radius_families.py 里先用 63.8° 族实测后写死。
@@ -446,13 +448,14 @@ def linear_luminance(image: np.ndarray) -> np.ndarray:
 
 
 def energy_map(image: np.ndarray, render: dict) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """``(每像素能量 L·w, 立体角权重 w, 像素天空方向 dirs)``。"""
+    """``(每像素能量 L, 立体角权重 w=cos(lat)（辐亮度 = L/w）, 像素天空方向 dirs)``——Lumice rectangular 像素本身已是该像素立体角上
+    积分过的能量（`src/core/lens_proj_build.hpp:157`），不再乘 cos(lat)。本章全部像素取数只经这一个入口。"""
     dirs, weight = rectangular_pixel_directions(render)
-    return linear_luminance(image) * weight, weight, dirs
+    return linear_luminance(image), weight, dirs
 
 
 def sky_energy(image: np.ndarray, render: dict) -> float:
-    """全天线性能量（立体角加权）。"""
+    """全天线性能量（像素值之和，见 :func:`energy_map`）。"""
     energy, _, _ = energy_map(image, render)
     return float(energy.sum())
 
@@ -460,7 +463,7 @@ def sky_energy(image: np.ndarray, render: dict) -> float:
 def angular_radial_profile(image: np.ndarray, render: dict, center_dir: np.ndarray, *, bin_deg: float = PROFILE_BIN_DEG,
                            max_deg: float = 180.0) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """以 ``center_dir``（太阳）为极点的径向剖面：像素按「与中心方向的夹角」θ 分桶（0…``max_deg`` 每 ``bin_deg``）。
-    返回 ``(桶中心, 各桶平均辐亮度 Σ(L·w)/Σw, 各桶能量 Σ(L·w))``——「峰」看平均辐亮度（均匀背景在这条曲线上是平的，
+    返回 ``(桶中心, 各桶平均辐亮度 ΣL/Σw, 各桶能量 ΣL)``——「峰」看平均辐亮度（均匀背景在这条曲线上是平的，
     不带 sin θ 的环周长因子），「能量占比」看能量。"""
     energy, weight, dirs = energy_map(image, render)
     c = np.asarray(center_dir, float)
