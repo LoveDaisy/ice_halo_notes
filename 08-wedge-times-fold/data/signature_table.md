@@ -1,7 +1,7 @@
 # 六棱柱 Φ 类可达性表（ch8 定理 5″ 的数据）
 
 > 产出：`code/enumerate_signatures.py`（`max_len=8`、`entry_faces=(1, 3)`、PBD 去重、`LatLonGrid(180, 360)`、粗网格面积）；每个 h/a 的 42 类粒度明细在 `signature_table_<ha>.csv`。
-> 类编号 `A<楔角>-<序号>` 由 `halo_notes.math.signature.phi_class_table` 按 (楔角, 折叠类最小编号, 规范 signature) 排序确定，与运行顺序无关。
+> 类编号 `A<楔角>-<序号>` 由 `lumice_integral.symmetry.signature.phi_class_table` 按 (楔角, 折叠类最小编号, 规范 signature) 排序确定，与运行顺序无关。
 > 面积 = 该类在该 h/a 下全部 PBD 代表光路的可行方向集面积（sr）逐条求和，每个对称轨道计一次，不是某一条代表的面积。
 > 最短代表 = 五档 h/a 里按 (长度, 字典序) 最小的代表光路（PBD 轨道代表，即轨道里字典序最小的面序列）。
 > † = 细缝格：该格全部光路的最小入射角都 > 49°（压在临界角 49.8° 下的贴棱掠射，与子任务 15.2 对 `1-3-4` 的判据相同），几何上可达但方向集只是一条细缝；汇总里「扎实可达」不计它们。

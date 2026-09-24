@@ -1,7 +1,7 @@
 # 互证结论与分歧记录（子任务 3 → 子任务 4 提纲素材）
 
 产出方：`code/crosscheck_a.py`（逐点）、`code/crosscheck_b.py`（图级），单测 `code/tests/test_tape_halo_function.py`。
-Tape 侧公式全部照抄 `../源笔记-Tape.md` 附录 A（TK1999 路线 + Tape 1980 路线），本系列侧只调 `halo_notes.math.signature.phi`。
+Tape 侧公式全部照抄 `../源笔记-Tape.md` 附录 A（TK1999 路线 + Tape 1980 路线），本系列侧只调 `lumice_integral.symmetry.signature.phi`（原 `halo_notes.math.signature`）。
 两侧的唯一接口是 `code/crosscheck_bridge.py` 的 `wedge_orientation`（$u=Ru_0$）与 `light_point`（$\mathbf H=-R\Phi(-R^{-1}\mathbf S)$）。
 
 ## 1. 互证 A（逐点）：同一晕两种语言算同一个数

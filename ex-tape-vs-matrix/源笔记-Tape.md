@@ -420,7 +420,7 @@ type: note
 5. 片晶：$\beta=\pm90$、$\theta=90\mp\Sigma$、$\mu\in[-90,\mu_L(\theta)]$ [p.16]。
 6. 校验：$\sin(\Delta/2)=-\sin\theta\sin(D/2)$ [Eq. (15)]；$\ker JF$ [Eq. (21)] 可选。
 
-**A.3 本系列侧**：`halo_notes.math.signature.phi(crystal, M, a, b, d)`，`d` = 入射传播方向 $=-\mathbf S$（片晶姿态 $R$ 下 $\mathbf d=-R^{-1}\mathbf S$），光点 $=-R\,\Phi(\mathbf d)$（§5「光线 vs 光点」行）。楔 $ij$ ↔ `a=i, b=j, M=I`；A60-10 ↔ `M = fold_matrix(3-4-5-7)`（$=R_{\mathbf c}(120°)$）、`a=3, b=7`。
+**A.3 本系列侧**：`lumice_integral.symmetry.signature.phi(crystal, M, a, b, d)`（原 `halo_notes.math.signature`），`d` = 入射传播方向 $=-\mathbf S$（片晶姿态 $R$ 下 $\mathbf d=-R^{-1}\mathbf S$），光点 $=-R\,\Phi(\mathbf d)$（§5「光线 vs 光点」行）。楔 $ij$ ↔ `a=i, b=j, M=I`；A60-10 ↔ `M = fold_matrix(3-4-5-7)`（$=R_{\mathbf c}(120°)$）、`a=3, b=7`。
 
 **A.4 符号表（互证脚本统一用本系列符号，Tape 符号只出现在注释里）**
 
