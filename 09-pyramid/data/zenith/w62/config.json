@@ -1,0 +1,301 @@
+{
+  "crystal": [
+    {
+      "id": 1,
+      "type": "pyramid",
+      "shape": {
+        "prism_h": 0.5,
+        "upper_h": 0.5,
+        "lower_h": 0.5,
+        "upper_indices": [
+          1,
+          0,
+          1
+        ],
+        "lower_indices": [
+          1,
+          0,
+          1
+        ]
+      },
+      "axis": {
+        "zenith": {
+          "type": "uniform",
+          "mean": 90,
+          "std": 180
+        }
+      }
+    }
+  ],
+  "filter": [
+    {
+      "id": 1,
+      "type": "complex",
+      "composition": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ],
+      "symmetry": "PBD",
+      "action": "filter_in"
+    },
+    {
+      "id": 2,
+      "type": "raypath",
+      "raypath": [
+        1,
+        23
+      ],
+      "symmetry": "PBD",
+      "action": "filter_in"
+    },
+    {
+      "id": 3,
+      "type": "raypath",
+      "raypath": [
+        13,
+        2
+      ],
+      "symmetry": "PBD",
+      "action": "filter_in"
+    },
+    {
+      "id": 4,
+      "type": "raypath",
+      "raypath": [
+        1,
+        2,
+        13
+      ],
+      "symmetry": "PBD",
+      "action": "filter_in"
+    },
+    {
+      "id": 5,
+      "type": "raypath",
+      "raypath": [
+        1,
+        3,
+        25
+      ],
+      "symmetry": "PBD",
+      "action": "filter_in"
+    },
+    {
+      "id": 6,
+      "type": "raypath",
+      "raypath": [
+        1,
+        3,
+        26
+      ],
+      "symmetry": "PBD",
+      "action": "filter_in"
+    },
+    {
+      "id": 7,
+      "type": "raypath",
+      "raypath": [
+        13,
+        2,
+        1
+      ],
+      "symmetry": "PBD",
+      "action": "filter_in"
+    },
+    {
+      "id": 8,
+      "type": "raypath",
+      "raypath": [
+        13,
+        5,
+        2
+      ],
+      "symmetry": "PBD",
+      "action": "filter_in"
+    },
+    {
+      "id": 9,
+      "type": "raypath",
+      "raypath": [
+        13,
+        6,
+        2
+      ],
+      "symmetry": "PBD",
+      "action": "filter_in"
+    },
+    {
+      "id": 10,
+      "type": "raypath",
+      "raypath": [
+        1,
+        3,
+        2,
+        15
+      ],
+      "symmetry": "PBD",
+      "action": "filter_in"
+    },
+    {
+      "id": 11,
+      "type": "raypath",
+      "raypath": [
+        1,
+        3,
+        2,
+        16
+      ],
+      "symmetry": "PBD",
+      "action": "filter_in"
+    },
+    {
+      "id": 12,
+      "type": "raypath",
+      "raypath": [
+        1,
+        3,
+        4,
+        25
+      ],
+      "symmetry": "PBD",
+      "action": "filter_in"
+    },
+    {
+      "id": 13,
+      "type": "raypath",
+      "raypath": [
+        1,
+        23,
+        2,
+        26
+      ],
+      "symmetry": "PBD",
+      "action": "filter_in"
+    },
+    {
+      "id": 14,
+      "type": "raypath",
+      "raypath": [
+        13,
+        1,
+        16,
+        2
+      ],
+      "symmetry": "PBD",
+      "action": "filter_in"
+    },
+    {
+      "id": 15,
+      "type": "raypath",
+      "raypath": [
+        13,
+        2,
+        5,
+        1
+      ],
+      "symmetry": "PBD",
+      "action": "filter_in"
+    },
+    {
+      "id": 16,
+      "type": "raypath",
+      "raypath": [
+        13,
+        2,
+        6,
+        1
+      ],
+      "symmetry": "PBD",
+      "action": "filter_in"
+    },
+    {
+      "id": 17,
+      "type": "raypath",
+      "raypath": [
+        13,
+        4,
+        5,
+        2
+      ],
+      "symmetry": "PBD",
+      "action": "filter_in"
+    }
+  ],
+  "scene": {
+    "light_source": {
+      "type": "sun",
+      "altitude": 90.0,
+      "azimuth": 0,
+      "diameter": 0.5,
+      "spectrum": "D65"
+    },
+    "ray_num": 1000000000,
+    "max_hits": 4,
+    "scattering": [
+      {
+        "prob": 0,
+        "entries": [
+          {
+            "crystal": 1,
+            "proportion": 100,
+            "filter": 1
+          }
+        ]
+      }
+    ]
+  },
+  "render": [
+    {
+      "id": 1,
+      "lens": {
+        "type": "dual_fisheye_equidistant",
+        "fov": 180
+      },
+      "resolution": [
+        2560,
+        1280
+      ],
+      "visible": "full",
+      "intensity_factor": 1.0,
+      "ev_mode": "absolute",
+      "background": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": 2,
+      "lens": {
+        "type": "dual_fisheye_equal_area",
+        "fov": 180
+      },
+      "resolution": [
+        2560,
+        1280
+      ],
+      "visible": "full",
+      "intensity_factor": 1.0,
+      "ev_mode": "absolute",
+      "background": [
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

@@ -1,9 +1,10 @@
 # 产出 ../img/panorama_triptych.png（图 6「三档随机取向全景并列」）+ ../data/panorama_triptych.numbers.json：
 # 棱柱占主导 (h/a, tip_ratio) = (3, 0.25)、参考几何 (1, 0.5)、锥面占主导 (0.3, 0.85) 三档锥晶随机取向全景（返工 R1：太阳放天顶重渲，
 # `render_zenith.py` 的 panorama* 三景，10⁹ 光线、max_hits 4、D65）。
-#   上排：以太阳为中心的等距鱼眼（dual_fisheye_equidistant 的太阳半球裁到 60°，半径线性 = 与太阳的夹角），叠 10°/20°/30°/40°/50° 同心刻度圈；
+# 排版（返工 R2）：3 行 × 2 列，一档一行；左列渲染、右列剖面，右列明显更宽（WIDTH_RATIOS），三行剖面共享横轴、上下严格对齐。
+#   左列：以太阳为中心的等距鱼眼（dual_fisheye_equidistant 的太阳半球裁到 60°，半径线性 = 与太阳的夹角），叠 10°/20°/30°/40°/50° 同心刻度圈；
 #         三张**同一绝对曝光**（像素辐亮度 / 发射能量，满白 = WHITE_HEADROOM × 三档剖面 2°–60° 最大值），亮暗可直接比；
-#   下排：三档的径向剖面（dual_fisheye_equal_area 取数：每像素立体角恒定，桶内求和即可），三栏共用同一绝对纵轴（对数）——不各自归一化；
+#   右列：三档的径向剖面（dual_fisheye_equal_area 取数：每像素立体角恒定，桶内求和即可），三行共用同一绝对纵轴（对数）——不各自归一化；
 #         淡灰竖线 = 八个经典晕半径。
 # 每档下方的「清晰可见」= 该档剖面上 `_ch9_sim.detect_peaks` + `assign_peaks`（峰 / 局部背景 ≥ 3，判据与上一轮同一份实现、未改）的机械结果，不手填；
 # 新旧（上一轮 rectangular 2×10⁸ 渲染的 numbers.json `detected_radii`）对照落 numbers.json `vs_previous`。
@@ -25,9 +26,9 @@ TIERS = (("panorama_h3_t0.25", "棱柱占主导", "odd_radius_panorama_h3_t0.25"
          ("panorama_h0.3_t0.85", "锥面占主导", "odd_radius_panorama_h0.3_t0.85"))
 MAX_THETA = 60.0
 RINGS = (10.0, 20.0, 30.0, 40.0, 50.0)
-DISK_PX = 760
+WIDTH_RATIOS = (1.0, 1.9)   # 左渲染 : 右剖面（作者：曲线横向长更好看）
 WHITE_HEADROOM = 1.3        # 满白 = 1.3 × 三档剖面 2°–60° 最大值（最亮的 9° 环不削顶）
-WIDTH, HEIGHT, DPI = 2400, 1680, 200
+WIDTH, HEIGHT, DPI = 2400, 2040, 200
 PAL = F.PAL
 FONT = {"family": list(F.CHART_FONTS)}
 
@@ -79,36 +80,34 @@ def build():
     white = WHITE_HEADROOM * max(float(r[(c >= 2) & (c <= MAX_THETA)].max()) for c, r in prof.values())
     fig = plt.figure(figsize=((WIDTH + 0.5) / DPI, (HEIGHT + 0.5) / DPI), dpi=DPI)
     fig.patch.set_facecolor(PAL["background"])
-    col_w = 1 / 3
-    w, h = DISK_PX / WIDTH, DISK_PX / HEIGHT
-    top = 1 - h - 15 / HEIGHT
+    gs = fig.add_gridspec(len(TIERS), 2, width_ratios=WIDTH_RATIOS, left=0.01, right=0.975, top=0.975, bottom=0.085,
+                          wspace=0.1, hspace=0.12)
     axes = []
     for k, (key, label, _) in enumerate(TIERS):
-        x0 = k * col_w
-        ax = fig.add_axes([x0 + (col_w - w) / 2, top, w, h])
+        dax = fig.add_subplot(gs[k, 0])
         rad, _ = F.disc_radiance(scene(key), "sun", MAX_THETA)
-        F.show_disc(ax, F.tone(rad, white), MAX_THETA, rings=RINGS, center="太阳")
-        fig.text(x0 + col_w / 2, top - 40 / HEIGHT, label, ha="center", va="center", fontsize=14, color=PAL["ink"], **FONT)
-        fig.text(x0 + col_w / 2, top - 88 / HEIGHT, "清晰可见：" + "、".join(nums["tiers"][key]["visible"]) + " 晕", ha="center",
-                 va="center", fontsize=11.5, color=PAL["ink_soft"], **FONT)
-        pax = fig.add_axes([x0 + 0.06 if k == 0 else x0 + 0.03, 0.115, col_w - (0.08 if k == 0 else 0.05), 0.31],
-                           sharey=axes[0] if axes else None)
+        F.show_disc(dax, F.tone(rad, white), MAX_THETA, rings=RINGS, center="太阳")
+        dax.set_anchor("E")
+        pax = fig.add_subplot(gs[k, 1], sharex=axes[0] if axes else None, sharey=axes[0] if axes else None)
         axes.append(pax)
         c, r = prof[key]
         m = (c >= 1.0) & (c <= MAX_THETA)
         F.mark_radii(pax, sorted(S.KNOWN_RADII.values()))
         pax.plot(c[m], r[m], color=F.SUM_COLOR, lw=1.1, gid=f"profile:{key}")
         pax.set_yscale("log")
-        F.theta_axis(pax, 0, MAX_THETA, 10)
-        if k == 0:
+        F.theta_axis(pax, 0, MAX_THETA, 10, label=k == len(TIERS) - 1)
+        if k < len(TIERS) - 1:
+            plt.setp(pax.get_xticklabels(), visible=False)
+        if k == len(TIERS) // 2:
             pax.set_ylabel("平均亮度（对数，三档同一标尺）")
-        else:
-            plt.setp(pax.get_yticklabels(), visible=False)
+        pax.text(0.985, 0.95, label, transform=pax.transAxes, ha="right", va="top", fontsize=14, color=PAL["ink"], **FONT)
+        pax.text(0.985, 0.8, "清晰可见：" + "、".join(nums["tiers"][key]["visible"]) + " 晕", transform=pax.transAxes, ha="right",
+                 va="top", fontsize=11.5, color=PAL["ink_soft"], **FONT)
     lo = min(float(r[(c >= 1) & (c <= MAX_THETA)].min()) for c, r in prof.values())
     axes[0].set_ylim(lo * 0.7, white * 1.2)
     axes[0].yaxis.set_major_formatter(plt.NullFormatter())
     axes[0].yaxis.set_minor_formatter(plt.NullFormatter())
-    fig.text(0.5, 0.012, f"上：以太阳为中心的等距鱼眼，圆心到外圈 {MAX_THETA:.0f}°，三张同一曝光；下：径向剖面，淡灰竖线是八个经典晕半径",
+    fig.text(0.5, 0.012, f"左：以太阳为中心的等距鱼眼，圆心到外圈 {MAX_THETA:.0f}°，三张同一曝光；右：径向剖面，淡灰竖线是八个经典晕半径",
              ha="center", va="bottom", fontsize=10, color=PAL["slate"], **FONT)
     return fig, nums
 

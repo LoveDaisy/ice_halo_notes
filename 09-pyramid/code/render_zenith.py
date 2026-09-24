@@ -1,15 +1,15 @@
-# 返工 R1 的数据产出（不出图）：随机取向的七景「太阳天顶 + 一景两渲」→ ../data/zenith/<scene>.zip + ../data/zenith/<scene>/（config /
+# 返工 R1（R2 补三景）的数据产出（不出图）：随机取向的十景「太阳天顶 + 一景两渲」→ ../data/zenith/<scene>.zip + ../data/zenith/<scene>/（config /
 # provenance / lumice.log / img_XX.json）。图 4 / 5 / 6 / 9 / 10 的天空图与剖面都从这里取，不再从已入库的 rectangular 重投影；
 # 上一轮的 `data/odd_radius_*` 产物与 `data/notes.md` 是历史记录，不覆盖、不改写。
-# 七景（全部 max_hits 4、D65、ZENITH_RAY_NUM 条光线（13-15-26-28 例外，见 RAY_NUM_OVERRIDE），与上一轮同一过滤器构造——`_ch9_sim` 的 family_filters / remainder_filter / single_raypath_filter）：
+# 十景（全部 max_hits 4、D65、ZENITH_RAY_NUM 条光线（13-15-26-28 例外，见 RAY_NUM_OVERRIDE），与上一轮同一过滤器构造——`_ch9_sim` 的 family_filters / remainder_filter / single_raypath_filter）：
 #   panorama / panorama_h3_t0.25 / panorama_h0.3_t0.85：三档锥晶全景（无过滤器）；
 #   remainder：参考几何，9 族 ≤ 4 面全部代表 `filter_out`（族外多次反射 + 单面外反射）；
-#   w52.4 / w63.8：参考几何，只留 18° 晕 / 24° 晕一族；
+#   w52.4 / w56 / w60 / w62 / w63.8：参考几何，只留 18° / 20° / 22° / 23° / 24° 晕一族（w56 / w60 / w62 返工 R2 补渲，图 8 与图 6 同源）；
 #   13-15-26-28：参考几何，只留这一条族外光路（PBD 对称像全留）。
 # 渲染走 Lumice release（`_ch9_sim.ensure_lumice_version()`，拒绝 LUMICE_BIN）+ `--backend metal`（`_ch9_fig.run_lumice_npy` 核对日志里真走了
 # Metal，回落 CPU 即报错）；两种投影全天总能量一致性闸（< 2%）在打包时硬断言（`_ch9_fig.pack_dual`）。
 # Lumice 是无固定 seed 的 MC，重渲不逐字节复现（`--seed` 会把 GPU 路线降成单线程，不用）。
-# 用法：`uv run python 09-pyramid/code/render_zenith.py [scene ...]`（缺省全部七景）。
+# 用法：`uv run python 09-pyramid/code/render_zenith.py [scene ...]`（缺省全部十景）。
 from __future__ import annotations
 
 import argparse
@@ -26,6 +26,9 @@ SCENES = {
     "panorama_h0.3_t0.85": lambda: (S.crystal(TIER_H03), []),
     "remainder": lambda: (S.crystal(S.TIER), S.remainder_filter()),
     "w52.4": lambda: (S.crystal(S.TIER), S.family_filters(52.4)),
+    "w56": lambda: (S.crystal(S.TIER), S.family_filters(56.0)),
+    "w60": lambda: (S.crystal(S.TIER), S.family_filters(60.0)),
+    "w62": lambda: (S.crystal(S.TIER), S.family_filters(62.0)),
     "w63.8": lambda: (S.crystal(S.TIER), S.family_filters(63.8)),
     "13-15-26-28": lambda: (S.crystal(S.TIER), S.single_raypath_filter(TOP_PATH)),
 }

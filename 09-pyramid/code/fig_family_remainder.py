@@ -3,8 +3,8 @@
 # panorama / remainder 两景，10⁹ 光线），不再从已入库 rectangular 重投影。
 #   左栏三行，每行一张 dual fisheye 等距全天图（左盘圆心 = 太阳、右盘圆心 = 反日点，两盘盘沿都是与太阳成 90° 的那一圈）：
 #     (a) 全天总晕图；(b) 族外余量，**与 (a) 同一绝对亮度标尺**；(c) 族外余量提亮 REMAINDER_GAIN 倍（倍数写在图上）；
-#   右上：径向剖面（dual_fisheye_equal_area 取数），全景与余量画在**同一绝对纵轴**上（对数），另一条虚线 = 余量的「3 × 局部背景」
-#     ——`_ch9_sim` 的成环判据（峰 / 局部背景 ≥ 3 才算可辨的环），图例里写明；余量剖面没有一处局部极大越过它；淡灰竖线 = 八个经典晕半径；
+#   右上：径向剖面（dual_fisheye_equal_area 取数），全景与余量画在**同一绝对纵轴**上（对数）；淡灰竖线 = 八个经典晕半径。
+#     成环判据（`_ch9_sim` 的「峰 / 局部背景 ≥ 3」）是实现细节，返工 R2 起不画进图（作者：图上亮度差已说明问题），只留在单测里；
 #   右下：同一参考几何下「方向集面积」与「能量」的份额对照——面积来自 `signature_table.md` 汇总行（族内 / 族外面积），能量来自
 #     `odd_radius_families.numbers.json` 的 MC 份额（9 族 / 族外 / 单面外反射）。百分数取整进图面。
 # 渲染侧的余量能量份额（余量 / 全景像素能量）另记 numbers.json，与 MC 份额互证。
@@ -39,11 +39,6 @@ def profiles() -> dict[str, tuple[np.ndarray, np.ndarray]]:
         c, r, _ = sc.profile()
         out[k] = (c, r)
     return out
-
-
-def threshold_curve(centers: np.ndarray, radiance: np.ndarray) -> np.ndarray:
-    """每个 θ 处的「成环判据线」= PEAK_RATIO × 局部背景（`_ch9_sim.local_background`，与 detect_peaks 同一口径）。"""
-    return np.array([S.PEAK_RATIO * S.local_background(centers, radiance, float(t)) for t in centers])
 
 
 def shares() -> dict[str, dict[str, float]]:
@@ -82,8 +77,6 @@ def draw_profile(ax, prof: dict) -> None:
     m = c >= 1.0
     ax.plot(c[m], tot[m], color=PAL["slate"], lw=1.2, label="(a) 全天总晕", gid="profile:total")
     ax.plot(c[m], rem[m], color=F.SUM_COLOR, lw=1.5, label="(b) 族外余量", gid="profile:remainder")
-    ax.plot(c[m], threshold_curve(c, rem)[m], color=PAL["face_3"], lw=1.0, ls=(0, (4, 3)),
-            label="余量的 3 × 局部背景：局部极大\n要高过这条线才算一个可辨的环")
     ax.set_yscale("log")
     ax.yaxis.set_major_formatter(plt.NullFormatter())
     ax.yaxis.set_minor_formatter(plt.NullFormatter())

@@ -7,6 +7,8 @@
 #     晶体整体用淡线框，构成楔的两个面深色实心，一条光线从一个面进、另一个面出（`halo_notes.draw.solve_raypath` 按面序列反解）；
 #     其余五个只留刻度与标签（九个全画会挤爆）；
 #   上限以右的 7 种：灰底区里的叉号（光在第二个面全反射出不去），99.8° 只差 0.3° 被卡掉，单独点名。
+# 两版排版（返工 R2，交作者选）：A = R1 现状（灰区上下贯穿，→ direct_wedges.png）；B = 灰区只占轴上方、略穿过轴，
+#   下半整条宽度留给四个小晶体（放大、间距放宽，→ direct_wedges_b.png）。小晶体数量两版相同（一组一个代表）。
 # 楔角与面对类型从 `lumice_integral.geometry.Pyramid` 的面法向现场两两配对算出（楔角 = arccos(−n_a·n_b)），与
 # `enumerate_signatures.KNOWN_WEDGES` 互相核对；代表光路读 `data/signature_table.md` 主表「最短代表」列，不手抄正文表格。
 # 读者要看出：九个楔从哪些面对来、哪三组是锥晶新增的、上限卡掉了谁。
@@ -135,7 +137,15 @@ def draw_crystal(ax, A: float, color: str) -> None:
     ax.set_axis_off()
 
 
-def main() -> None:
+# 两版排版参数：灰区下沿（None = 贯穿到底）、小晶体槽位 x 范围 / 方框边长 / 中心高度、99.8° 点名文字的位置
+LAYOUTS = {
+    "A": {"out": NAME, "shade_bottom": None, "slots": (10, A_MAX - 12), "size": 0.4, "cy": -0.37, "near_text": (8, -0.25)},
+    "B": {"out": f"{NAME}_b", "shade_bottom": -0.03, "slots": (14, 142), "size": 0.44, "cy": -0.38, "near_text": (6, 0.29)},
+}
+
+
+def build(variant: str = "A") -> plt.Figure:
+    lay = LAYOUTS[variant]
     wedges = pair_wedges()
     ok = transmittable(wedges)
     assert tuple(ok) == ES.KNOWN_WEDGES, ok
@@ -154,8 +164,9 @@ def main() -> None:
         ax.text(t, -0.045, F.deg(t), ha="center", va="top", fontsize=10, color=soft, **FONT)
     ax.text(X_RANGE[1], -0.12, "楔角", ha="right", va="top", fontsize=11, color=ink, **FONT)
     # 不可透射区
-    ax.axvspan(A_MAX, X_RANGE[1], color=PAL["medium"], alpha=0.35, lw=0, zorder=0)
-    ax.plot([A_MAX, A_MAX], [Y_RANGE[0], Y_RANGE[1] - 0.02], color=ink, lw=1.2, ls=(0, (5, 3)), zorder=3)
+    shade_bottom = Y_RANGE[0] if lay["shade_bottom"] is None else lay["shade_bottom"]
+    ax.fill_between([A_MAX, X_RANGE[1]], shade_bottom, Y_RANGE[1], color=PAL["medium"], alpha=0.35, lw=0, zorder=0)
+    ax.plot([A_MAX, A_MAX], [shade_bottom, Y_RANGE[1] - 0.02], color=ink, lw=1.2, ls=(0, (5, 3)), zorder=3)
     ax.text(A_MAX + 1.5, Y_RANGE[1] - 0.06, f"可透射上限 {A_MAX:.1f}°", ha="left", va="center", fontsize=12, color=ink, **FONT)
     ax.text(A_MAX + 1.5, Y_RANGE[1] - 0.13, "楔角再大，光在第二个面全反射，出不去", ha="left", va="center", fontsize=10.5, color=ink,
             **FONT)
@@ -167,7 +178,8 @@ def main() -> None:
         ax.text(A, 0.04, F.deg(A, 1 if A % 1 else 0), ha="center", va="bottom", fontsize=9.5, color=soft, rotation=90, **FONT)
     near = blocked[0]
     ax.annotate(f"{F.deg(near, 1)}（{KIND_NAME[next(iter(wedges[near]))]}）\n只差 {near - A_MAX:.1f}° 被卡掉",
-                xy=(near, -0.015), xytext=(near + 8, -0.25), fontsize=10, color=ink, ha="left", va="center",
+                xy=(near, 0.015 if lay["near_text"][1] > 0 else -0.015),
+                xytext=(near + lay["near_text"][0], lay["near_text"][1]), fontsize=10, color=ink, ha="left", va="center",
                 arrowprops=dict(arrowstyle="-", color=ink, lw=0.8), **FONT)
     # 九个可透射楔：刻度点 + 扇开的标签（楔角 + 晕半径）
     label_x = np.linspace(3, A_MAX - 7, len(ok))
@@ -181,8 +193,8 @@ def main() -> None:
         ax.plot([lx, A], [label_y - 0.005, 0.012], color=color, lw=1.0, zorder=3)
         ax.plot(A, 0, marker="o", ms=6.5, color=color, zorder=6, mec="white", mew=0.8)
     # 四个三维小晶体（轴下方）+ 引线
-    slot_x = np.linspace(10, A_MAX - 12, len(CRYSTAL_WEDGES))
-    size, cy = 0.4, -0.37                               # 小晶体方框边长（数据 y 单位）与中心高度
+    slot_x = np.linspace(*lay["slots"], len(CRYSTAL_WEDGES))
+    size, cy = lay["size"], lay["cy"]                   # 小晶体方框边长（数据 y 单位）与中心高度
     for A, sx in zip(CRYSTAL_WEDGES, slot_x):
         kind = wedge_kind(A, wedges[A])
         color = KIND_COLOR[kind] if kind in NEW_KINDS else PAL["ink_soft"]
@@ -203,8 +215,15 @@ def main() -> None:
         label = "六棱柱已有（底↔底 / 柱↔柱 / 底↔柱）" if k == "BB" else f"锥晶新增：{KIND_NAME[k]}"
         fig.text(x, 0.03, "■ " + label, ha="left", va="center", fontsize=11, color=KIND_COLOR[k], **FONT)
         x += 0.25 if k == "BB" else 0.19
-    fig.savefig(F.out_png(NAME), dpi=DPI, facecolor=fig.get_facecolor(), metadata=F.PNG_META)
-    print(f"saved {F.out_png(NAME)}")
+    return fig
+
+
+def main() -> None:
+    for variant, lay in LAYOUTS.items():
+        fig = build(variant)
+        fig.savefig(F.out_png(lay["out"]), dpi=DPI, facecolor=fig.get_facecolor(), metadata=F.PNG_META)
+        plt.close(fig)
+        print(f"saved {F.out_png(lay['out'])}")
 
 
 if __name__ == "__main__":

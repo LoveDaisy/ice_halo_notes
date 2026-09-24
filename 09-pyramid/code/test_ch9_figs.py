@@ -113,7 +113,8 @@ def test_rect_pixel_is_energy_not_radiance():
 
 # ---- 返工 R1：太阳天顶 + 一景两渲（dual fisheye 等距显示 / 等面积取数）----
 
-ZENITH_SCENES = ("panorama", "panorama_h3_t0.25", "panorama_h0.3_t0.85", "remainder", "w52.4", "w63.8", "13-15-26-28")
+ZENITH_SCENES = ("panorama", "panorama_h3_t0.25", "panorama_h0.3_t0.85", "remainder", "w52.4", "w56", "w60", "w62", "w63.8",
+                 "13-15-26-28")
 
 
 @pytest.mark.parametrize("scene", ZENITH_SCENES)
@@ -165,11 +166,17 @@ def assert_absolute(curve, c: np.ndarray, r: np.ndarray) -> None:
 # ---- 图 4：族外余量 ----
 
 
+def threshold_curve(centers: np.ndarray, radiance: np.ndarray) -> np.ndarray:
+    """每个 θ 处的「成环判据线」= PEAK_RATIO × 局部背景（`_ch9_sim.local_background`，与 detect_peaks 同一口径）。
+    返工 R2 起不画进图 4，判据只留在这里。"""
+    return np.array([S.PEAK_RATIO * S.local_background(centers, radiance, float(t)) for t in centers])
+
+
 def test_fig4_remainder_has_no_ring():
     prof = G4.profiles()
     c, r = prof["remainder"]
     assert S.detect_peaks(c, r) == []                         # 没有任何局部极大高过 3 × 局部背景
-    assert np.all(r[c >= S.DISK_ZONE_DEG] < G4.threshold_curve(c, r)[c >= S.DISK_ZONE_DEG])
+    assert np.all(r[c >= S.DISK_ZONE_DEG] < threshold_curve(c, r)[c >= S.DISK_ZONE_DEG])
     s = G4.shares()
     assert s["area"]["off"] > 50 and s["energy"]["off"] + s["energy"]["single"] < 20       # 面积过半、能量不到两成
     sc = G4.scenes()
@@ -182,7 +189,10 @@ def test_fig4_profiles_share_one_absolute_axis():
     lines = plotted(fig)
     prof = G4.profiles()
     assert set(lines) == {"profile:total", "profile:remainder"}
-    assert lines["profile:total"][0] is lines["profile:remainder"][0]                    # 同一个 axes
+    ax = lines["profile:total"][0]
+    assert lines["profile:remainder"][0] is ax                                              # 同一个 axes
+    assert [ln.get_gid() for ln in ax.get_lines() if ln.get_linestyle() != "-"] == []       # 剖面上没有阈值虚线（返工 R2）
+    assert not any("局部背景" in t.get_text() for t in ax.get_legend().get_texts())
     for k in ("total", "remainder"):
         assert_absolute(lines[f"profile:{k}"], *prof[k])
     plt.close(fig)
@@ -231,7 +241,15 @@ def test_fig6_profiles_share_one_absolute_axis():
     lines = plotted(fig)
     prof = G6.profiles()
     axes = [lines[f"profile:{k}"][0] for k, _, _ in G6.TIERS]
-    assert all(axes[0].get_shared_y_axes().joined(axes[0], a) for a in axes[1:])          # 三栏共用纵轴
+    assert all(axes[0].get_shared_y_axes().joined(axes[0], a) for a in axes[1:])          # 三行共用纵轴
+    assert all(axes[0].get_shared_x_axes().joined(axes[0], a) for a in axes[1:])          # 三行共享横轴
+    # 返工 R2 排版：一档一行、剖面在右列、右列更宽，三行上下对齐（同一列 → 同一 x 范围）
+    specs = [a.get_subplotspec() for a in axes]
+    ratios = specs[0].get_gridspec().get_width_ratios()
+    assert [sp.colspan.start for sp in specs] == [1, 1, 1] and [sp.rowspan.start for sp in specs] == [0, 1, 2]
+    assert ratios[1] >= 1.5 * ratios[0]
+    x0 = {round(a.get_position().x0, 6) for a in axes}
+    assert len(x0) == 1 and len({round(a.get_position().width, 6) for a in axes}) == 1
     for k, _, _ in G6.TIERS:
         assert_absolute(lines[f"profile:{k}"], *prof[k])
     plt.close(fig)
@@ -241,9 +259,18 @@ def test_fig6_profiles_share_one_absolute_axis():
 
 
 def test_fig8_sum_loses_18_and_23():
+    """返工 R2（作者裁定 (a)）：新批次下 18° 加总后没有局部极大；23° 只剩一个高出内侧谷底 < BUMP_MAX 的小鼓包，0.5° 桶即消失。"""
     c, prof = G8.family_profiles()
-    peaks = G8.sum_peaks(c, G8.summed(prof))
-    assert {w for w, p in peaks.items() if p is None} == set(G8.FADED) == {52.4, 62.0}
+    total = G8.summed(prof)
+    peaks = G8.sum_peaks(c, total)
+    assert {w for w, p in peaks.items() if p is None} == {G8.NO_MAX} == {52.4}
+    assert set(G8.FADED) == {52.4, 62.0}
+    assert 0 < G8.bump_height(c, total, peaks[G8.BUMP]["peak_deg"]) < G8.BUMP_MAX
+    c2, prof2 = G8.family_profiles(bin_deg=0.5)
+    coarse = G8.sum_peaks(c2, G8.summed(prof2))
+    assert coarse[G8.NO_MAX] is None and coarse[G8.BUMP] is None
+    assert all(coarse[w] is not None for w in (56.0, 60.0, 63.8))
+    assert G8.F.DualScene("zenith/w52.4").meta["ray_num"] == G8.F.DualScene("zenith/w62").meta["ray_num"]   # 与图 6 同源同口径
     for w in G8.WEDGES:                                       # 每一族单独都有锐利内缘
         R = ES.min_deviation_deg(w)
         assert R <= G5.inner_edge_deg(c, prof[w]) <= R + 1.0
