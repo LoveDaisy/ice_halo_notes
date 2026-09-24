@@ -1,0 +1,22 @@
+{
+  "52.4": {
+    "min_deviation_deg": 18.272331860018376,
+    "inner_edge_deg": 18.625,
+    "peak": 0.07822198634163621,
+    "inside_max_over_peak": 6.429988446876697e-09,
+    "panorama_at_family_peak": 0.21583769510043896
+  },
+  "63.8": {
+    "min_deviation_deg": 23.817631498729057,
+    "inner_edge_deg": 23.875,
+    "peak": 0.2300395736242016,
+    "inside_max_over_peak": 2.0836818574509832e-07,
+    "panorama_at_family_peak": 0.40667801566710404
+  },
+  "panorama_visible": [
+    "28",
+    "60",
+    "62",
+    "63.8"
+  ]
+}

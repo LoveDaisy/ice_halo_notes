@@ -1,0 +1,146 @@
+$ /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/.lumice/v4.6.1/Lumice -f /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/config.json -o /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4 --format npy
+--- stdout ---
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=4338432, crystals=1, orientations=4338432, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=8844672, crystals=1, orientations=8844672, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=13218944, crystals=1, orientations=13218944, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=17681408, crystals=1, orientations=17681408, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=22094720, crystals=1, orientations=22094720, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=26465280, crystals=1, orientations=26465280, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=30907904, crystals=1, orientations=30907904, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=35444736, crystals=1, orientations=35444736, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=39999872, crystals=1, orientations=39999872, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=44553600, crystals=1, orientations=44553600, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=49102336, crystals=1, orientations=49102336, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=53655040, crystals=1, orientations=53655040, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=58158592, crystals=1, orientations=58158592, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=62702848, crystals=1, orientations=62702848, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=67224960, crystals=1, orientations=67224960, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=71758848, crystals=1, orientations=71758848, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=76224128, crystals=1, orientations=76224128, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=80684928, crystals=1, orientations=80684928, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=85242112, crystals=1, orientations=85242112, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=89620224, crystals=1, orientations=89620224, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=94117120, crystals=1, orientations=94117120, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=98589952, crystals=1, orientations=98589952, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=103055872, crystals=1, orientations=103055872, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=107556608, crystals=1, orientations=107556608, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=112062464, crystals=1, orientations=112062464, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=116530304, crystals=1, orientations=116530304, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=120979584, crystals=1, orientations=120979584, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=125447424, crystals=1, orientations=125447424, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=129827840, crystals=1, orientations=129827840, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=134282624, crystals=1, orientations=134282624, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=138807040, crystals=1, orientations=138807040, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=143317248, crystals=1, orientations=143317248, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=147790080, crystals=1, orientations=147790080, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=152126592, crystals=1, orientations=152126592, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=156645760, crystals=1, orientations=156645760, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=161167104, crystals=1, orientations=161167104, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=165606272, crystals=1, orientations=165606272, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=170107136, crystals=1, orientations=170107136, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=174681344, crystals=1, orientations=174681344, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=179116672, crystals=1, orientations=179116672, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=183572096, crystals=1, orientations=183572096, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=188010624, crystals=1, orientations=188010624, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=192494848, crystals=1, orientations=192494848, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=197039744, crystals=1, orientations=197039744, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/plate_arcs/mh4/img_01.json
+Stats: sim_rays=200000000, crystals=1, orientations=200000000, backend=cpu, fell_back=false
+
+--- stderr ---
+2026-09-23 22:57:09.861 [I] Lumice 4.6.1
+2026-09-23 22:57:09.861 [I] ServerImpl: gpu_route=false worker_count=10 analysis_pool_worker_count=0 render_thread_budget=2 (preferred_backend=0)
+2026-09-23 22:57:09.890 [I] CommitConfig: restart took 28.2ms (Stop 0.0ms + rebuild 28.1ms + Start 0.0ms)
+2026-09-23 22:57:09.890 [I] GenerateScene: first batch enqueued at 0.0ms after start
+2026-09-23 22:57:09.914 [I] ConsumeData: first batch consumed (1152 ray segments)
+2026-09-23 22:57:58.410 [I] Consume profile: 1562500 batches, avg 5.6us (proj 0.0us 0% + accum 5.6us 100%)
+

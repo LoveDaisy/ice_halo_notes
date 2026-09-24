@@ -1,0 +1,10 @@
+{
+  "remainder_peaks": [],
+  "render_energy_share_pct": 13.059355217064228,
+  "mc_off_plus_single_pct": 13.042299999999916,
+  "remainder_gain": 40.0,
+  "total_energy": {
+    "total": 0.2667167854521252,
+    "remainder": 0.03483149243572811
+  }
+}

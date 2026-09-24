@@ -1,0 +1,171 @@
+$ /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/.lumice/v4.6.1/Lumice -f /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/config.json -o /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama --format npy --backend metal
+--- stdout ---
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.json
+Stats: sim_rays=37748736, crystals=1, orientations=37748736, backend=metal, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.json
+Stats: sim_rays=69206016, crystals=1, orientations=69206016, backend=metal, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.json
+Stats: sim_rays=102760448, crystals=1, orientations=102760448, backend=metal, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.json
+Stats: sim_rays=136314880, crystals=1, orientations=136314880, backend=metal, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.json
+Stats: sim_rays=171966464, crystals=1, orientations=171966464, backend=metal, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.json
+Stats: sim_rays=205520896, crystals=1, orientations=205520896, backend=metal, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.json
+Stats: sim_rays=243269632, crystals=1, orientations=243269632, backend=metal, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.json
+Stats: sim_rays=276824064, crystals=1, orientations=276824064, backend=metal, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.json
+Stats: sim_rays=306184192, crystals=1, orientations=306184192, backend=metal, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.json
+Stats: sim_rays=335544320, crystals=1, orientations=335544320, backend=metal, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.json
+Stats: sim_rays=367001600, crystals=1, orientations=367001600, backend=metal, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.json
+Stats: sim_rays=402653184, crystals=1, orientations=402653184, backend=metal, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.json
+Stats: sim_rays=444596224, crystals=1, orientations=444596224, backend=metal, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.json
+Stats: sim_rays=480247808, crystals=1, orientations=480247808, backend=metal, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.json
+Stats: sim_rays=509607936, crystals=1, orientations=509607936, backend=metal, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.json
+Stats: sim_rays=545259520, crystals=1, orientations=545259520, backend=metal, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.json
+Stats: sim_rays=574619648, crystals=1, orientations=574619648, backend=metal, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.json
+Stats: sim_rays=608174080, crystals=1, orientations=608174080, backend=metal, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.json
+Stats: sim_rays=637534208, crystals=1, orientations=637534208, backend=metal, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.json
+Stats: sim_rays=671088640, crystals=1, orientations=671088640, backend=metal, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.json
+Stats: sim_rays=702545920, crystals=1, orientations=702545920, backend=metal, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.json
+Stats: sim_rays=734003200, crystals=1, orientations=734003200, backend=metal, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.json
+Stats: sim_rays=763363328, crystals=1, orientations=763363328, backend=metal, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.json
+Stats: sim_rays=796917760, crystals=1, orientations=796917760, backend=metal, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.json
+Stats: sim_rays=834666496, crystals=1, orientations=834666496, backend=metal, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.json
+Stats: sim_rays=870318080, crystals=1, orientations=870318080, backend=metal, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.json
+Stats: sim_rays=901775360, crystals=1, orientations=901775360, backend=metal, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.json
+Stats: sim_rays=931135488, crystals=1, orientations=931135488, backend=metal, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.json
+Stats: sim_rays=958398464, crystals=1, orientations=958398464, backend=metal, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.json
+Stats: sim_rays=989855744, crystals=1, orientations=989855744, backend=metal, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.npy (2560x1280)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-32/09-pyramid/data/zenith/panorama/img_02.json
+Stats: sim_rays=1000000000, crystals=1, orientations=1000000000, backend=metal, fell_back=false
+
+--- stderr ---
+2026-09-24 00:32:23.929 [I] Lumice 4.6.1
+2026-09-24 00:32:23.936 [I] MetalTraceBackend: loaded embedded metallib (4 functions)
+2026-09-24 00:32:23.936 [I] ServerImpl: gpu_route=true worker_count=1 analysis_pool_worker_count=10 render_thread_budget=11 (preferred_backend=1)
+2026-09-24 00:32:24.002 [I] preferred_backend=metal → routing via MetalTraceBackend
+2026-09-24 00:32:24.002 [I] GenerateScene: first batch enqueued at 0.0ms after start
+2026-09-24 00:32:24.002 [I] CommitConfig: restart took 65.2ms (Stop 0.0ms + rebuild 65.1ms + Start 0.0ms)
+2026-09-24 00:32:24.026 [I] MetalTraceBackend: loaded embedded metallib (4 functions)
+2026-09-24 00:32:24.027 [I] MetalTraceBackend: using cached embedded metallib (4 functions)
+2026-09-24 00:32:24.161 [I] ConsumeData: first batch consumed (0 ray segments)
+2026-09-24 00:33:00.532 [I] Consume profile: 477 batches, avg 2481.5us (proj 0.0us 0% + accum 2481.5us 100%)
+2026-09-24 00:33:00.532 [I] Consume profile: 477 batches, avg 2455.1us (proj 0.0us 0% + accum 2455.1us 100%)
+

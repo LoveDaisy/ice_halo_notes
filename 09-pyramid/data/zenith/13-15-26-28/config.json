@@ -1,0 +1,107 @@
+{
+  "crystal": [
+    {
+      "id": 1,
+      "type": "pyramid",
+      "shape": {
+        "prism_h": 0.5,
+        "upper_h": 0.5,
+        "lower_h": 0.5,
+        "upper_indices": [
+          1,
+          0,
+          1
+        ],
+        "lower_indices": [
+          1,
+          0,
+          1
+        ]
+      },
+      "axis": {
+        "zenith": {
+          "type": "uniform",
+          "mean": 90,
+          "std": 180
+        }
+      }
+    }
+  ],
+  "filter": [
+    {
+      "id": 1,
+      "type": "raypath",
+      "raypath": [
+        13,
+        15,
+        26,
+        28
+      ],
+      "symmetry": "PBD",
+      "action": "filter_in"
+    }
+  ],
+  "scene": {
+    "light_source": {
+      "type": "sun",
+      "altitude": 90.0,
+      "azimuth": 0,
+      "diameter": 0.5,
+      "spectrum": "D65"
+    },
+    "ray_num": 10000000000,
+    "max_hits": 4,
+    "scattering": [
+      {
+        "prob": 0,
+        "entries": [
+          {
+            "crystal": 1,
+            "proportion": 100,
+            "filter": 1
+          }
+        ]
+      }
+    ]
+  },
+  "render": [
+    {
+      "id": 1,
+      "lens": {
+        "type": "dual_fisheye_equidistant",
+        "fov": 180
+      },
+      "resolution": [
+        2560,
+        1280
+      ],
+      "visible": "full",
+      "intensity_factor": 1.0,
+      "ev_mode": "absolute",
+      "background": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": 2,
+      "lens": {
+        "type": "dual_fisheye_equal_area",
+        "fov": 180
+      },
+      "resolution": [
+        2560,
+        1280
+      ],
+      "visible": "full",
+      "intensity_factor": 1.0,
+      "ev_mode": "absolute",
+      "background": [
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}
