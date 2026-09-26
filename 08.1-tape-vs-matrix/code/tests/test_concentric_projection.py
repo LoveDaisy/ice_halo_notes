@@ -10,7 +10,7 @@ import fig_concentric_projection as fig
 from halo_notes.draw.raypath import N_ICE, face_sequence
 from halo_notes.draw.tests.test_figures import run_figure
 
-SCRIPT = "ex-tape-vs-matrix/code/fig_concentric_projection.py"
+SCRIPT = "08.1-tape-vs-matrix/code/fig_concentric_projection.py"
 
 
 def _cross(a, b) -> float:

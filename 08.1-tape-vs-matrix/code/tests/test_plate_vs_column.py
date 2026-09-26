@@ -11,7 +11,7 @@ import fig_plate_vs_column as fig
 from halo_notes.draw.tests.test_figures import run_figure
 from lumice_integral.symmetry.reflection_group import Rz
 
-SCRIPT = "ex-tape-vs-matrix/code/fig_plate_vs_column.py"
+SCRIPT = "08.1-tape-vs-matrix/code/fig_plate_vs_column.py"
 K = np.array([0.0, 0.0, 1.0])
 TOL = 1e-12
 
