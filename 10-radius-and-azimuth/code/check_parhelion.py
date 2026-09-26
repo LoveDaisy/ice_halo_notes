@@ -3,6 +3,7 @@
 # D_min（切弧与 22° 晕相切）、切点在太阳正上 / 正下，与太阳高度无关。Lumice 独立链路见 check_parhelion_lumice.py。
 import numpy as np
 
+from halo_notes.math.wedge import min_deviation_deg
 from lumice_integral.geometry import N_ICE, HexPrism, fold_matrix
 from lumice_integral.symmetry.attitude import column_attitude
 from lumice_integral.symmetry.signature import phi_batch, wedge_angle
@@ -146,7 +147,7 @@ def check_critical():
 def check_column():
     """[3] 柱晶：c 轴水平，(ψ, θ) 两个自由度让 u 能落进截面主平面 ⇒ 取到全局 D_min；切点在太阳正上 / 正下。"""
     print("\n[3] 柱晶：(ψ, θ) 网格上 D_P 的全局最小值与切点")
-    d_min_closed = 2 * np.degrees(np.arcsin(N / 2)) - 60.0
+    d_min_closed = min_deviation_deg(60.0, N)
     grid = np.arange(0.0, 360.0, COLUMN_STEP)
     out = []
     for h in COLUMN_SUN_H:

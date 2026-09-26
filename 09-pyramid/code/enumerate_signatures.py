@@ -22,6 +22,7 @@ import math
 import time
 from pathlib import Path
 
+from halo_notes.math.wedge import min_deviation_deg  # 楔角 → 晕半径；_ch9_sim / 画图脚本经 ES.min_deviation_deg 调用
 from lumice_integral.geometry import Pyramid, fold_matrix
 from lumice_integral.geometry.core import N_ICE
 from lumice_integral.geometry.enumerate import RaypathRecord, enumerate_raypaths_with_stats
@@ -71,12 +72,6 @@ def family_of(wedge_deg: float) -> float | None:
         if abs(wedge_deg - w) <= TOL:
             return w
     return None
-
-
-def min_deviation_deg(wedge_deg: float) -> float:
-    """楔角 → 最小偏向角（晕半径）：$2\\arcsin(n\\sin(A/2)) - A$，$n$ = N_ICE。0° 给 0。"""
-    s = N_ICE * math.sin(math.radians(wedge_deg / 2))
-    return 2 * math.degrees(math.asin(min(1.0, s))) - wedge_deg
 
 
 def family_name(wedge: float) -> str:
