@@ -22,6 +22,7 @@
 | 9.1 番外 | `09.1-orientation-space/` | [姿态空间的形状](09.1-orientation-space/姿态空间的形状.md) | outline | — | — |
 | 10 | `10-radius-and-azimuth/` | [半径与方位](10-radius-and-azimuth/半径与方位.md) | outline | — | — |
 | 11 | `11-five-halos-one-wedge/` | [同一个楔，五种晕](11-five-halos-one-wedge/同一个楔-五种晕.md) | outline | — | — |
+| 12 | `12-sharp-edges/` | [锐边从哪来](12-sharp-edges/锐边从哪来.md) | outline | — | — |
 | 13 | `13-halo-detection/` | [变换法探测冰晕](13-halo-detection/变换法探测冰晕.md) | outline | — | — |
 
 状态取值：`outline`（只有提纲）/ `draft`（写作中）/ `published`（已发表，正文冻结为导演剪辑版）。每章 md 的 frontmatter 是状态与链接的权威来源，本表随之同步。番外目录名用 `NN.k-<slug>`（`NN.k` = 第 NN 章之后的第 k 篇），不占章号，落点见 `docs/roadmap.md` 番外表。
