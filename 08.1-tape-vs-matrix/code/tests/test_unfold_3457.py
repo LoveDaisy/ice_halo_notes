@@ -12,7 +12,7 @@ from halo_notes.draw.raypath import face_sequence
 from halo_notes.draw.tests.test_figures import run_figure
 from lumice_integral.symmetry import reflection_group as rg
 
-SCRIPT = "ex-tape-vs-matrix/code/fig_unfold_3457.py"
+SCRIPT = "08.1-tape-vs-matrix/code/fig_unfold_3457.py"
 
 
 def test_traced_face_sequence_is_3457():

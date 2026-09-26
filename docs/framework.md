@@ -1,6 +1,6 @@
 # 现代冰晕理论骨架
 
-> 系列 7–11 章共用的理论底稿。起源于 2026-09-11 作者与另一 assistant 的讨论（原文 `scratchpad/DRAFT-discussion-on-roadmap.md`，不入 git），2026-09-12 经本仓核验、修正与扩展后定稿于此。章节安排见 [roadmap.md](roadmap.md)。
+> 系列 7–13 章（含 9.1/12.1 两篇番外）共用的理论底稿。起源于 2026-09-11 作者与另一 assistant 的讨论（原文 `scratchpad/DRAFT-discussion-on-roadmap.md`，不入 git），2026-09-12 经本仓核验、修正与扩展后定稿于此；2026-09-26 按 Lumice Integral 数值裁定与作者讨论重排 §4/§5（原「两种聚光」拆分：纤维化定理归 ch10、聚光机制归 ch12；线性反问题挪去 ch13 开篇）。章节安排见 [roadmap.md](roadmap.md)。
 >
 > 每条结论标注证据等级：**[算]** = 已由各章 `code/` 下核验脚本数值核验（尚未起章的暂放 `docs/checks/`）；**[推]** = 解析推导，未另作数值核验；**[猜]** = 结构性断言，待穷举或仿真确认。
 
@@ -24,7 +24,7 @@ $$
 |---|---|---|---|
 | 组合 / 拓扑 | 哪些光路存在 | 枚举、可达性 | 1–2，8–9 |
 | 群作用 / 方向几何 | 它们产生什么 locus | $O(3)$、共轭、等变映射 | 3，7–8 |
-| 奇点 / 姿态 | locus 在哪里亮、什么形状 | Jacobian、纤维化、$SO(3)$ 上的分布 | 10–11 |
+| 奇点 / 姿态 | locus 在哪里亮、什么形状 | Jacobian、纤维化、$SO(3)$ 上的分布 | 10–12 |
 | 辐射度学 / 晶体统计 | 实际多亮、看不看得见 | Fresnel、截面、$\rho$ 的物理族 | 4–6，11 |
 
 $M$ 是**运动学充分统计量**：压缩了光路的全部方向变换信息，丢掉了辐射度学（可实现入射区域、TIR、Fresnel、偏振、光程、截面）。两条 $M$ 相同的光路方向映射相同，亮度可以完全不同。
@@ -130,32 +130,44 @@ $h/a\ge0.5$ 时 34 类全部可达，**下界 = 上界**；片晶（0.2）缺 46
 - **MC 独立复核**：MC 侧链面数上限 4（Lumice distinct 链驻留表 16384 槽，锥晶 5 面就溢出，比六棱柱的 7 低得多），精确侧长度 5–6 的记录只标「MC 未覆盖」不算 unseen。族级：六档 0 违反、0「MC 未见」；tip_ratio ≥ 0.8 三档的 90° 族 MC 未命中，与精确侧首现 $L=5>4$ 严格一致——两条独立链路在同一点上互相印证。光路级：MC 命中而精确判不可达的 PBD 代表六档共 58 个，全部只命中 1–3 次（TIR 死角楔角 40、0.2° 细网格也不可行 15、真网格漏判 3 个、面积 $\le1.2\times10^{-3}$ sr；其中唯一落在族内的是棱柱型的 `3-1-16-23`，28° 族、命中 6、细网格 $9\times10^{-4}$ sr）；精确可达（$\le4$ 面）而 MC 未见 7 / 7 / 4 / 10 / 4 / 9 条，面积均 $\le 2\times10^{-3}$ sr。
 - **能量随截顶的重分配**（ch9 素材，待正文取舍）：62.0° 族（23° 晕，`1-23` 顶面 → 下锥）能量份额从 18.0%（tip 0.3）→ 6.3%（0.5）→ 5.2%（0.25，棱柱型）→ 0.6–0.7%（0.8）→ 0.7%（0.85，双锥型）；对比之下 63.8° 族六档 10.4–20.2%、0° 族 13.5–33.5%、28.0° 族 8.2–15.7%。两个现实档把重分配推到两端：棱柱型 (3, 0.25) 由六棱柱固有的两族主导（0° 33.5%、60° 25.4%），锥↔锥三族（52.4° / 56° / 80.2°）压到 1.0 / 1.7 / 1.3%，90° 族 3.1% 为六档最高，族外只有 1.9%；双锥型 (0.3, 0.85) 相反，锥↔锥三族 19.6 / 11.4 / 9.4%，60° 族 1.4%、62° 族 0.7%，族外 17.0% 为六档最高。9 族合计 75.7%（双锥型）–90.6%（棱柱型）。
 
-## 4. 聚光：纤维化与两种机制（ch10）
+## 4. 半径：纤维化定理（ch10）与两种聚光机制（ch12）
 
-**定理 8（半径归光路，方位归姿态）[推]。** 固定光路 $P$ 与太阳方向 $\mathbf s$。令 $\mathbf u=R^{-1}\mathbf s$（太阳在晶体系中的方向），$\{R: R\mathbf u=\mathbf s\}$ 是绕 $\mathbf s$ 的圆 $\mathrm{Rot}_{\mathbf s}(\theta)R_0(\mathbf u)$，于是 $SO(3)\cong$ 以 $S^2\ni\mathbf u$ 为底的主 $SO(2)$ 丛，Haar 测度 $=d\mathbf u\,d\theta$。代入 $\mathbf x=-R\,\Phi_P(-R^{-1}\mathbf s)$（$\Phi_P$ 按 §2 定义吃**入射传播方向**（$\langle\mathbf d,\mathbf n_a\rangle<0$）、吐出射传播方向；$\mathbf s$ 是指向太阳的方向，光点是出射传播方向的反向，故两处各带一个负号。数值取证：`ex-tape-vs-matrix/code/crosscheck_bridge.py::light_point` 与 Tape 两条链路互证到 $10^{-14}$ rad（`ex-tape-vs-matrix/data/crosscheck_a_summary.md`）。）：
+### 4.1 纤维化定理（ch10）
+
+**定理 8（半径归光路，方位归姿态）[推]。** 固定光路 $P$ 与太阳方向 $\mathbf s$。令 $\mathbf u=R^{-1}\mathbf s$（太阳在晶体系中的方向），$\{R: R\mathbf u=\mathbf s\}$ 是绕 $\mathbf s$ 的圆 $\mathrm{Rot}_{\mathbf s}(\theta)R_0(\mathbf u)$，于是 $SO(3)\cong$ 以 $S^2\ni\mathbf u$ 为底的主 $SO(2)$ 丛，Haar 测度 $=d\mathbf u\,d\theta$。代入 $\mathbf x=-R\,\Phi_P(-R^{-1}\mathbf s)$（$\Phi_P$ 按 §2 定义吃**入射传播方向**（$\langle\mathbf d,\mathbf n_a\rangle<0$）、吐出射传播方向；$\mathbf s$ 是指向太阳的方向，光点是出射传播方向的反向，故两处各带一个负号。数值取证：`08.1-tape-vs-matrix/code/crosscheck_bridge.py::light_point` 与 Tape 两条链路互证到 $10^{-14}$ rad（`08.1-tape-vs-matrix/data/crosscheck_a_summary.md`）。）：
 $$
 \angle(\mathbf x,\mathbf s)=\angle(-\Phi_P(-\mathbf u),\mathbf u)=D_P(\mathbf u)\quad\text{与 }R\text{ 无关},
 $$
 $$
 \mu_{\rm sky}=\int_{S^2}\!d\mathbf u\,w_P(\mathbf u)\int_0^{2\pi}\!d\theta\;\rho\big(\mathrm{Rot}_{\mathbf s}(\theta)R_0(\mathbf u)\big)\,\delta\big(\mathbf x-\mathrm{Rot}_{\mathbf s}(\theta)R_0(\mathbf u)\,\big({-}\Phi_P(-\mathbf u)\big)\big).
 $$
-$D_P$ 的定义因此带两个负号（$D_P(\mathbf u)=\angle(-\Phi_P(-\mathbf u),\mathbf u)$）——这不是「负负得正」的代数恒同（$\Phi_P$ 有定义域限制，$\angle(-\Phi_P(-\mathbf u),\mathbf u)$ 一般不等于 $\angle(\Phi_P(\mathbf u),\mathbf u)$），角度结论不变的真正原因是：`signature.phi` 一直按**入射传播方向**实现，此前只是 framework.md 文字上的符号写错，符号改正后公式形式与代码实现、与光点的物理定义（出射传播方向的反向）才对齐；数值取证见本条正文引用的 `crosscheck_bridge.py::light_point` 与 Tape 两条链路互证（`ex-tape-vs-matrix/data/crosscheck_a_summary.md`）。出射点到太阳的角距离只由晶体系内的偏折角决定；姿态分布只决定每个太阳同心圆在方位上的填充。ch10 讲径向因子 $D_P(\mathbf u)$，ch11 讲方位因子 $\rho$。
+$D_P$ 的定义因此带两个负号（$D_P(\mathbf u)=\angle(-\Phi_P(-\mathbf u),\mathbf u)$）——这不是「负负得正」的代数恒同（$\Phi_P$ 有定义域限制，$\angle(-\Phi_P(-\mathbf u),\mathbf u)$ 一般不等于 $\angle(\Phi_P(\mathbf u),\mathbf u)$），角度结论不变的真正原因是：`signature.phi` 一直按**入射传播方向**实现，此前只是 framework.md 文字上的符号写错，符号改正后公式形式与代码实现、与光点的物理定义（出射传播方向的反向）才对齐；数值取证见本条正文引用的 `crosscheck_bridge.py::light_point` 与 Tape 两条链路互证（`08.1-tape-vs-matrix/data/crosscheck_a_summary.md`）。出射点到太阳的角距离只由晶体系内的偏折角决定；姿态分布只决定每个太阳同心圆在方位上的填充。ch10 讲径向因子 $D_P(\mathbf u)$，ch11 讲方位因子 $\rho$。
 
-**两种机制 [推]。** 设 halo map $F_P:Q\to S^2$，$Q$ 为姿态族。
+**推论（姿态只限定可取的 $\mathbf u$）[推]，ch10 用。** 定理 8 里 $D_P(\mathbf u)$ 与姿态无关；姿态分布唯一的作用是限定哪些 $\mathbf u$ 可取。片晶（c 轴竖直）：$\mathbf u$ 被限在晶体系里仰角 = 太阳高度 $h$ 的纬度圆上——光线斜穿 60° 棱镜时沿棱分量不变、投影到截面上等效折射率变大（Bravais：$n'=\sqrt{n^2-\sin^2h}/\cos h$），所以 $h$ 越大幻日越外移，$h\approx60.75°$ 时这条纬度圆整个出了光路可行域，幻日消失。柱晶（c 轴水平）：$\mathbf u$ 能取到截面主平面内的方向 ⇒ 取到全局 $D_{\min}$ ⇒ 切弧恰好与对应圆晕相切。随机取向：$\mathbf u$ 取遍 $S^2$ ⇒ 圆晕内缘落在 $D_{\min}$。
+
+### 4.2 两种聚光机制（ch12）
+
+**两种机制 [推/算]。** 设 halo map $F_P:Q\to S^2$，$Q$ 为姿态族。聚光机制的**类型**由「光路 × 姿态密度」这一对共同裁定，不是光路单独决定（`lumice_integral.focusing.classify`）；下表是 2026-09-25 LI `ch10_verdicts` 数值裁定后的修正版——此前 draft 把「22° 晕 $I\sim1/\sqrt{D-D_{\min}}$」当作随机取向下的通例，是错的。
 
 | | dimension collapse | Jacobian focusing |
 |---|---|---|
 | 条件 | $DF$ 沿某方向**恒**为零 | $DF$ 只在特殊姿态集合上降秩 |
 | 来源 | 精确对称：$M\in C_G(\text{姿态子群})$ | 奇点：$\det DF\to0$ |
-| 典型 | 平行光路（特里克尔弧的 $\theta$ 整维压扁） | 22° 晕：$D(i)\simeq D_{\min}+\tfrac12D''(i-i_0)^2$ |
-| 局部律 | 整维贡献到同一位置 | $I(D)\sim\sum_{u:F(u)=D}\rho(u)/\lvert dD/du\rvert\sim 1/\sqrt{D-D_{\min}}$（fold） |
-| 文献 | — | Tape 1980 *Analytic foundations*：caustic = halo function 奇点集的像、已讨论 fold / pleat；Tape 1982 *Folds, pleats, and halos* 作科普展开，Tape 1983 *Halos and Singularities* 再作技术扩展；Können 1983 在理想化假设下给出近晕角的解析强度分布 |
+| 典型 | 平行光路（特里克尔弧的 $\theta$ 整维压扁）；片晶幻日环（维度塌缩，$\sigma$ 减半峰值翻倍） | 柱晶密度下 22° 晕的切弧接触点：$D(i)\simeq D_{\min}+\tfrac12D''(i-i_0)^2$ |
+| 局部律 | 整维贡献到同一位置 | **随机取向 [算]**：最小偏向处是孤立非退化临界点（Hessian 特征值 `[0.338, 0.965]`），内缘是**有限跃变** $I\to w^\ast\,2\pi/\sqrt{\det H}$（LI `ch10_verdicts.inner_edge`），不是 $1/\sqrt{\ }$ 发散。**柱晶密度 [算]**：切弧接触点沿取向脊 $I(D)\sim\sum_{u:F(u)=D}\rho(u)/\lvert dD/du\rvert\sim1/\sqrt{D-D_{\min}}$（fold），但被姿态扩散截断在 $\varepsilon_c\propto\sigma^2$ 以上（$\sigma=0.5°$ 时只在 $[10^{-3},3\times10^{-3}]$ rad 可见）。镜面平板类（`1-3-2`、`3-5-6-7-3` 等）$\lvert\nabla D_P\rvert=2$ 处处非零，**不聚光** |
+| 文献 | — | Tape 1980 *Analytic foundations*：caustic = halo function 奇点集的像、已讨论 fold / pleat；Tape 1982 *Folds, pleats, and halos* 作科普展开，Tape 1983 *Halos and Singularities* 再作技术扩展；Können 1983 在理想化假设下给出近晕角的解析强度分布——本系列修正：随机取向不发散，$1/\sqrt{\ }$ 是柱晶密度在切弧接触点的专属现象 |
+
+**Liljequist 峰与 142° 边缘 [算]。** LI 裁定（`ch10_verdicts.liljequist`，2026-09-25）：142° 锐边是 A60-10（`3-5-6-7`）在生产链上的鞍点 $120°+D_{\min}(\texttt{3-5})=141.8393°$，形状无关；Liljequist 峰特指 `3-5-6-7-3` 的窄峰，恒定在 153.07°、不随 $h/a$ 移动，是晶体内部开始全反射处 $R_k$ 的**拐点**（不是 $D_P$ 的临界值），宽窄由光路可行窗口决定——截面形状通过窗口起作用（ch8 图 7：$d=1.2$ 窄峰摊平）。两层在 Lumice 未过滤的 ch8 条带图上出现在同一方位。
+
+**结构性结论 [推]。** 聚光机制的类型是「光路 × 姿态密度」这一对的属性，不是光路单独的属性——同一光路在不同姿态密度下可以是有限跃变、$1/\sqrt{\ }$、或完全不聚光。这正是姿态一章（ch11）要排在聚光一章（ch12）之前的原因：先确定姿态密度限定了哪些 $\mathbf u$（ch10/11），才能问在那个限定集合上聚光是什么类型（ch12）。
 
 非平行楔一般没有连续稳定子（$\mathbf n_1,\mathbf n_2,\mathbf n_1\times\mathbf n_2$ 已钉死朝向），所以 centralizer 语言只对平行光路有效，一般晕的聚光机制是奇点，不是对称。draft 早先把 centralizer 提得太重，此处已修正。发散被太阳 0.5° 角径、姿态扰动、晶面缺陷、波动光学卷积平滑。
 
 **与 4–6 章的关系 [推]。** $\mu_{\rm sky}=(F_P)_*[\rho\,w_P\,dq]$ 就是 ch4 的渲染方程；ch6 的蒙特卡洛与直接积分是算这个 pushforward 的两条路。亮度的三个来源：大纤维（精确不变）、Jacobian 奇点、权重 $\rho\,w$（片晶偏好水平、有效截面、Fresnel、TIR）。
 
-## 5. 姿态分布：方位因子与线性性（ch11）
+## 5. 姿态：方位因子（ch11）与线性反问题（ch13 开篇）
+
+### 5.1 方位因子（ch11）
 
 **卷积比喻的精确版 [推]。** 定理 8 的内层积分：
 
@@ -165,21 +177,23 @@ $D_P$ 的定义因此带两个负号（$D_P(\mathbf u)=\angle(-\Phi_P(-\mathbf u
 
 **姿态族 [推]。** 随机（Haar，3 维）/ 片（c 轴竖直，1 维）/ 柱（c 轴水平，2 维）/ Parry（c 轴水平 + 一侧面水平，1 维）/ Lowitz，各带扩散 $\sigma$。同一光路 × 五族 = 五种晕（3-5：圆晕 / 幻日 / 相切弧 / Parry 弧 / Lowitz 弧）。$\dim(\text{晕})=\dim Q-\dim(\text{纤维})$ 是定理 3 的一般化。
 
-**定理 9（线性）[推]。** 单次散射下 $\mu_{\rm sky}=\sum_P c_P\,\mathcal A_P[\rho]$，$\mathcal A_P$ 是从 $SO(3)$ 上的测度到 $S^2$ 上的测度的**线性算子**；全部非线性（Snell、Fresnel、可达性）在 $\Phi_P,w_P$ 内，不含 $\rho$。推论：
+**整体形状 [推]。** 正向理论是一张表：**行 = 光路类**——六棱柱精确有限 34 类（定理 5′/5″），锥晶是 9 个直接楔族 + 显式截断 $L^\ast=6$ 的族外余量（定理 7′），并非笼统意义上的「有限」；**列 = 姿态族**（本节给）；格子形状由 $(F,DF)$ 裁定（§4.2）。反向问题 = 给一张天空图，找哪些格子亮、亮多少。
+
+### 5.2 线性反问题（ch13 开篇）
+
+**定理 9（线性）[推]。** 单次散射下 $\mu_{\rm sky}=\sum_P c_P\,\mathcal A_P[\rho]$，$\mathcal A_P$ 是从 $SO(3)$ 上的测度到 $S^2$ 上的测度的**线性算子**；全部非线性（Snell、Fresnel、可达性）在 $\Phi_P,w_P$ 内，不含 $\rho$。这段过渡放在 ch13 开篇，不单独成章。推论：
 
 - 反向问题是**线性反问题**（Radon / 层析型），未知量 $(\rho, c_P)$。
-- Hough 投票（ch12）= 伴随算子 $\mathcal A_P^{\top}$（backprojection）——Hough 与 Radon 的经典关系。
-- 可微渲染（ch13）= 同一算子的正则化求解。
+- Hough 投票（ch13）= 伴随算子 $\mathcal A_P^{\top}$（backprojection）——Hough 与 Radon 的经典关系。
+- 可微渲染（ch14）= 同一算子的正则化求解。
 - 2 维图像反演 3 维 $\rho$ 欠定；正则化来自物理先验（$\rho$ 属于上述参数族）。参数化反演 vs 非参数投票，是第二部分的两条路。
-
-**整体形状。** 正向理论是一张表：**行 = 光路类**（定理 1–7 给，有限），**列 = 姿态族**（本节给），格子形状由 $(F,DF)$ 裁定（第 4 节）。反向问题 = 给一张天空图，找哪些格子亮、亮多少。
 
 ## 6. 与文献的关系
 
 | 路线 | 对象 | 备注 |
 |---|---|---|
 | Tricker 1973 *kaleidoscope* | 六棱柱侧面的逐次镜像；平行底面使入、出折射等量 | 直接对应 $W=I,\ \Phi=M$：逐次镜像合成为内反射矩阵 $M$；不是一般 $\tilde{\mathbf n}_b=M^{-1}\mathbf n_b$ / $M\circ W$ 分解的完整先例 |
-| Tape 1979 *Geometry of halo formation*；1980 *Analytic foundations* | 取向空间 → 光点空间的映射；caustic = 奇点集的像 | 对应 $F_P$ 与 $DF$（第 4 节） |
+| Tape 1979 *Geometry of halo formation*；1980 *Analytic foundations* | 取向空间 → 光点空间的映射；caustic = 奇点集的像 | 对应 $F_P$ 与 $DF$（§4.2） |
 | Tape & Können 1999 *A general setting for halo theory* | 一般楔角的 wedge theory | 对应 $W$（定理 4 的一半） |
 | Tape *Angle x* | 锥面角 | 对应参数 $c/a$（定理 7） |
 | 本系列 | 先把 ray path 商成 $O(3)$ 算子，再研究群作用；把「光路是什么」与「晶体怎么摆」解耦 | $M$ 与 $R$ 分离；定理 8 是这一解耦的精确形式 |
@@ -190,8 +204,8 @@ $D_P$ 的定义因此带两个负号（$D_P(\mathbf u)=\angle(-\Phi_P(-\mathbf u
 
 - [猜] 定理 4 signature 的完备性（$\Phi$ 相同 ⇒ signature 相同）。
 - 六棱柱上界 34（定理 5′）与下界（定理 5″：$h/a\ge0.5$ 时 34 类全可达，片晶 28）都已算，MC 互证类数不变。枚举器方向网格已从 2° 加密到 1°（2026-09-15）：MC 命中而精确判不可达的「网格漏判」代表从五档 240 个降到 4 个，残余 4 个与 73 个「0.2° 细网格也不可行」的代表一起归 Lumice 追迹边缘（棱/顶点）噪声，条数 / 面积表以 1° 结果为准；再细化只在有新证据时做。锥晶：上界不存在（定理 6，群无限）、全类穷举已放弃；改做 9 族可达性表（定理 7′，`09-pyramid/data/signature_table.md`），MC 互证族级 0 违反。
-- [猜] 柱晶（$Q$ 二维、三维）下 22° 晕的奇点类型（fold / cusp / pleat）的数值确认。
-- ~~锥晶的 $\Phi$ 类数是否随字长上限收敛~~ 已答：不收敛（2° 网格 $L=2..7$ 类数 13/76/328/925/2247/4980，增量比值 ~2；explore-pyramid-class-convergence，2026-09-20），穷举目标放弃，见定理 7′。仍未决：族外光路（几何面积占 53–59%、真实能量占 6–10%）在 ch9 正文里怎么讲——是否需要一个能量口径的截断（explore-pyramid-energy-truncation，低优先级）。
+- ~~[猜] 柱晶（$Q$ 二维、三维）下 22° 晕的奇点类型（fold / cusp / pleat）的数值确认~~ 已答（LI `ch10_verdicts` / `focusing`，2026-09-25）：柱晶密度（$Q$ 二维）在切弧接触点是 fold（$1/\sqrt{\ }$，被姿态扩散截断在 $\varepsilon_c\propto\sigma^2$ 以上）；随机取向（$Q$ 三维）在最小偏向处是孤立非退化临界点，内缘是有限跃变，不是 fold 奇异——见 §4.2。
+- ~~锥晶的 $\Phi$ 类数是否随字长上限收敛~~ 已答：不收敛（2° 网格 $L=2..7$ 类数 13/76/328/925/2247/4980，增量比值 ~2；explore-pyramid-class-convergence，2026-09-20），穷举目标放弃，见定理 7′。~~族外光路是否需要一个能量口径的截断~~ 已答（explore `pyramid-energy-truncation`，作者 2026-09-20 裁定取消）：真实仿真能量口径已由定理 7′给出（9 族 83–87%、族外 6–10%）；「按能量截断」是亮度问题，归 ch12（原「两种聚光」，2026-09-26 重排顺延，见 §4.2）。
 - 姿态族 $Q$ 非光滑（Parry 与柱晶混合）时定理 8 内层积分的处理。
 
 ## 附：核验脚本

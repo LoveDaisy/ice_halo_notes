@@ -15,7 +15,7 @@ from halo_notes.draw.tests.test_figures import run_figure
 from lumice_integral.symmetry import reflection_group as rg
 from lumice_integral.symmetry.signature import FAMILY_NAMES, phi_class, phi_class_table
 
-SCRIPT = "ex-tape-vs-matrix/code/fig_two_matrices.py"
+SCRIPT = "08.1-tape-vs-matrix/code/fig_two_matrices.py"
 FRAMEWORK = Path(__file__).resolve().parents[3] / "docs" / "framework.md"
 
 
