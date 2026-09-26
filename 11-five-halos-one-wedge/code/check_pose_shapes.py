@@ -1,7 +1,7 @@
 # 核验 ch11 提纲的数字（确定性，无网络，末行 OK）：同一条 3-5 光路（M = I、60° 楔）在五个理想姿态族（随机 / 片 / 柱 / Parry /
 # Lowitz）下落到天空上的形状——像的维数（天空映射 Jacobian 秩）、每个半径圆 D 被填上的方位角（绕太阳的位置角）、单条
 # labelled path 只点亮命名晕的一侧 / 一支、D6h 轨道 12 条同类光路合起来才左右对称；与 LI docs/ch11-pose-density-families.md
-# §5.2 的落点表（Haar MC + 密度加权，另一条链路）对照。
+# §5.2 的落点表（Haar MC + 密度加权，另一条链路）对照；ch1 思考题「为什么只有幻日是单边的」的镜像判据。约 4 s。
 import numpy as np
 
 from lumice_integral.geometry import N_ICE, HexPrism, fold_matrix
@@ -293,6 +293,12 @@ def check_orbit(res, rng):
         allpa = np.concatenate([v[1] for v in per.values()])
         lit = [p for p in paths if len(per[p][0])]
         print(f"   {name}：12 条里有像的 {len(lit)} 条（{', '.join('-'.join(map(str, p)) for p in lit)}）")
+        if name == "parry":           # 逐条：Parry 弧是一族，每条标号光路给哪一支
+            for p in lit:
+                Dp, pap = per[p]
+                k = int(np.argmin(Dp))
+                print(f"     {'-'.join(map(str, p))}：D ∈ [{Dp.min():.3f}, {Dp.max():.2f}]°，最近处位置角 {pap[k]:+.1f}°，"
+                      f"位置角 ∈ [{pap.min():+.1f}, {pap.max():+.1f}]°")
         sym_ok = True
         for d0 in D_PROBE:
             m = (allD >= d0) & (allD < d0 + BAND)
@@ -314,13 +320,54 @@ def check_orbit(res, rng):
     return out
 
 
+def check_mirror(rng):
+    """[7] ch1 思考题：单条 3-5 为什么只有幻日是单边的？
+
+    天空左右镜像 σ_w = diag(1, −1, 1)（过太阳的竖直面，太阳方向不动）；晶体底面镜像 σ_h = diag(1, 1, −1) 把每个柱面
+    映成自己 ⇒ 3-5 不变。于是姿态 R 的像经 σ_w 镜像 = 姿态 σ_w·R·σ_h（仍是真旋转）的像。单条 3-5 的像左右对称，当且仅当
+    姿态族在 R ↦ σ_w R σ_h 下不变；这个映射把 c 轴天顶角 ζ 变成 180° − ζ、面 3 的上下不变。"""
+    print("\n[7] 左右镜像：3-5 @ σ_w·R·σ_h ≡ σ_w（3-5 @ R）")
+    sw, sh = np.diag([1.0, -1.0, 1.0]), np.diag([1.0, 1.0, -1.0])
+    R = haar_rotations(5000, rng)
+    a, b = sky(sw @ R @ sh), sky(R) @ sw
+    both = ~np.isnan(a[:, 0])
+    assert np.array_equal(both, ~np.isnan(b[:, 0]))
+    res = float(np.abs(a[both] - b[both]).max())
+    print(f"  5000 个 Haar 姿态最大残差 {res:.1e}")
+    assert res < 1e-12
+    # 映射在各族参数上的作用：chain(az, ζ, roll) ↦ chain(?, 180° − ζ, ?)；逐族检查族是否映回自身
+    az = rng.uniform(0, 360, 200)
+    for name, zen, roll in (("plate", 0.0, 0.0), ("column", 90.0, None), ("parry", 90.0, 0.0), ("lowitz", 30.0, 0.0)):
+        rl = rng.uniform(0, 360, 200) if roll is None else np.full(200, roll)
+        Rm = sw @ chain(az, zen, rl) @ sh
+        z_new = np.degrees(np.arccos(np.clip(Rm[:, 2, 2], -1, 1)))
+        # roll（面 3 相对过 c 轴竖直面的转角）：c 轴不在极点时按 LI c_axis_roll
+        r_new = np.degrees(np.arctan2(-Rm[:, 2, 1], Rm[:, 2, 0])) if abs(zen - 0) > 1 else np.full(200, np.nan)
+        print(f"  {name:6s}：ζ = {zen:5.1f}° ↦ {np.unique(np.round(z_new, 9))[:3]}°"
+              + (f"，roll {'自由' if roll is None else f'= {roll:.0f}°'} ↦ "
+                 f"{'自由' if roll is None else np.unique(np.round(r_new % 360, 9))[:3]}" if not np.all(np.isnan(r_new)) else ""))
+        assert np.allclose(z_new, 180.0 - zen, atol=1e-9)
+        if roll is not None and zen > 1:
+            assert np.allclose(np.cos(np.radians(r_new - roll)), 1.0, atol=1e-12), "面 3 的上下不变"
+    # 片晶 ζ = 0 映到 ζ = 180°（c 轴朝下、标号顺序反过来的片晶）：理想片晶族不含它 ⇒ 3-5 只给一侧
+    x0 = sky(chain(np.arange(0, 360, 0.01), 0.0, 0.0))
+    x1 = sky(chain(np.arange(0, 360, 0.01), 180.0, 0.0))
+    D0, pa0 = dist_pa(x0[~np.isnan(x0[:, 0])])
+    D1, pa1 = dist_pa(x1[~np.isnan(x1[:, 0])])
+    print(f"  片晶 ζ=0°：3-5 最近处位置角 {pa0[np.argmin(D0)]:+.3f}°；ζ=180°（翻面）：{pa1[np.argmin(D1)]:+.3f}° ⇒ 翻面 = 另一侧幻日")
+    assert abs(pa0[np.argmin(D0)] + pa1[np.argmin(D1)]) < 1e-3 and np.all(pa1 < 0)
+    print("  ⇒ 柱晶（ζ=90° 映回自身、roll 全取）、Parry（ζ=90°、面 3 仍朝上）、随机：族在镜像下不变 ⇒ 单条 3-5 就左右对称；"
+          "片晶 ζ=0 ↦ 180°、理想族不含 ⇒ 单边；Lowitz 支撑 ζ∈[0,180) 两边都有、权重偏 ζ 小 ⇒ 支撑对称、亮度偏一侧")
+
+
 def main():
     rng = np.random.default_rng(RNG_SEED)
     check_setup()
     res = check_families(rng)
     check_orbit(res, rng)
+    check_mirror(rng)
     print("\n[小结] 维数：随机 3→2、片晶 1→1、柱晶 2→2、Parry 1→1、Lowitz 2→2（姿态族维数 → 天空像维数）；"
-          "单条 3-5 在片晶下只点亮 +侧（右幻日），12 条同类光路合起来左右对称")
+          "单条 3-5 在片晶下只点亮 +侧（右幻日；片晶族在左右镜像下不封闭），12 条同类光路合起来左右对称")
     print("OK")
 
 
