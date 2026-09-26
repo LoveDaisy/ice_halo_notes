@@ -19,6 +19,7 @@
 | 8 | `08-wedge-times-fold/` | [三种楔子、十二种折叠](08-wedge-times-fold/三种楔子-十二种折叠.md) | published | [p/2084963224814990674](https://zhuanlan.zhihu.com/p/2084963224814990674) | `[[现代冰晕研究漫谈(8)： 楔角光路]]` |
 | 8.1 番外 | `08.1-tape-vs-matrix/` | [从古典几何到现代矩阵](08.1-tape-vs-matrix/从古典几何到现代矩阵.md) | published | [p/2087212931775837732](https://zhuanlan.zhihu.com/p/2087212931775837732) | —（待回拉，见 `scratchpad/backlog.md`） |
 | 9 | `09-pyramid/` | [锥晶的有限与无限](09-pyramid/锥晶的有限与无限.md) | published | [p/2087225407133304432](https://zhuanlan.zhihu.com/p/2087225407133304432) | —（待回拉，见 `scratchpad/backlog.md`） |
+| 9.1 番外 | `09.1-orientation-space/` | [姿态空间的形状](09.1-orientation-space/姿态空间的形状.md) | outline | — | — |
 | 13 | `13-halo-detection/` | [变换法探测冰晕](13-halo-detection/变换法探测冰晕.md) | outline | — | — |
 
 状态取值：`outline`（只有提纲）/ `draft`（写作中）/ `published`（已发表，正文冻结为导演剪辑版）。每章 md 的 frontmatter 是状态与链接的权威来源，本表随之同步。番外目录名用 `NN.k-<slug>`（`NN.k` = 第 NN 章之后的第 k 篇），不占章号，落点见 `docs/roadmap.md` 番外表。
