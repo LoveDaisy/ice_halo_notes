@@ -78,6 +78,10 @@ def check_setup():
           f"楔角 {wedge_angle(CRYSTAL, M, *PATH):.6f}°，n = {N}")
     assert np.allclose(M, np.eye(3))
     assert abs(wedge_angle(CRYSTAL, M, *PATH) - 60.0) < 1e-9
+    # 薄片晶里 3-5 直穿被底面截断时顶上来的 3-2-1-5（check_parhelion_lumice.py [L3]）：两次底面反射 M 仍 = I、同一个楔
+    M4 = fold_matrix(CRYSTAL, [3, 2, 1, 5])
+    print(f"    3-2-1-5：M = I ? {np.allclose(M4, np.eye(3))}，楔角 {wedge_angle(CRYSTAL, M4, 3, 5):.6f}° ⇒ 与 3-5 同一个 Φ，落点相同")
+    assert np.allclose(M4, np.eye(3)) and abs(wedge_angle(CRYSTAL, M4, 3, 5) - 60.0) < 1e-9
 
 
 def check_plate():
@@ -150,6 +154,10 @@ def check_column():
         R = np.stack([column_attitude(p, t) for p in grid for t in grid])
         u = np.einsum("nji,j->ni", R, s)                     # u = Rᵀ s
         D, _ = dp(u)
+        # 柱晶能取到的 u：c 轴（晶体 z）水平 ⇒ u_z = cos h · cos(ψ − 太阳方位) ⇒ |u_z| ≤ cos h，一条总含赤道（主平面）的带
+        uz = np.abs(u[:, 2])
+        print(f"  太阳高度 {h:4.1f}°：可取 u 的 |u_z| ∈ [{uz.min():.2e}, {uz.max():.6f}]，cos h = {np.cos(np.radians(h)):.6f}")
+        assert uz.min() < 1e-12 and abs(uz.max() - np.cos(np.radians(h))) < 1e-12
         best = []
         # 两个局部最小（切点上 / 下）：按光点仰角高于 / 低于太阳分别取
         x_sky = np.einsum("nij,nj->ni", R, light_point(u))
