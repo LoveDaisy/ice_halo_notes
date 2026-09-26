@@ -8,7 +8,7 @@ from scipy import stats
 from scipy.spatial.transform import Rotation
 
 from lumice_integral.pose_density import c_axis_roll, c_axis_zenith
-from lumice_integral.prescan import haar_rotations
+from lumice_integral.so3 import haar_rotations
 from lumice_integral.so3 import rotation_distances
 from lumice_integral.symmetry.attitude import Ry, column_attitude
 from lumice_integral.symmetry.reflection_group import Rz

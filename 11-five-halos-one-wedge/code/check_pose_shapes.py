@@ -4,8 +4,9 @@
 # §5.2 的落点表（Haar MC + 密度加权，另一条链路）对照；ch1 思考题「为什么只有幻日是单边的」的镜像判据。约 4 s。
 import numpy as np
 
+from halo_notes.math.wedge import min_deviation_deg
 from lumice_integral.geometry import N_ICE, HexPrism, fold_matrix
-from lumice_integral.prescan import haar_rotations
+from lumice_integral.so3 import haar_rotations
 from lumice_integral.symmetry.attitude import Ry
 from lumice_integral.symmetry.reflection_group import Rz
 from lumice_integral.symmetry.signature import phi_batch, wedge_angle
@@ -14,7 +15,7 @@ PATH = (3, 5)
 CRYSTAL = HexPrism()          # phi 只用面法向（无限长棱镜），与 h/a 无关；几何走廊、入射面积权不在本脚本范围
 N = N_ICE
 SUN_H = 15.0                  # 与 LI canonical scene（CANONICAL_SUN_ALTITUDE_DEG）同一个太阳高度，便于和 §5.2 对照
-D_MIN = 2 * np.degrees(np.arcsin(N / 2)) - 60.0
+D_MIN = min_deviation_deg(60.0, N)
 D_PROBE = (22.5, 25.0, 30.0, 40.0)   # 读「半径圆被填上的位置角」的几个半径
 BAND = 0.25                   # 半径带宽（度）
 PA_BIN = 1.0                  # 位置角直方图步长（度）

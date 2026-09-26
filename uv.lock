@@ -179,7 +179,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "lumice-integral", git = "file:///Users/zhangjiajie/Codes/Lumice%20Integral?rev=3181e8796d4f1256dea0e59cbd6986aa98f82874" },
+    { name = "lumice-integral", git = "file:///Users/zhangjiajie/Codes/Lumice%20Integral?rev=97e77853b68ced064a1242f45fd93b83f20f3b40" },
     { name = "matplotlib" },
     { name = "numpy" },
 ]
@@ -359,7 +359,7 @@ wheels = [
 [[package]]
 name = "lumice-integral"
 version = "0.1.0"
-source = { git = "file:///Users/zhangjiajie/Codes/Lumice%20Integral?rev=3181e8796d4f1256dea0e59cbd6986aa98f82874#3181e8796d4f1256dea0e59cbd6986aa98f82874" }
+source = { git = "file:///Users/zhangjiajie/Codes/Lumice%20Integral?rev=97e77853b68ced064a1242f45fd93b83f20f3b40#97e77853b68ced064a1242f45fd93b83f20f3b40" }
 dependencies = [
     { name = "jax" },
     { name = "numpy" },
