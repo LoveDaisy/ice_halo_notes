@@ -1,7 +1,8 @@
 # 核验 ch11 提纲的数字（确定性，无网络，末行 OK）：同一条 3-5 光路（M = I、60° 楔）在五个理想姿态族（随机 / 片 / 柱 / Parry /
 # Lowitz）下落到天空上的形状——像的维数（天空映射 Jacobian 秩）、每个半径圆 D 被填上的方位角（绕太阳的位置角）、单条
 # labelled path 只点亮命名晕的一侧 / 一支、D6h 轨道 12 条同类光路合起来才左右对称；与 LI docs/ch11-pose-density-families.md
-# §5.2 的落点表（Haar MC + 密度加权，另一条链路）对照；ch1 思考题「为什么只有幻日是单边的」的镜像判据。约 4 s。
+# §5.2 的落点表（Haar MC + 密度加权，另一条链路）对照；ch1 思考题「为什么只有幻日是单边的」的镜像判据；姿态族包含关系
+# （9.1 [5]）搬到天空上的像，以及片晶像（幻日 + 拖尾）贴在 Lowitz 像的哪里。约 15 s。
 import numpy as np
 
 from halo_notes.math.wedge import min_deviation_deg
@@ -196,6 +197,7 @@ def check_families(rng):
         params, x, w, w_li = sample_family(name, rng)
         ok = ~np.isnan(x[:, 0])
         x, w, w_li = x[ok], w[ok], w_li[ok]
+        params_ok = None if params is None else tuple(a[ok] for a in params)
         D, pa = dist_pa(x)
         # 维数：在可行样本里抽 40 个内点，天空映射 Jacobian 的秩
         pts = rng.choice(np.flatnonzero(ok), 40, replace=False)
@@ -228,7 +230,7 @@ def check_families(rng):
         if not np.array_equal(w, w_li):
             print(f"    LI 口径（支撑集上不加权）：仰角 {el_li[0]:.0f} / {el_li[1]:.0f} / {el_li[2]:.0f}°，方位 {az_li[0]:.0f} / {az_li[1]:.0f} / {az_li[2]:.0f}°")
         print(f"    落在太阳之上的份额（姿态测度加权）{above * 100:.1f} %")
-        res[name] = dict(D=D, pa=pa, x=x, w=w, dim=dim_img, fills=fills, el=el_pct, az=az_pct, above=above)
+        res[name] = dict(params=params_ok, D=D, pa=pa, x=x, w=w, dim=dim_img, fills=fills, el=el_pct, az=az_pct, above=above)
         assert D.min() > D_MIN - 1e-6, "五族的最近处都不可能小于 D_min"
     # 断言：随机 2 维且每个半径圆整圈填满；片晶、Parry 1 维；柱晶、Lowitz 2 维
     r = res
@@ -361,14 +363,118 @@ def check_mirror(rng):
           "片晶 ζ=0 ↦ 180°、理想族不含 ⇒ 单边；Lowitz 支撑 ζ∈[0,180) 两边都有、权重偏 ζ 小 ⇒ 支撑对称、亮度偏一侧")
 
 
+def nearest_angle(child, parent, window=3.0, chunk=512):
+    """child 每点到 parent 点云的最近邻角距离（度）。按 D 排序后只在 |ΔD| ≤ window 的 parent 切片里找（|ΔD| ≤ 角距离）。"""
+    Dc, Dp = dist_pa(child)[0], dist_pa(parent)[0]
+    ic, ip = np.argsort(Dc), np.argsort(Dp)
+    Dp_s, P = Dp[ip], parent[ip]
+    out = np.empty(len(child))
+    for i in range(0, len(ic), chunk):
+        idx = ic[i:i + chunk]
+        lo, hi = np.searchsorted(Dp_s, [Dc[idx].min() - window, Dc[idx].max() + window])
+        out[idx] = (child[idx] @ P[lo:hi].T).max(1)
+    return np.degrees(np.arccos(np.clip(out, -1, 1)))
+
+
+# 包含关系：子族参数 → 父族参数的嵌入（9.1 check_orientation_space [5] 的形状层面结论，roll 锁 0 口径下逐点成立）；
+# PARENT_GRID 是父族的姿态链、网格步长与参数定义域，与 sample_family 的网格一致。
+CONTAIN = (
+    ("plate", "lowitz", lambda az: (az, np.zeros_like(az))),         # 片晶 = Lowitz 摆角 0 那一圈
+    ("parry", "lowitz", lambda az: (az, np.full_like(az, 90.0))),    # Parry = Lowitz 摆到 90° 那一圈
+    ("parry", "column", lambda az: (az, np.zeros_like(az))),         # Parry = 柱晶 roll = 0 那一条纬线
+)
+PARENT_GRID = {
+    "lowitz": dict(pose=lambda a, z: chain(a, z, 0.0), step=0.25, lo=(0.0, 0.125), hi=(360.0, 179.875)),
+    "column": dict(pose=lambda a, r: chain(a, 90.0, r), step=0.25, lo=(0.0, 0.0), hi=(360.0, 359.75)),
+}
+CONTAIN_K = 2.0      # 容差 = K × 局部网格分辨率（2026-09-27 实测三条关系 d / r_loc 最大 0.93，留约 2 倍余量）
+CONTAIN_FLOOR = 0.3  # 全局固定容差（度）：统计超出它的样本份额，只报告不作判据
+
+
+def local_resolution(pose, p1, p2, step, lo, hi):
+    """父族网格的局部分辨率：子族姿态在父族参数里的位置 (p1, p2)，挪到最近网格结点最多各半步；取 4 个半步角点里
+    可行（非 NaN）者的天空位移最大值（度）。光学定义域边界附近天空映射被拉伸，分辨率随之变粗。"""
+    x0 = sky(pose(p1, p2))
+    r = np.zeros(len(p1))
+    for s1 in (-0.5, 0.5):
+        for s2 in (-0.5, 0.5):
+            q1 = np.clip(p1 + s1 * step, lo[0], hi[0])
+            q2 = np.clip(p2 + s2 * step, lo[1], hi[1])
+            x = sky(pose(q1, q2))
+            ang = np.degrees(np.arccos(np.clip(np.einsum("ni,ni->n", x, x0), -1, 1)))
+            r = np.fmax(r, ang)      # fmax 忽略 NaN（角点在定义域外）
+    return r
+
+
+def check_containment(res):
+    """[8] 姿态族的包含关系搬到天空：子族 ⊂ 父族 ⇒ 同一条 3-5 下子族像 ⊂ 父族像；再看片晶像（幻日 + 拖尾）贴在 Lowitz 像的哪里。
+
+    包含本身是必然的（同一个映射 R ↦ x(R) 作用在子集上）；数值要坐实的是：光学定义域（NaN 截断）没有把它破坏，
+    以及片晶与 Lowitz 的接触方式——片晶像是 Lowitz 像的边，还是从中间穿过。"""
+    print("\n[8] 包含关系搬到天空：子族像到父族像（sample_family 网格）的最近邻角距离")
+    for child, parent, embed in CONTAIN:
+        xc = res[child]["x"]
+        az = res[child]["params"][0]
+        d = nearest_angle(xc, res[parent]["x"])
+        g = PARENT_GRID[parent]
+        r = local_resolution(g["pose"], *embed(az), g["step"], g["lo"], g["hi"])
+        ratio = d / np.maximum(r, 1e-12)
+        k = int(np.argmax(d))
+        Dk, pak = dist_pa(xc[k:k + 1])
+        print(f"  {child} ⊂ {parent}：{len(xc)} 点，最近邻距离 中位 {np.median(d):.3f}° / 99% {np.percentile(d, 99):.3f}° / "
+              f"最大 {d.max():.3f}°（在 D = {Dk[0]:.2f}°、位置角 {pak[0]:+.1f}°，该处局部分辨率 {r[k]:.3f}°）；"
+              f"超出 {CONTAIN_FLOOR}° 的 {np.mean(d > CONTAIN_FLOOR) * 100:.2f} %；d / 局部分辨率 最大 {ratio.max():.2f}")
+        assert np.all(d <= CONTAIN_K * r + 1e-9), f"{child} 像应落在 {parent} 像里（局部网格分辨率 × {CONTAIN_K} 以内）"
+    # 片晶与 Lowitz 的接触方式：沿片晶曲线逐点，看附近（1° 内）的 Lowitz 像点落在曲线法向的哪一侧。
+    # 两侧都有 ⇒ 片晶曲线从 Lowitz 像内部穿过；只有一侧 ⇒ 片晶曲线是 Lowitz 像的一条边。
+    xp, azp, Dp = res["plate"]["x"], res["plate"]["params"][0], res["plate"]["D"]
+    sel = np.arange(0, len(xp), 20)
+    p = xp[sel]
+    t = sky(chain(azp[sel] + 1e-4, 0.0, 0.0)) - sky(chain(azp[sel] - 1e-4, 0.0, 0.0))
+    n = np.cross(p, t); n /= np.linalg.norm(n, axis=1, keepdims=True)
+    n *= np.sign(n[:, 2])[:, None]        # 法向指向仰角更高的一侧（片晶曲线沿幻日环，仰角恒 = 太阳高度）
+    xl, zl = res["lowitz"]["x"], res["lowitz"]["params"][1]
+    eps = np.radians(0.05)                # 比网格噪声（上面最近邻中位 ~0.02°）大一截，只数真正落在另一侧的点
+    up = np.zeros(len(p), bool); down = np.zeros(len(p), bool); zdown = np.full(len(p), np.nan)
+    for i in range(len(p)):
+        m = xl @ p[i] > np.cos(np.radians(1.0))
+        s = (xl[m] - p[i]) @ n[i]
+        up[i], down[i] = np.any(s > eps), np.any(s < -eps)
+        if down[i]:
+            zdown[i] = zl[m][s < -eps].min()
+    D_turn = float(Dp[sel][down].min()) if down.any() else np.inf
+    edge = Dp[sel] < D_turn
+    print(f"  片晶像（幻日 + 拖尾）与 Lowitz 像的接触：沿片晶曲线 {len(p)} 个点，1° 内 Lowitz 像点"
+          f"只在上侧（仰角高于太阳）的 {np.sum(up & ~down)} 个、两侧都有的 {np.sum(up & down)} 个、只在下侧的 {np.sum(~up & down)} 个")
+    print(f"    D ∈ [{Dp.min():.2f}°, {D_turn:.2f}°)：片晶曲线是 Lowitz 像的下边（Lowitz 像只在其上侧）；"
+          f"D ≥ {D_turn:.2f}°（拖尾外段，至 {Dp.max():.2f}°）：摆角 ζ ∈ [{np.nanmin(zdown):.1f}°, …] 的 Lowitz 姿态从下侧折回，"
+          f"片晶曲线穿进 Lowitz 像内部")
+    # 同一件事的解析侧面：在「边」那一段，摆角 ζ 从 0 起摆一点，光点往上侧走
+    dz = np.einsum("ni,ni->n", sky(chain(azp[sel], 0.01, 0.0)) - p, n)
+    print(f"    「边」那一段上摆角 ζ 从 0 起摆 0.01°，光点往上侧走的 {np.mean(dz[edge] > 0) * 100:.0f} %")
+    k0 = int(np.argmin(Dp))
+    kl = int(np.argmin(res["lowitz"]["D"]))
+    d_ph = float(np.degrees(np.arccos(np.clip(xl @ xp[k0], -1, 1))).min())
+    print(f"  幻日（片晶像最近处 D = {Dp[k0]:.2f}°、位置角 {res['plate']['pa'][k0]:+.2f}°）到 Lowitz 像 {d_ph:.3f}°，"
+          f"落在「边」那一段；Lowitz 像离太阳最近处在 D = {res['lowitz']['D'][kl]:.2f}°、位置角 {res['lowitz']['pa'][kl]:+.2f}°"
+          f" ⇒ Lowitz 像从幻日出发往上长，但它贴 22° 晕的地方不在幻日，在幻日上方")
+    assert not np.any(~up & down), "Lowitz 像不会只在片晶曲线下侧"
+    assert D_turn > Dp.min() + 5.0, "幻日及拖尾内段应是 Lowitz 像的边"
+    assert np.all(up[edge]) and np.all(dz[edge] > 0)
+    assert np.sum(up & down) > 0.1 * len(p), "拖尾外段应从 Lowitz 像内部穿过（若不再成立，提纲 §5 的表述需要改）"
+    assert d_ph < 0.3 and res["lowitz"]["D"][kl] < Dp[k0] - 0.5
+
+
 def main():
     rng = np.random.default_rng(RNG_SEED)
     check_setup()
     res = check_families(rng)
     check_orbit(res, rng)
     check_mirror(rng)
+    check_containment(res)
     print("\n[小结] 维数：随机 3→2、片晶 1→1、柱晶 2→2、Parry 1→1、Lowitz 2→2（姿态族维数 → 天空像维数）；"
-          "单条 3-5 在片晶下只点亮 +侧（右幻日；片晶族在左右镜像下不封闭），12 条同类光路合起来左右对称")
+          "单条 3-5 在片晶下只点亮 +侧（右幻日；片晶族在左右镜像下不封闭），12 条同类光路合起来左右对称；"
+          "片晶像 ⊂ Lowitz 像、Parry 像 ⊂ Lowitz 像 ∩ 柱晶像，幻日在 Lowitz 像的下边上")
     print("OK")
 
 
