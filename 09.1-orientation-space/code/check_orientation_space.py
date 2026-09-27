@@ -1,5 +1,6 @@
 # 核验 9.1 番外提纲的数字：ZYZ 欧拉角均匀网格在极点过密（体积元 ∝ sinβ），柱晶族是嵌入 SO(3) 的环面 T²
-# 且 Haar 在其上诱导均匀测度，各姿态族的维数，以及 (u, θ) 坐标下 Haar = du dθ（u 均匀、θ 均匀、二者独立）。
+# 且 Haar 在其上诱导均匀测度，各姿态族的维数，(u, θ) 坐标下 Haar = du dθ（u 均匀、θ 均匀、二者独立），
+# 以及姿态族的包含关系（片晶、Parry ⊂ Lowitz 环面，Parry = 柱晶 ∩ Lowitz，D6 意义下）。
 import argparse
 import sys
 
@@ -199,11 +200,103 @@ def check_u_theta():
     assert abs(abs(winding) - 2) < 1e-6
 
 
+# 六方柱的转动对称群 D6（D6h 的转动子群，阶 12）：绕 c 轴 60°k，及 6 个绕水平体轴的 180° 翻转。
+# 姿态 R 与 RQ（Q ∈ D6）是同一个物理姿态（右乘 = 重贴面号）。镜面属 improper 部分，不作用于 SO(3)。
+D6_ATTITUDE = np.stack([Rz(60.0 * k) for k in range(6)] + [Rz(60.0 * k) @ np.diag([1.0, -1.0, -1.0]) for k in range(6)])
+
+
+def d6_index(Q):
+    """Q 在 D6_ATTITUDE 里的下标；不在群里返回 None。"""
+    d = np.abs(D6_ATTITUDE - Q).max(axis=(1, 2))
+    return int(np.argmin(d)) if d.min() < 1e-12 else None
+
+
+def check_containments():
+    """姿态族的包含关系。口径（Lumice doc/coordinate-convention.md §1/§5/§7，LI docs/ch11-pose-density-families.md §2）：
+    体轴 e1 = 面 3 法向，e2 = N1×N3 = 六边形顶角方向（长对角线），e3 = c 轴；
+      片晶   {R e3 = +z}
+      柱晶   {R e3 水平}                          = column_attitude(ψ, θ) 全体
+      Parry  {R e3 水平, R e1 = +z}（roll 锁 0）   = column_attitude(ψ, 180°)
+      Lowitz 环面 {R e2 水平}（roll ∈ {0, 180°}）  = R_z(φ)R_y(t)；LI / Lumice 的 Lowitz = roll 锁 0 的半环 t = −zenith ∈ [−180°, 0]
+    判定分两层：原始点集（不商对称）与 D6 意义下（允许右乘 Q ∈ D6）。"""
+    print("\n[5] 姿态族包含关系（原始点集 / D6 意义下）")
+    # (0) D6 自检：正交、det = +1、12 个两两不同、乘法封闭；且每个元素把六方柱 8 个面法向置换为自身（几何白盒）
+    idx = np.array([[d6_index(A @ B) for B in D6_ATTITUDE] for A in D6_ATTITUDE], dtype=object)
+    normals = np.array([Rz(60.0 * j)[:, 0] for j in range(6)] + [[0, 0, 1.0], [0, 0, -1.0]])
+    perm_ok = all(max(np.min(np.abs(normals - Q @ n).max(axis=1)) for n in normals) < 1e-12 for Q in D6_ATTITUDE)
+    ortho = max(np.abs(Q.T @ Q - np.eye(3)).max() for Q in D6_ATTITUDE)
+    dets = np.linalg.det(D6_ATTITUDE)
+    distinct = min(np.abs(D6_ATTITUDE[i] - D6_ATTITUDE[j]).max() for i in range(12) for j in range(i))
+    print(f"    D6 自检：max|QᵀQ−I| = {ortho:.1e}，det ∈ [{dets.min():.12f}, {dets.max():.12f}]，两两最小差 {distinct:.3f}，"
+          f"12×12 乘法表封闭 = {not any(v is None for v in idx.flat)}，面法向集合不变 = {perm_ok}")
+    assert ortho < 1e-12 and np.abs(dets - 1).max() < 1e-12 and distinct > 0.5
+    assert not any(v is None for v in idx.flat) and perm_ok
+    Rz180, flip_e2 = D6_ATTITUDE[3], D6_ATTITUDE[3] @ D6_ATTITUDE[6]           # 绕 c 轴 180°；绕 e2 翻转 180°
+    assert np.allclose(flip_e2, np.diag([-1.0, 1.0, -1.0]))
+
+    grid = np.arange(0.0, 360.0, 5.0)
+    lowitz = lambda p, t: Rz(p) @ Ry(t)
+    parry = np.stack([column_attitude(p, 180.0) for p in grid])
+    plate = np.stack([Rz(p) for p in grid])
+    dmin = lambda A, B: max(np.min(rotation_distances(a, B)) for a in A)     # A 每个点到点集 B 的最近距离，取最大
+    # (a) 片晶圆 = Lowitz 环面 t = 0 那一圈（摆角 0）；t = 180° 那一圈 = 片晶 · (绕 e2 翻转)，D6 意义下同一个片晶
+    d_plate = dmin(plate, np.stack([lowitz(p, 0.0) for p in grid]))
+    d_plate_flip = dmin(plate @ flip_e2, np.stack([lowitz(p, 180.0) for p in grid]))
+    print(f"    (a) 片晶 ⊂ Lowitz：片晶圆到 t=0 圈最大距离 {d_plate:.1e}；片晶·flip_e2 到 t=180° 圈 {d_plate_flip:.1e}")
+    assert d_plate < 1e-9 and d_plate_flip < 1e-9
+    # (b) Parry = Lowitz 环面 t = −90° 那一圈（roll 锁 0、zenith 摆到 90°），原始点集即成立，不需对称操作；
+    #     t = +90° 那一圈（roll = 180°，面 6 朝上）= Parry · R_z(180°)，是 D6 意义下的同一族
+    L_m90 = np.stack([lowitz(p, -90.0) for p in grid])
+    L_p90 = np.stack([lowitz(p, 90.0) for p in grid])
+    d_parry = max(dmin(parry, L_m90), dmin(L_m90, parry))
+    d_parry_flip = max(dmin(parry @ Rz180, L_p90), dmin(L_p90, parry @ Rz180))
+    d_parry_raw90 = dmin(parry, L_p90)
+    rolls = np.degrees([c_axis_roll(R) for R in L_m90])
+    print(f"    (b) Parry = Lowitz t=−90° 圈：Hausdorff 距离 {d_parry:.1e}（该圈 roll ∈ [{rolls.min():.1e}, {rolls.max():.1e}]°）；"
+          f"t=+90° 圈 = Parry·R_z(180°)：{d_parry_flip:.1e}（与 Parry 原始点集最近 {np.degrees(d_parry_raw90):.1f}°）")
+    assert d_parry < 1e-9 and d_parry_flip < 1e-9 and np.abs(rolls).max() < 1e-9 and np.degrees(d_parry_raw90) > 90
+    # (c) Parry ⊂ 柱晶环面：θ = 180° 那一圈，逐点 zenith = 90°、roll = 0°、R e1 = +z
+    zen = np.degrees([c_axis_zenith(R) for R in parry])
+    rl = np.degrees([c_axis_roll(R) for R in parry])
+    e1z = parry[:, 2, 0]
+    print(f"    (c) Parry ⊂ 柱晶（θ=180°）：max|zenith−90°| = {np.abs(zen - 90).max():.1e}°，max|roll| = {np.abs(rl).max():.1e}°，"
+          f"min (R e1)_z = {e1z.min():.12f}")
+    assert np.abs(zen - 90).max() < 1e-9 and np.abs(rl).max() < 1e-9 and np.abs(e1z - 1).max() < 1e-12
+    # (d) 柱晶 ∩ Lowitz 环面。柱晶点 column(ψ,θ) 在 Lowitz 环面上 ⇔ (R e2)_z = 0；解析 (R e2)_z = sin θ，与 ψ 无关
+    #     ⇒ 原始交集恰是 θ = 0°、180° 两圈 = Parry 与 Parry·R_z(180°)；LI / Lumice 的 roll 锁 0 半环只交出 Parry 一圈
+    fine = np.arange(0.0, 360.0, 0.5)
+    e2z = np.array([[column_attitude(p, t)[2, 1] for t in fine] for p in grid[::6]])
+    zero_th = fine[np.abs(e2z).max(axis=0) < 1e-9]
+    resid = np.abs(e2z - np.sin(np.radians(fine))[None]).max()
+    half = [float(t) for t in zero_th if np.abs(c_axis_roll(column_attitude(0.0, t))) < 1e-9]   # roll = 0 的那一半
+    print(f"    (d) 柱晶 ∩ Lowitz 环面：θ 步长 0.5° 扫描，(R e2)_z 与 sinθ 最大偏差 {resid:.1e}；"
+          f"(R e2)_z ≡ 0 的 θ = {zero_th.tolist()}°；其中 roll = 0（LI Lowitz 半环）的 θ = {half}°")
+    assert resid < 1e-12 and zero_th.tolist() == [0.0, 180.0] and half == [180.0]
+    #     D6 意义下：Lowitz 环面的 D6 像是 3 张环面 {R v 水平}（v = 3 条长对角线），各与柱晶交 2 圈，共 6 圈；
+    #     每一圈都是「某个柱面朝上」，逐点找到 Q ∈ D6 把它送回 Parry（R Q e1 = +z）
+    tori, n_circles, all_parry = set(), 0, True
+    for Q in D6_ATTITUDE:
+        v = Q @ np.array([0.0, 1.0, 0.0])
+        tori.add(tuple(np.round(v * np.sign(v[np.argmax(np.abs(v))]), 9)))
+    for v in tori:
+        v = np.array(v)
+        on = [t for t in fine if max(abs((column_attitude(p, t) @ v)[2]) for p in grid[::6]) < 1e-9]
+        n_circles += len(on)
+        for t in on:
+            for p in grid[::6]:
+                R = column_attitude(p, t)
+                all_parry &= any(abs((R @ Q)[2, 0] - 1) < 1e-12 and abs((R @ Q)[2, 2]) < 1e-12 for Q in D6_ATTITUDE)
+    print(f"    (d′) Lowitz 环面的 D6 像 {len(tori)} 张，与柱晶环面共交出 {n_circles} 圈；每圈逐点经某个 Q∈D6 落入 Parry = {all_parry}")
+    assert len(tori) == 3 and n_circles == 6 and all_parry
+    # (e) 随机 = 整个 SO(3)，以上全部平凡包含，不另核验
+    print("    (e) ⊂ 随机（= 整个 SO(3)）：平凡，不另核验")
+
+
 def main():
     argparse.ArgumentParser(description=__doc__).parse_args()
     smoke()
     checks = [("euler", check_euler), ("column", check_column), ("families", check_families),
-              ("u_theta", check_u_theta)]
+              ("u_theta", check_u_theta), ("containments", check_containments)]
     for name, fn in checks:
         try:
             fn()
