@@ -16,7 +16,7 @@ dependencies = ["numpy", "matplotlib", "lumice-integral"]
 # 跨机不可复现（URL 是本机路径）；LI 正式发版后另立任务把 URL 换成 GitHub + tag。
 # bump rev 前先 `git -C ~/Codes/Lumice\ Integral log --oneline -3` 核对目标 commit 已在 LI main，rev 写完整 sha。
 [tool.uv.sources]
-lumice-integral = { git = "file:///Users/zhangjiajie/Codes/Lumice%20Integral", rev = "97e77853b68ced064a1242f45fd93b83f20f3b40" }
+lumice-integral = { git = "file:///Users/zhangjiajie/Codes/Lumice%20Integral", rev = "e636dc9eda794fdcff3fa4daf189fd689a1447f5" }
 
 # 开发依赖走 PEP 735 dependency group：`uv sync` 默认装 dev 组，`uv run pytest` 直接可用
 [dependency-groups]
