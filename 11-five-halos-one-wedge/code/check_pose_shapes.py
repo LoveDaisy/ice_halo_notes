@@ -382,12 +382,13 @@ CONTAIN = (
     ("plate", "lowitz", lambda az: (az, np.zeros_like(az))),         # 片晶 = Lowitz 摆角 0 那一圈
     ("parry", "lowitz", lambda az: (az, np.full_like(az, 90.0))),    # Parry = Lowitz 摆到 90° 那一圈
     ("parry", "column", lambda az: (az, np.zeros_like(az))),         # Parry = 柱晶 roll = 0 那一条纬线
+    ("plate_flip", "lowitz", lambda az: (az, np.full_like(az, 180.0))),  # 翻面片晶 = Lowitz 摆到 180° 那一圈（[7] 的镜像伙伴）
 )
 PARENT_GRID = {
     "lowitz": dict(pose=lambda a, z: chain(a, z, 0.0), step=0.25, lo=(0.0, 0.125), hi=(360.0, 179.875)),
     "column": dict(pose=lambda a, r: chain(a, 90.0, r), step=0.25, lo=(0.0, 0.0), hi=(360.0, 359.75)),
 }
-CONTAIN_K = 2.0      # 容差 = K × 局部网格分辨率（2026-09-27 实测三条关系 d / r_loc 最大 0.93，留约 2 倍余量）
+CONTAIN_K = 2.0      # 容差 = K × 局部网格分辨率（2026-09-27 实测四条关系 d / r_loc 最大 0.93，留约 2 倍余量）
 CONTAIN_FLOOR = 0.3  # 全局固定容差（度）：统计超出它的样本份额，只报告不作判据
 
 
@@ -412,9 +413,12 @@ def check_containment(res):
     包含本身是必然的（同一个映射 R ↦ x(R) 作用在子集上）；数值要坐实的是：光学定义域（NaN 截断）没有把它破坏，
     以及片晶与 Lowitz 的接触方式——片晶像是 Lowitz 像的边，还是从中间穿过。"""
     print("\n[8] 包含关系搬到天空：子族像到父族像（sample_family 网格）的最近邻角距离")
+    kids = {k: (res[k]["x"], res[k]["params"][0]) for k in ("plate", "parry")}
+    az = np.arange(0, 360, 0.002)
+    xf = sky(chain(az, 180.0, 0.0))          # 翻面片晶（c 轴朝下）：单条 3-5 在它上面给左幻日（[7]）
+    kids["plate_flip"] = (xf[~np.isnan(xf[:, 0])], az[~np.isnan(xf[:, 0])])
     for child, parent, embed in CONTAIN:
-        xc = res[child]["x"]
-        az = res[child]["params"][0]
+        xc, az = kids[child]
         d = nearest_angle(xc, res[parent]["x"])
         g = PARENT_GRID[parent]
         r = local_resolution(g["pose"], *embed(az), g["step"], g["lo"], g["hi"])
@@ -463,6 +467,16 @@ def check_containment(res):
     assert np.all(up[edge]) and np.all(dz[edge] > 0)
     assert np.sum(up & down) > 0.1 * len(p), "拖尾外段应从 Lowitz 像内部穿过（若不再成立，提纲 §5 的表述需要改）"
     assert d_ph < 0.3 and res["lowitz"]["D"][kl] < Dp[k0] - 0.5
+    # 链的另一端：Lowitz 摆到 180° 是翻面片晶 ⇒ 单条 3-5 的 Lowitz 像（摆幅取全时）两个幻日都挂着；
+    # [7] 的镜像 ζ ↦ 180° − ζ 在这条摆动链上就是「绕 Parry（ζ = 90°）对折」
+    xf = kids["plate_flip"][0]
+    Df, paf = dist_pa(xf)
+    kf = int(np.argmin(Df))
+    d_left = float(np.degrees(np.arccos(np.clip(xl @ xf[kf], -1, 1))).min())
+    g_left = float(np.exp(-0.5 * (180.0 / LOWITZ_STD) ** 2))
+    print(f"  左幻日（翻面片晶像最近处 D = {Df[kf]:.2f}°、位置角 {paf[kf]:+.2f}°）到 Lowitz 像 {d_left:.3f}°：摆幅取全时单条 3-5 的"
+          f" Lowitz 像两端各挂一个幻日；但 ζ = 180° 处天顶角权重只有 ζ = 0 处的 {g_left:.0e}（LI 显著样本阈 1e-3 之下）")
+    assert d_left < 0.3 and abs(paf[kf] + res["plate"]["pa"][k0]) < 1e-3
 
 
 def main():
@@ -474,7 +488,7 @@ def main():
     check_containment(res)
     print("\n[小结] 维数：随机 3→2、片晶 1→1、柱晶 2→2、Parry 1→1、Lowitz 2→2（姿态族维数 → 天空像维数）；"
           "单条 3-5 在片晶下只点亮 +侧（右幻日；片晶族在左右镜像下不封闭），12 条同类光路合起来左右对称；"
-          "片晶像 ⊂ Lowitz 像、Parry 像 ⊂ Lowitz 像 ∩ 柱晶像，幻日在 Lowitz 像的下边上")
+          "片晶像（及翻面片晶像）⊂ Lowitz 像、Parry 像 ⊂ Lowitz 像 ∩ 柱晶像，幻日在 Lowitz 像的下边上")
     print("OK")
 
 
