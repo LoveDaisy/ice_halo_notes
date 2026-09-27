@@ -2,8 +2,11 @@
 # 3-5 在随机取向下的 22° 内缘是孤立非退化极小点（finite_jump，不算 Jacobian focusing）、五族密度下的标签、LI ch10
 # parallel-face 表（6 条光路 × 5 族）里只有 1-3-5-2 是 Jacobian focusing；与本仓闭式（halo_notes.math.wedge）交叉核对临界值；
 # 核对提纲转录的 LI 记录数字（docs/phase2.md 附录「Chapter-10 verdicts」）之间的算术自洽。不调任何 contour quadrature
-# （inner_edge / liljequist / parhelic_circle 的像素值不在本仓重算，见文末 [6] 清单）；142° 边缘（A60-10）的标签。约 10 s。
+# （inner_edge / liljequist / parhelic_circle 的像素值不在本仓重算，见文末 [6] 清单）；142° 边缘（A60-10）的标签；[7] ch9 锥晶三条
+# 族外光路的临界集分类，与 ch9 独立 MC 渲染峰位（现场读 09-pyramid/data）对照。约 15 s。
+import json
 import math
+from pathlib import Path
 
 import numpy as np
 
@@ -12,7 +15,7 @@ from lumice_integral import focusing
 from lumice_integral.canonical_scene import CANONICAL_REFRACTIVE_INDEX, canonical_crystal
 from lumice_integral.ch10_verdicts import A60_10_MEMBERS, A60_10_REFERENCE_DEG, ParallelFaceOptions
 from lumice_integral.dp_field import DPField
-from lumice_integral.geometry import halo_map_rank
+from lumice_integral.geometry import Pyramid, halo_map_rank
 from lumice_integral.pose_density import build_pose_density
 
 N = CANONICAL_REFRACTIVE_INDEX        # 1.31，与 LI ch10 裁定同一场景
@@ -25,13 +28,20 @@ LI_W_STAR = 1.444561
 LI_LEVEL_SET_LIMIT = 15.906128        # w* · 2π/√det H
 LI_LILJEQUIST_PEAK_DEG = 153.069685   # 「Chapter-10 verdicts rerun」：TIR 起始拐点，不是 D_P 临界值
 
+# [7] ch9 锥晶：几何档 = 09-pyramid/code/_ch9_sim.py 的 TIER (h/a, tip_ratio) = (1, 0.5)，c/a 取 LI 默认（与 ch9 渲染同一换算，
+# 见 halo_notes/sim/config.py pyramid_shape）；与 LI explore ch9-offfamily-focusing 探针逐字一致
+PYRAMID_TIER = (1.0, 0.5)
+# ch9 独立 MC 渲染（Lumice，D65 全谱、1° 分桶）的峰位：单一权威是这份 JSON，脚本现场读、不转录
+CH9_TOP3 = Path(__file__).resolve().parents[2] / "09-pyramid" / "data" / "odd_radius_top3.numbers.json"
+CH9_PEAK_TOL_DEG = 1.0                # = 渲染分桶宽度 observed_peak.bin_deg；另含 n = 1.31 单色 vs D65 全谱的色散展宽
+
 
 def deg(x):
     return float(np.degrees(x))
 
 
 def check_setup():
-    """[0] 环境：LI 包含 focusing / ch10_verdicts（本仓 pyproject 钉的 LI rev ≥ 97e7785）。"""
+    """[0] 环境：LI 包含 focusing / ch10_verdicts（本仓 pyproject 钉的 LI rev ≥ 97e7785；[7] 锥晶面号需 ≥ e636dc9 的 optics 读晶体法向）。"""
     print("[0] setup")
     crystal = canonical_crystal()
     print(f"  LI canonical crystal {type(crystal).__name__}，n = {N}；ParallelFaceOptions 族参数（LI 单一权威，不另抄）：")
@@ -147,6 +157,46 @@ def check_a60_10(crystal, d_closed):
           "但强度未分类；没有内部临界点")
 
 
+def check_pyramid_offfamily():
+    """[7] ch9 开放问题：同为族外折叠楔，13-15-26-28 有锐环、13-24-26 弥散、13-5-26-28 居中——看 D_P 在可行域内部的临界点。"""
+    tier = PYRAMID_TIER
+    crystal = Pyramid(a=1.0, h=tier[0], tip_ratio=tier[1])
+    top3 = json.loads(CH9_TOP3.read_text())
+    assert tuple(top3["tier"]) == tier
+    rendered = {v["raypath"]: v["observed_peak"] for v in top3["paths"].values()}
+    wedge = {v["raypath"]: v["wedge_deg"] for v in top3["paths"].values()}
+    print(f"\n[7] ch9 锥晶 (h/a, tip_ratio) = {tier} × random：族外 top-3 的临界集 vs ch9 渲染峰位（{CH9_TOP3.name}）")
+    got = {}
+    for label in ("13-15-26-28", "13-5-26-28", "13-24-26"):
+        faces = tuple(int(f) for f in label.split("-"))
+        r = focusing.classify(crystal, faces, build_pose_density("random"), N)
+        interior = [o for o in r.onsets if o.location == "interior"]
+        n_boundary = sum(o.location == "boundary" for o in r.onsets)
+        assert all(o.profile == "boundary_onset" for o in r.onsets if o.location == "boundary")
+        obs = rendered[label]
+        print(f"  {label:12s} 楔角 {wedge[label]:4.1f}°  mechanism = {r.mechanism:8s} 边界临界值 {n_boundary} 个（全是 boundary_onset）；内部: "
+              + (", ".join(f"{deg(o.value):.6f}° {o.source}/{o.profile}" for o in interior) or "无"))
+        line = f"               渲染峰 {obs['peak_deg']}°（峰/背景 {obs['ratio']:.3f}，detected = {obs['detected']}）"
+        if interior:
+            line += f"，差 {deg(interior[0].value) - obs['peak_deg']:+.3f}°"
+            if interior[0].measure_limit is not None:
+                line += f"；measure_limit = 2π/√det H = {interior[0].measure_limit:.6f}（有限 ⇒ 跃变，不发散）"
+        print(line)
+        got[label] = (r, interior, obs)
+
+    r, interior, obs = got["13-15-26-28"]            # 内部非退化极大 ⇒ 有限跃变的锐环
+    assert len(interior) == 1 and interior[0].source == "interior_maximum" and interior[0].profile == "finite_jump"
+    assert obs["detected"] and abs(deg(interior[0].value) - obs["peak_deg"]) < CH9_PEAK_TOL_DEG
+    assert deg(interior[0].value) < 180.0              # D_P 到不了 180°：反日点在环内是暗的
+    r, interior, obs = got["13-5-26-28"]             # 内部鞍点 ⇒ 对数发散，弱，被多个边界临界值稀释
+    assert len(interior) == 1 and interior[0].source == "interior_saddle" and interior[0].profile == "log_divergence"
+    assert r.mechanism == "jacobian" and abs(deg(interior[0].value) - obs["peak_deg"]) < CH9_PEAK_TOL_DEG
+    r, interior, obs = got["13-24-26"]               # 无内部临界点 ⇒ 弥散；渲染「峰」本就未过判据
+    assert not interior and r.mechanism == "none" and not obs["detected"]
+    print("  ⇒ 锐 / 弧 / 弥散三档由 D_P 在可行域内部有没有临界点、是极值还是鞍点决定（本篇主线的直接例证）；"
+          "三条的临界值与渲染峰吻合在 1° 分桶内，13-24-26 的渲染「峰」不对应任何临界值；楔角（折叠矩阵的旋转角）不进这个判断")
+
+
 def report_unverified():
     """[6] 提纲引用、本脚本不核的 LI 数字（需重跑 contour quadrature，issue 明确不在本仓重算）。"""
     print("\n[6] 仅转录引用、未在本仓核验（出处：LI docs/phase2.md 附录「Chapter-10 verdicts」/「… rerun」）")
@@ -166,6 +216,7 @@ def main():
     check_families(crystal, field)
     check_table(crystal)
     check_a60_10(crystal, d_closed)
+    check_pyramid_offfamily()
     report_unverified()
     print("OK")
 
