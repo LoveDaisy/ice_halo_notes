@@ -33,7 +33,7 @@ ch11 = load("_check_pose_shapes", ROOT / "11-five-halos-one-wedge/code/check_pos
 CRYSTAL = HexPrism()
 PATH = (3, 5)
 M = fold_matrix(CRYSTAL, list(PATH))
-N = tape.N_ICE                      # 1.31，与 Tricker 1970 书 p.72「yellow light 1·31」同值
+N = tape.N_ICE                      # 1.31，与 Tricker 1970 书 p.74「yellow light 1·31」同值
 ALPHA = 60.0
 
 
@@ -191,7 +191,7 @@ def check_tangent_arc():
     print(f"    {n_pts} 个最小偏折点：Tricker 公式 vs 本系列数值极小，(Δ, σ) 最大差 {max_cl:.2e}°；"
           f"同一姿态 TK1999 光点公式 vs Φ = M∘W 光点 {np.degrees(max_tape):.2e}°")
     print(f"    书 p.112–113 印出的 Table IV:3（Σ = 0/10/20/30°，53 行 × (e, σ0+e, σ0−e)）vs 精确几何：常规行最大差 {tab['regular']:.1f}′；"
-          f"θ = 65° 一行 {tab[65]:.1f}′（σ0 印 5°45′，四档一致偏小）；掠出射端点行 {tab['end']:.1f}′（端点对 θ 极敏感：θ 从 29°14.8′ 到 29°15′，"
+          f"θ = 65° 一行 {tab[65]:.1f}′（σ0 印 5°45′、精确 5°38.7′，四档一致偏大）；掠出射端点行 {tab['end']:.1f}′（端点对 θ 极敏感：θ 从 29°14.8′ 到 29°15′，"
           f"D 就从 120° 掉到 {pernter_D_Delta(dm(29, 15))[0]:.2f}°）")
     assert max_cl < 1e-6 and np.degrees(max_tape) < 1e-9 and tab["regular"] < 3.0 and tab[65] < 8.0
     # θ = 90°：轴与太阳垂直 ⇒ 切点在太阳正上 / 正下，Δ = 22° 晕半径
@@ -201,7 +201,7 @@ def check_tangent_arc():
         print(f"    Σ = {sigma:>2}°，θ = 90°：两个极小的位置角 {pa[0]:.2e}° / {pa[1]:.9f}°，Δ = "
               f"{polar(H[0], sigma)[0]:.6f}°（D_min(60°) = {tape.min_deviation_tk(ALPHA, N):.6f}°）")
         assert pa[0] < 1e-6 and abs(pa[1] - 180) < 1e-6
-    # 书 p.105 Table IV:2 与 p.112 Table IV:3 的 σ0 列同名同义（Σ = 0 时的 σ），却前五行不一致——哪边对
+    # 书 p.109 Table IV:2 与 p.112 Table IV:3 的 σ0 列同名同义（Σ = 0 时的 σ），首行差 46′、其余 ≤ 7′——哪边对
     tab2 = [(dm(22, 10), dm(2, 45)), (dm(23, 4), dm(4, 20)), (dm(24, 49), dm(7, 18)), (dm(27, 38), dm(11, 53)),
             (dm(32, 26), dm(20, 10))]
     theta_of = {round(De, 4): t for t, _, De in TABLE_IV1}
