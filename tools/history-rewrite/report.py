@@ -29,13 +29,13 @@ def main(argv=None) -> int:
          f"- 保留集：{filt['oid']['keep_paths']} 个路径 / {filt['oid']['keep_oids']} 个 oid（`keep/keep_paths.txt`、`keep/keep_oids.txt`）",
          "- 真实仓 refs 演练前后 sha256 一致（rehearse.sh 末尾断言）", "",
          "## 体量对比", "",
-         "| | 提交数（main） | 全部 refs 提交数 | LFS 对象 | LFS 总量 MB | 普通 blob MB | git 包 KiB |",
-         "|---|---|---|---|---|---|---|"]
+         "| | 提交数（main） | 全部 refs 提交数 | LFS 对象 | LFS 总量 MB | 本地缺的 LFS 对象 | 普通 blob MB | git 包 KiB |",
+         "|---|---|---|---|---|---|---|---|"]
     rows = [("mirror 全部 refs（重写前）", allb), ("只留 main（重写前，已 gc）", before),
             ("重写后：oid 精确保留（默认）", after["oid"]), ("重写后：仅按路径保留", after["path"])]
     for name, m in rows:
         L.append(f"| {name} | {m['commits_rev']} | {m['commits_all']} | {m['lfs_unique_objects']} | {m['lfs_total_mb']} | "
-                 f"{m['plain_blob_total_mb']} | {m['git_pack_kib']} |")
+                 f"{len(m['lfs_missing_local'])} | {m['plain_blob_total_mb']} | {m['git_pack_kib']} |")
     L += ["", "## filter 统计", ""]
     for m in ("oid", "path"):
         f = filt[m]

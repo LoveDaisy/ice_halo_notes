@@ -43,6 +43,8 @@ def measure(repo: Path, rev: str, follow: list[str], gc: bool) -> dict:
             lfs[oid] = size
         else:
             plain.append((real, objs[sha], sha))
+    store = repo / "lfs" / "objects" if (repo / "lfs").is_dir() or not (repo / ".git").exists() else repo / ".git" / "lfs" / "objects"
+    missing = sorted(o for o in lfs if not (store / o[:2] / o[2:4] / o).is_file())
     count = {k: v for k, v in (ln.split(": ") for ln in git(repo, "count-objects", "-v").splitlines())}
     out = {
         "rev": rev,
@@ -51,6 +53,7 @@ def measure(repo: Path, rev: str, follow: list[str], gc: bool) -> dict:
         "refs": git(repo, "for-each-ref", "--format=%(refname)").split(),
         "lfs_unique_objects": len(lfs),
         "lfs_total_mb": round(sum(lfs.values()) / 1e6, 2),
+        "lfs_missing_local": missing,
         "plain_blob_total_mb": round(sum(s for s, _, _ in plain) / 1e6, 2),
         "git_pack_kib": int(count.get("size-pack", 0)) + int(count.get("size", 0)),
         "top_plain_blobs": [{"size": s, "path": p} for s, p, _ in sorted(plain, reverse=True)[:10]],
@@ -74,7 +77,7 @@ def main(argv=None) -> int:
     m = measure(a.repo, a.rev, a.follow, a.gc)
     a.out.write_text(json.dumps(m, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"{a.repo.name}: {m['commits_rev']} commits on {a.rev}, LFS {m['lfs_unique_objects']} 个 / {m['lfs_total_mb']} MB, "
-          f"普通 blob {m['plain_blob_total_mb']} MB, pack {m['git_pack_kib']} KiB")
+          f"本地缺 {len(m['lfs_missing_local'])} 个，普通 blob {m['plain_blob_total_mb']} MB, pack {m['git_pack_kib']} KiB")
     return 0
 
 
