@@ -367,6 +367,9 @@ def blob_real_sizes(shas: Iterable[str], root: Path = REPO_ROOT) -> Dict[str, Tu
     for sha in shas:
         nl = buf.index(b"\n", pos)
         header = buf[pos:nl].split()
+        if header[-1] == b"missing":      # gitlink / 子模块条目等本仓没有的对象：不计体积
+            pos = nl + 1
+            continue
         size = int(header[2])
         data = buf[nl + 1:nl + 1 + min(size, 1024)]
         pos = nl + 1 + size + 1
@@ -451,7 +454,10 @@ def changed_blobs(root: Path, commits: Iterable[str]) -> Set[Tuple[str, str]]:
 def check_push(lines: Iterable[str], root: Path = REPO_ROOT, env: Optional[Dict[str, str]] = None) -> Tuple[int, List[str]]:
     """pre-push 核对；返回 ``(退出码, 输出行)``。"""
     env = dict(os.environ if env is None else env)
-    budget = float(env.get("SLIM_PUSH_BUDGET_MB") or PUSH_BUDGET_MB)
+    try:
+        budget = float(env.get("SLIM_PUSH_BUDGET_MB") or PUSH_BUDGET_MB)
+    except ValueError:
+        raise ValueError(f"SLIM_PUSH_BUDGET_MB 不是数字：{env.get('SLIM_PUSH_BUDGET_MB')!r}") from None
     file_max = PUSH_FILE_MAX_MB
     exts = media_exts(root)
     problems: List[str] = []
@@ -543,7 +549,17 @@ def _cmd_check_tree(root: Path) -> int:
 
 
 def _cmd_check_push(root: Path) -> int:
-    code, msg = check_push(sys.stdin.read().splitlines(), root)
+    try:
+        code, msg = check_push(sys.stdin.read().splitlines(), root)
+    except Exception as e:                # 内部错误 fail-closed，但 SLIM_PUSH_OVERRIDE 仍可放行
+        override = os.environ.get("SLIM_PUSH_OVERRIDE", "").strip()
+        if override:
+            print(f"repo-slim pre-push 体积闸：内部错误（{type(e).__name__}: {e}），已被 SLIM_PUSH_OVERRIDE 放行（理由：{override}）",
+                  file=sys.stderr)
+            return 0
+        print(f"repo-slim pre-push 体积闸：内部错误（{type(e).__name__}: {e}）；这不是体积违规，"
+              "确需推送请设 SLIM_PUSH_OVERRIDE=\"<理由>\"", file=sys.stderr)
+        return 1
     for m in msg:
         print(m, file=sys.stderr)
     return code

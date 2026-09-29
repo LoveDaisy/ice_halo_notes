@@ -49,6 +49,8 @@ def main(argv=None) -> int:
     kept_large_text: dict[str, int] = {}
     kept_versions: dict[str, set] = defaultdict(set)
     fallbacks: list[dict] = []
+    nonmedia_keep_paths: dict[str, int] = defaultdict(int)   # keep_paths 中非媒体路径 → 出现的 change 数
+    nonmedia_dropped: dict[str, int] = defaultdict(int)      # 其中被 classify 丢弃的 change 数（HEAD 引用的代码 / 文本理应为 0）
 
     def blob_cb(blob, _meta):
         ptr = layout.parse_lfs_pointer(blob.data) if len(blob.data) <= 1024 else None
@@ -68,15 +70,20 @@ def main(argv=None) -> int:
             verdict, why = layout.classify(path, keep_paths, size, exts, lfs=is_ptr)
             if a.mode == "oid" and oid in keep_oids:
                 verdict, why = "keep", "内容 oid 在 HEAD 保留集"
-            elif a.mode == "oid" and path in keep_paths:
+            elif a.mode == "oid" and path in keep_paths and (is_ptr or path.lower().endswith(exts)):
+                # oid 严格保留只作用于媒体（LFS pointer 或扩展名 ∈ media_exts）；被 md 链接的代码 / 文本保留全部版本
                 verdict, why = "ignore", "HEAD 引用路径的旧版本（oid 不在 keep 集）"
             if verdict == "keep" and not is_ptr and size is not None and size > a.report_bigger_than:
                 large_kept[path] = max(large_kept.get(path, 0), size)
+            if a.mode == "oid" and path in keep_paths and not (is_ptr or path.lower().endswith(exts)):
+                nonmedia_keep_paths[path] += 1
+                if verdict != "keep":
+                    nonmedia_dropped[path] += 1
             if verdict == "keep":
                 keep.append(fc)
                 stats["kept_changes"] += 1
                 kept_versions[path].add(oid)
-                if path.split("/")[1:2] == ["data"] and size and size > 256 * 1024:
+                if path.split("/")[1:2] == ["data"] and size and size > 256 * 1024 and size <= layout.DATA_TEXT_MAX_BYTES:
                     kept_large_text[path] = max(kept_large_text.get(path, 0), size)
             else:
                 stats["dropped_changes"] += 1
@@ -101,7 +108,9 @@ def main(argv=None) -> int:
         "dropped_paths": len(dropped),
         "dropped_top": sorted(({"path": p, **v} for p, v in dropped.items()), key=lambda d: -d["max_size"])[:30],
         "large_kept_plain_blobs": sorted(large_kept.items(), key=lambda kv: -kv[1]),
-        "kept_data_text_256k_1m": sorted(kept_large_text.items()),
+        "kept_data_text_256k_to_limit": sorted(kept_large_text.items()),
+        "keep_paths_nonmedia": sorted(nonmedia_keep_paths.items()),
+        "keep_paths_nonmedia_dropped_changes": sum(nonmedia_dropped.values()),
         "fallbacks": fallbacks,
         "paths_with_multiple_kept_versions": sorted(p for p, v in kept_versions.items() if len(v) > 1),
     }

@@ -50,9 +50,9 @@ def main(argv=None) -> int:
             L.append(f"  - 回落：`{fb['path']}` @ {fb['commit'][:10] if fb['commit'] else '?'}（{fb['why']}）")
         if len(f["fallbacks"]) > 40:
             L.append(f"  - …… 另 {len(f['fallbacks']) - 40} 处见 filter-{m}.json")
-        if f["kept_data_text_256k_1m"]:
+        if f["kept_data_text_256k_to_limit"]:
             L += ["", "  256 KB – 1 MB 之间被保留的历史 data 文本（供作者过目）："]
-            L += [f"  - `{p}` {s} B" for p, s in f["kept_data_text_256k_1m"]]
+            L += [f"  - `{p}` {s} B" for p, s in f["kept_data_text_256k_to_limit"]]
         L.append("")
         L += ["  丢弃体量最大的路径（前 15）：", ""]
         L += [f"  - `{d['path']}` ×{d['count']}，最大 {d['max_size'] / 1e6:.2f} MB（{d['why']}）" for d in f["dropped_top"][:15]]
