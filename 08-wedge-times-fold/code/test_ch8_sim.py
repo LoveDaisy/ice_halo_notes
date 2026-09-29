@@ -54,7 +54,7 @@ def test_azimuth_profile_bins_pixel_energy_without_cos_weight():
     assert h_high.sum() == pytest.approx(h_low.sum())
 
 
-# task-math-depend-on-lumice-integral 迁移前（main 8e8a74b，本仓 halo_notes.math.reflection_group.pbd_orbit）跑出的
+# task-math-depend-on-lumice-integral 迁移前（main b97d731，本仓 halo_notes.math.reflection_group.pbd_orbit）跑出的
 # phi_class_filters("A60-10", 0.2) 代表序列，按返回顺序（子过滤器 id 2, 3, … 依此分配）；B2 config 只锁集合，这里连顺序一起锁。
 A60_10_RATIO_02_MAIN = tuple(tuple(map(int, s.split("-"))) for s in (
     "3-4-5-7", "3-5-6-7", "3-1-2-5-6-7", "3-1-4-5-2-7", "3-1-5-2-6-7", "3-1-5-6-2-7",
