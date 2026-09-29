@@ -5,7 +5,7 @@
 # 帧中心 = `_pose_to_sky.backdrop_center(k)`（该行参考点与三个样本天空点质心的角平分方向，Lumice globe 语义
 # view = (az + 180°, −el) 由 `globe_view_for` 换算），同一套 30° 经纬网格；1000×1000。正式图脚本读这两张 png 作底、用
 # `halo_notes.sim.projection.project` 把样本点 / 公式曲线投到同一像素坐标叠加，对齐核验见 test_figures（7.5）。
-# 不是章节插图，所以不落 img/，只落 data/（LFS）；光线数与图 6 相同（2×10⁸，每张 ~40 s）。
+# 不是章节插图，所以不落 img/，只落 data/（只留本地、不入 git）；光线数与图 6 相同（2×10⁸，每张 ~40 s）。
 import sys
 from pathlib import Path
 

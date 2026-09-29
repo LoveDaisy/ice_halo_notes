@@ -1,6 +1,6 @@
 """task-draw-ch9-figs：ch9 十一张正文插图的机械核验——**唯一权威位置**（每图一条语义断言，fig 脚本不再内联重复判据）。
 被检量都由对应 `fig_*.py` / `_ch9_fig.py` 里的纯函数给出，这里只 import 调用、断言正文图题的语义；图面美观不在此列（owner 签核）。
-不跑 Lumice：图 4/5/6/9/10 读返工 R1 入库的天顶渲染（`data/zenith/*.zip`），图 8 读上一轮入库渲染，图 11 读已入库的 `data/plate_arcs*` 产物。"""
+不跑 Lumice：图 4/5/6/9/10 读返工 R1 的天顶渲染（`data/zenith/*.zip`），图 8 读上一轮渲染，图 11 读 `data/plate_arcs*` 产物——都只留本地，缺失时 `local_data` 测试 skip。"""
 
 from __future__ import annotations
 

@@ -5,7 +5,7 @@
 # 输出用 Lumice `--format npy`（未曝光线性 XYZ float32）：弧的判据要在同一把「相对背景」的尺子上量，8-bit png 装不下弧与背景之间 4 个量级的
 # 动态范围。npy 渲染走 `halo_notes.sim.run.render(fmt="npy")` + `_ch9_fig.load_npy_render`（与返工 R1 的
 # 天顶渲染共用一份实现），provenance 字段与 `run.render` 同形（版本 / 二进制 sha256 / config sha256 / 墙钟 / 命令行）。npy 不在 LFS 规则里，三份打成
-# `data/plate_arcs.zip`（确定性 zip，走 LFS），`data/plate_arcs/mh<k>/` 只留 config / provenance / lumice.log / img_01.json。
+# `data/plate_arcs.zip`（确定性 zip，只留本地、不入 git），`data/plate_arcs/mh<k>/` 只留 config / provenance / lumice.log / img_01.json。
 # 「结构数」判据沿用探针（机械核验用，不进图面）：像素辐亮度（Y / cos(lat)，`_ch9_fig.linear_radiance`）除以太阳 2° 外中位数得对比度，
 # log10 对比度 ≥ ARC_LOG_CONTRAST 的像素做 8 邻接连通域，面积 ≥ MIN_PX 的计一个结构，PCA 主 / 次轴比 ≥ ARC_ELONGATION 的计「弧状」。
 # 显示：XYZ → 线性 sRGB，亮度按 log10(对比度) / DISPLAY_DECADES 映射到 0–1（背景 = 黑、10^DISPLAY_DECADES 倍背景 = 满），保留色度。
