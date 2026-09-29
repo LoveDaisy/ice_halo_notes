@@ -17,7 +17,10 @@ from typing import Any, Mapping
 
 from .fetch import LUMICE_VERSION, ensure_lumice, sha256_of
 
-IMAGE_SUFFIXES = (".png", ".jpg", ".jpeg")
+IMAGE_SUFFIXES = (".png", ".jpg", ".jpeg", ".npy")
+FORMATS = ("png", "jpg", "npy")
+# Lumice 的 `--backend metal` 不可用时会静默回落 CPU；真走了 Metal 时日志里同时有这两句（v4.6.1 实测）
+METAL_MARKERS = ("routing via MetalTraceBackend", "gpu_route=true")
 
 
 class LumiceError(RuntimeError):
@@ -51,9 +54,11 @@ def render(
     quality: int | None = None,
     bin: Path | None = None,
 ) -> RenderResult:
-    """跑一次 Lumice。``out_dir`` 会被创建；图片按 Lumice 命名（``img_01.<fmt>`` …，与 ``render`` 段顺序一致）。"""
-    if fmt not in ("png", "jpg"):
-        raise ValueError(f"fmt 只能是 png/jpg，收到 {fmt!r}")
+    """跑一次 Lumice。``out_dir`` 会被创建；图片按 Lumice 命名（``img_01.<fmt>`` …，与 ``render`` 段顺序一致）。
+    ``fmt="npy"`` 得到未曝光的线性 XYZ 累加器 ``(H, W, 3)``，同名 ``img_XX.json`` sidecar（含 ``emitted_energy``）由 Lumice 写在旁边。
+    ``backend="metal"`` 时核对日志确实走了 Metal，没走（静默回落 CPU）抛 :class:`LumiceError`；结果记入 ``provenance["gpu_route"]``。"""
+    if fmt not in FORMATS:
+        raise ValueError(f"fmt 只能是 {'/'.join(FORMATS)}，收到 {fmt!r}")
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     binary = Path(bin) if bin is not None else ensure_lumice()
@@ -81,6 +86,10 @@ def render(
         tail = "\n".join(log_path.read_text().splitlines()[-30:])
         raise LumiceError(f"Lumice 退出码 {proc.returncode}（命令 {' '.join(cmd)}）；log 尾部：\n{tail}")
 
+    gpu_route = all(m in proc.stdout + proc.stderr for m in METAL_MARKERS)
+    if backend == "metal" and not gpu_route:
+        raise LumiceError(f"要求 --backend metal，但日志里没有走 Metal（回落 CPU？），见 {log_path}")
+
     images = sorted(p for p in out_dir.iterdir() if p.suffix.lower() in IMAGE_SUFFIXES)
     if not images:
         raise LumiceError(f"Lumice 退出码 0 但 {out_dir} 下没有新图片；log：{log_path}")
@@ -94,6 +103,7 @@ def render(
         "platform": f"{platform.system()} {platform.release()} {platform.machine()}",
         "workers": workers,
         "backend": backend,
+        "gpu_route": gpu_route,
         "format": fmt,
         "cli_args": cmd[1:],
         "images": [p.name for p in images],

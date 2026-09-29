@@ -193,3 +193,24 @@ def test_rectangular_projection_and_its_inverse():
     assert np.abs(uv - np.column_stack([j.ravel() + 0.5, i.ravel() + 0.5])).max() < 1e-9
     assert np.allclose(wgt[180, :], np.cos(np.radians(0.25))) and wgt[0, 0] < 0.01
     assert np.allclose(np.linalg.norm(dirs, axis=-1), 1.0)
+
+
+def test_rectangular_pixel_directions_matches_3d_matmul_at_small_res():
+    """2-D reshape 实现与原 (H, W, 3) @ R.T 逐元素一致。"""
+    render = {"lens": {"type": "rectangular"}, "resolution": [96, 48], "view": {"azimuth": 30, "elevation": 20, "roll": 10}}
+    d, w = rectangular_pixel_directions(render)
+    w_, h_ = 96, 48
+    scale = min(w_ // 2, h_) / np.pi
+    j, i = np.meshgrid(np.arange(w_), np.arange(h_))
+    lon, lat = (j + 0.5 - w_ / 2.0) / scale, -(i + 0.5 - h_ / 2.0) / scale
+    c = np.stack([-np.cos(lat) * np.sin(lon), -np.sin(lat), np.cos(lat) * np.cos(lon)], axis=-1)
+    np.testing.assert_allclose(d, c @ camera_rotation(render["view"]).T, atol=1e-14)
+    np.testing.assert_allclose(w, np.cos(lat))
+
+
+def test_rectangular_pixel_directions_repeated_full_size_calls_do_not_crash():
+    """numpy 2.5.3 + Accelerate 下 3-D matmul 在 2880×1440 第 2–3 次调用 SIGSEGV；连调 4 次（进程崩了整个 pytest 挂）。"""
+    render = {"lens": {"type": "rectangular"}, "resolution": [2880, 1440], "view": {"elevation": 30}}
+    for _ in range(4):
+        d, _w = rectangular_pixel_directions(render)
+        assert d.shape == (1440, 2880, 3)

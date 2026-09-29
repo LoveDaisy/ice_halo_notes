@@ -6,7 +6,7 @@
 #   remainder：参考几何，9 族 ≤ 4 面全部代表 `filter_out`（族外多次反射 + 单面外反射）；
 #   w52.4 / w56 / w60 / w62 / w63.8：参考几何，只留 18° / 20° / 22° / 23° / 24° 晕一族（w56 / w60 / w62 返工 R2 补渲，图 8 与图 6 同源）；
 #   13-15-26-28：参考几何，只留这一条族外光路（PBD 对称像全留）。
-# 渲染走 Lumice release（`_ch9_sim.ensure_lumice_version()`，拒绝 LUMICE_BIN）+ `--backend metal`（`_ch9_fig.run_lumice_npy` 核对日志里真走了
+# 渲染走 Lumice release（`_ch9_sim.ensure_lumice_version()`，拒绝 LUMICE_BIN）+ `--backend metal`（`halo_notes.sim.run.render` 核对日志里真走了
 # Metal，回落 CPU 即报错）；两种投影全天总能量一致性闸（< 2%）在打包时硬断言（`_ch9_fig.pack_dual`）。
 # Lumice 是无固定 seed 的 MC，重渲不逐字节复现（`--seed` 会把 GPU 路线降成单线程，不用）。
 # 用法：`uv run python 09-pyramid/code/render_zenith.py [scene ...]`（缺省全部十景）。
@@ -17,6 +17,7 @@ import json
 
 import _ch9_fig as F
 import _ch9_sim as S
+from halo_notes.sim import run
 
 TIER_H3, TIER_H03 = (3.0, 0.25), (0.3, 0.85)
 TOP_PATH = (13, 15, 26, 28)
@@ -46,8 +47,9 @@ def render(scene: str, ray_num: int = F.ZENITH_RAY_NUM) -> dict:
     crystal, filters = SCENES[scene]()
     cfg = F.dual_config(crystal, filters, ray_num=ray_num)
     out = F.DATA / "zenith" / scene
-    arrays, sidecars = F.run_lumice_npy(cfg, out, binary, backend=F.ZENITH_BACKEND)
-    prov = json.loads((out / "provenance.json").read_text())
+    res = run.render(cfg, out, fmt="npy", backend=F.ZENITH_BACKEND, bin=binary)     # backend=metal 回落 CPU 时 render 直接抛 LumiceError
+    arrays, sidecars = F.load_npy_render(res)
+    prov = res.provenance
     extra = {"scene": scene, "tier": list(TIERS.get(scene, S.TIER)), "ray_num": ray_num, "max_hits": 4, "sun_alt": F.ZENITH_SUN_ALT,
              "filter_paths": sorted("-".join(map(str, p)) for p in S.filter_paths(filters)) if filters else [],
              "filter_action": filters[0].get("action", "filter_in") if filters else None,

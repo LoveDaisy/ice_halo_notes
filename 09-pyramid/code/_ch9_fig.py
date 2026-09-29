@@ -174,9 +174,6 @@ def mark_radii(ax, radii, *, labels: dict | None = None, color: str = PAL["ink_f
 
 import io  # noqa: E402
 import json  # noqa: E402
-import platform  # noqa: E402
-import subprocess  # noqa: E402
-import time  # noqa: E402
 import zipfile  # noqa: E402
 
 ZENITH_SUN_ALT = 90.0
@@ -188,43 +185,14 @@ F16_PEAK = 60000.0
 ENERGY_CONSISTENCY_TOL = 0.02
 
 
-def run_lumice_npy(config: dict, out_dir: Path, binary: Path, *, backend: str | None = None) -> tuple[list[np.ndarray], list[dict]]:
-    """跑一次 Lumice（`--format npy`，raw），落 config / lumice.log / provenance.json / img_XX.json，返回每个 render unit 的
-    ``(H, W, 3)`` XYZ 与 sidecar（npy 本身读进内存后删掉，由调用方打包）。``backend="metal"`` 时核对日志里确实走了 Metal
-    （Lumice 的 `--backend metal` 不可用时会**静默**回落 CPU），没走就报错。`halo_notes.sim.run.render` 只收 png / jpg，
-    这是本章 npy 渲染的唯一实现（fig_plate_arcs 与返工 R1 的天顶渲染共用）；run.render 支持 npy 后删掉（backlog）。"""
-    from halo_notes.sim.fetch import LUMICE_VERSION, sha256_of
-    from halo_notes.sim.run import config_sha256
-
-    out_dir.mkdir(parents=True, exist_ok=True)
-    cfg_path = out_dir / "config.json"
-    cfg_path.write_text(json.dumps(config, indent=2, ensure_ascii=False) + "\n")
-    cmd = [str(binary), "-f", str(cfg_path), "-o", str(out_dir), "--format", "npy"]
-    if backend is not None:
-        cmd += ["--backend", backend]
-    t0 = time.monotonic()
-    proc = subprocess.run(cmd, capture_output=True, text=True)
-    wall = time.monotonic() - t0
-    (out_dir / "lumice.log").write_text(f"$ {' '.join(cmd)}\n--- stdout ---\n{proc.stdout}\n--- stderr ---\n{proc.stderr}\n")
-    if proc.returncode != 0:
-        raise RuntimeError(f"Lumice 退出码 {proc.returncode}，见 {out_dir / 'lumice.log'}")
-    log = proc.stdout + proc.stderr
-    gpu = "routing via MetalTraceBackend" in log and "gpu_route=true" in log
-    if backend == "metal" and not gpu:
-        raise RuntimeError(f"要求 --backend metal，但日志里没有走 Metal（回落 CPU？），见 {out_dir / 'lumice.log'}")
-    n = len(config["render"])
+def load_npy_render(res) -> tuple[list[np.ndarray], list[dict]]:
+    """``halo_notes.sim.run.render(fmt="npy")`` 的结果 → 每个 render unit 的 ``(H, W, 3)`` XYZ 与 sidecar（``img_XX.json``）；
+    npy 读进内存后删掉，由调用方打包。"""
     arrays, sidecars = [], []
-    for k in range(1, n + 1):
-        npy = out_dir / f"img_{k:02d}.npy"
+    for npy in res.images:
         arrays.append(np.load(npy))
         npy.unlink()
-        sidecars.append(json.loads((out_dir / f"img_{k:02d}.json").read_text()))
-    prov = {"lumice_version": LUMICE_VERSION, "lumice_bin": str(binary), "lumice_bin_sha256": sha256_of(binary),
-            "config_sha256": config_sha256(config), "wall_clock_s": round(wall, 3),
-            "platform": f"{platform.system()} {platform.release()} {platform.machine()}", "workers": None, "backend": backend,
-            "gpu_route": gpu, "format": "npy", "cli_args": cmd[1:],
-            "images": [f"img_{k:02d}.npy（打包进 zip）" for k in range(1, n + 1)], "ray_num": config["scene"]["ray_num"]}
-    (out_dir / "provenance.json").write_text(json.dumps(prov, indent=2, ensure_ascii=False) + "\n")
+        sidecars.append(json.loads(npy.with_suffix(".json").read_text()))
     return arrays, sidecars
 
 

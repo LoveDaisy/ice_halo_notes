@@ -120,7 +120,7 @@ ZENITH_SCENES = ("panorama", "panorama_h3_t0.25", "panorama_h0.3_t0.85", "remain
 @pytest.mark.parametrize("scene", ZENITH_SCENES)
 def test_zenith_two_projections_same_total_energy(scene):
     """同一景两种投影（同 config、同一批光线）的全天总能量相对偏差 < 2%：渲染时 float32 原图的数字（meta）与从 zip 复算的数字都要过；
-    且这一景确实走了 Metal（`run_lumice_npy` 核对日志后写进 meta）。"""
+    且这一景确实走了 Metal（`run.render` 核对日志后写进 meta）。"""
     sc = F.DualScene(f"zenith/{scene}")
     raw = sc.meta["total_energy_float32"]
     assert abs(raw["equidistant"] / raw["equal_area"] - 1) < F.ENERGY_CONSISTENCY_TOL

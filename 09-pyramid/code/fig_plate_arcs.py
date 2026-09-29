@@ -3,7 +3,7 @@
 # 全天 rectangular 1440×720。探针 `scratchpad/probe-plate-arcs/probe.py` 的正式版：去掉绝对路径与裸二进制路径，二进制走
 # `_ch9_sim.ensure_lumice_version()`（release、拒绝 LUMICE_BIN），光谱从探针的 550 nm 换成 D65（与本章其余渲染一致），光线数 5×10⁷ → 2×10⁸。
 # 输出用 Lumice `--format npy`（未曝光线性 XYZ float32）：弧的判据要在同一把「相对背景」的尺子上量，8-bit png 装不下弧与背景之间 4 个量级的
-# 动态范围。`halo_notes.sim.run.render` 只收 png / jpg（本任务不改 `halo_notes/sim`），npy 渲染走 `_ch9_fig.run_lumice_npy`（与返工 R1 的
+# 动态范围。npy 渲染走 `halo_notes.sim.run.render(fmt="npy")` + `_ch9_fig.load_npy_render`（与返工 R1 的
 # 天顶渲染共用一份实现），provenance 字段与 `run.render` 同形（版本 / 二进制 sha256 / config sha256 / 墙钟 / 命令行）。npy 不在 LFS 规则里，三份打成
 # `data/plate_arcs.zip`（确定性 zip，走 LFS），`data/plate_arcs/mh<k>/` 只留 config / provenance / lumice.log / img_01.json。
 # 「结构数」判据沿用探针（机械核验用，不进图面）：像素辐亮度（Y / cos(lat)，`_ch9_fig.linear_radiance`）除以太阳 2° 外中位数得对比度，
@@ -26,7 +26,7 @@ from scipy import ndimage
 import _ch9_fig as F
 import _ch9_sim as S
 import enumerate_signatures as ES
-from halo_notes.sim import config as C
+from halo_notes.sim import config as C, run
 from halo_notes.sim.projection import rectangular_pixel_directions
 
 NAME = "plate_arcs"
@@ -58,8 +58,8 @@ def variant_dir(max_hits: int, root: Path | None = None) -> Path:
 
 
 def render_npy(config: dict, out_dir: Path, binary: Path) -> np.ndarray:
-    """跑一次 Lumice（`--format npy`），返回 (H, W, 3) XYZ；实现在 `_ch9_fig.run_lumice_npy`（本章 npy 渲染的唯一实现）。"""
-    arrays, _ = F.run_lumice_npy(config, out_dir, binary)
+    """跑一次 Lumice（`--format npy`，经 `halo_notes.sim.run.render`），返回 (H, W, 3) XYZ。"""
+    arrays, _ = F.load_npy_render(run.render(config, out_dir, fmt="npy", bin=binary))
     return arrays[0]
 
 
