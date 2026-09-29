@@ -8,13 +8,13 @@ from halo_notes.repo.regen import Chapter, Step, main
 CH = Chapter(
     code_dir=Path(__file__).resolve().parent,
     steps=(
-        Step('enumerate_signatures.py', minutes=2, note='确定性枚举 → data/signature_table.md + signature_table_<ha>.csv'),
+        Step('enumerate_signatures.py', minutes=4.5, note='确定性枚举 → data/signature_table.md + signature_table_<ha>.csv'),
         Step('check_ground_truth_signature.py', note='→ data/ground_truth_signature.md'),
         Step('analyze_energy.py', lumice=True, minutes=10, note='Lumice analyze → data/energy_table.md（现存表为 4.6.1 发版前本地 build 产出、provenance 已记；本章无其它脚本读 analysis/，默认不重跑）', default=False),
-        Step('fig_b1_same_class.py', lumice=True, minutes=4, note='图 B1：3 条单光路 + 3 张参考渲染'),
-        Step('fig_b2_unnamed_cell.py', lumice=True, minutes=8, note='图 6：globe + rect + 3 张参考渲染 → far_side_profile.csv / numbers'),
-        Step('fig_cross_section_sensitivity.py', lumice=True, minutes=5, note='图 7：4 档 d × 2 类 → cross_section_sensitivity*.csv'),
-        Step('fig_cross_section_renders.py', lumice=True, minutes=4, note='图 7 配图：4 档 d 全光路渲染'),
+        Step('fig_b1_same_class.py', lumice=True, minutes=6, note='图 B1：3 条单光路 + 3 张参考渲染'),
+        Step('fig_b2_unnamed_cell.py', lumice=True, minutes=11.5, note='图 6：globe + rect + 3 张参考渲染 → far_side_profile.csv / numbers'),
+        Step('fig_cross_section_sensitivity.py', lumice=True, minutes=9.5, note='图 7：4 档 d × 2 类 → cross_section_sensitivity*.csv'),
+        Step('fig_cross_section_renders.py', lumice=True, minutes=6.5, note='图 7 配图：4 档 d 全光路渲染'),
         Step('fig_unfold_wedge_fold.py'),
         Step('fig_five_wedges.py'),
         Step('fig_phi_class_grid.py', note='读 data/signature_table.md'),

@@ -9,9 +9,12 @@ from pathlib import Path
 
 import pytest
 
+from halo_notes.sim.fetch import LUMICE_VERSION
 from halo_notes.sim.run import config_sha256
 
 ROOT = Path(__file__).resolve().parents[3]
+# 入库 provenance 记的 Lumice 版本：现存产物是 v4.5.1 渲的；按各章 README 重生成后是当前钉住的 LUMICE_VERSION——两者都合法
+RENDER_VERSIONS = {"v4.5.1", LUMICE_VERSION}
 CH0, CH1, CH2, CH6 = "00-introduction", "01-symmetry", "02-raypath-enumeration", "06-monte-carlo-vs-integration"
 CH7 = "07-reflection-group"
 
@@ -80,7 +83,7 @@ def test_all_halos_and_dual_fisheye_are_full_sky():
 def test_provenance_sidecars_present():
     for d in (f"{CH0}/data/all_halos", f"{CH1}/data/halos_3-5", f"{CH2}/data/rp1-3_plt0.5_s25_i2_note", f"{CH6}/data/dual_fisheye"):
         prov = json.loads((ROOT / d / "provenance.json").read_text())
-        assert prov["lumice_version"] == "v4.5.1" and prov["wall_clock_s"] > 0 and prov["config_sha256"]
+        assert prov["lumice_version"] in RENDER_VERSIONS and prov["wall_clock_s"] > 0 and prov["config_sha256"]
         assert prov["config_sha256"] == config_sha256(_cfg(f"{d}/config.json"))
 
 
@@ -225,7 +228,7 @@ def test_halo_columns_provenance_present():
         for variant in (f"col_{k}", f"ref_{k}"):
             d = ROOT / CH7 / "data" / "halo_columns" / variant
             prov = json.loads((d / "provenance.json").read_text())
-            assert prov["lumice_version"] == "v4.5.1" and prov["wall_clock_s"] > 0
+            assert prov["lumice_version"] in RENDER_VERSIONS and prov["wall_clock_s"] > 0
             assert prov["config_sha256"] == config_sha256(_cfg(f"{CH7}/data/halo_columns.{variant}.lumice.json"))
 
 
@@ -248,7 +251,7 @@ def test_pose_to_sky_backdrops_share_the_halo_columns_simulation():
         assert r["grid"] == r0["grid"] and r["visible"] == "full"
         assert r["view"] == P.backdrop_view(k)
         prov = json.loads((ROOT / CH7 / "data" / "pose_to_sky_backdrop" / f"col_{k}" / "provenance.json").read_text())
-        assert prov["config_sha256"] == config_sha256(back) and prov["lumice_version"] == "v4.5.1"
+        assert prov["config_sha256"] == config_sha256(back) and prov["lumice_version"] in RENDER_VERSIONS
 
 
 # ---- ch8 图 B1 / B2 / 截面敏感性（task-write-ch8 / task-backfill-ch8 / task-revise-ch8）：单光路对照 / Φ 类整类过滤器；三份 B1 config 只差过滤器；
@@ -517,5 +520,5 @@ def test_ch8_figures_provenance_present():
     for name, variants in (("same_class", (*B1_TAGS, *(f"ref_{t}" for t in B1_TAGS))), ("unnamed_cell", B2_VARIANTS), ("cross_section", cs_variants)):
         for variant in variants:
             prov = json.loads((ROOT / CH8 / "data" / name / variant / "provenance.json").read_text())
-            assert prov["lumice_version"] == "v4.5.1" and prov["wall_clock_s"] > 0
+            assert prov["lumice_version"] in RENDER_VERSIONS and prov["wall_clock_s"] > 0
             assert prov["config_sha256"] == config_sha256(_cfg(f"{CH8}/data/{name}.{variant}.lumice.json"))
