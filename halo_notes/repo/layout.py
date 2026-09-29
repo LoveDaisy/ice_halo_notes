@@ -475,6 +475,8 @@ def check_push(lines: Iterable[str], root: Path = REPO_ROOT, env: Optional[Dict[
         seen: Set[str] = set()
         total = 0
         for path, sha in sorted(changed):
+            if sha not in sizes:          # gitlink 等本仓没有的对象，不计体积
+                continue
             size, is_lfs = sizes[sha]
             verdict, why = classify(path, refs, size, exts, lfs=is_lfs)
             if verdict == "ignore":
