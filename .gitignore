@@ -11,8 +11,88 @@ __pycache__/
 # Lumice 二进制下载缓存（halo_notes.sim.fetch），不入 git
 .lumice/
 
-# ch8 光路分析的大体积文本产物（~7 MB CSV）：本地缓存，入库形态是同目录的 analysis.zip（LFS）
-08-wedge-times-fold/data/analysis/
+# 章目录 img/ 与 data/ 的划界（原始渲染、中间数据、未被引用的图只留本地，需要时按各章 README 重生成）
 
-# ch9 锥晶光路分析的大体积文本产物：同上，入库形态是 09-pyramid/data/analysis.zip（LFS）
-09-pyramid/data/analysis/
+# >>> repo-slim 受管块：由 `python -m halo_notes.repo.layout sync-gitignore` 生成，勿手改 >>>
+# 划界规则见 halo_notes/repo/layout.py 模块文档与 AGENTS.md「数据约定」；大小阈值由 check-tree / pre-push 兜底
+/[0-9][0-9]*-*/img/**
+!/[0-9][0-9]*-*/img/**/
+/[0-9][0-9]*-*/data/**
+!/[0-9][0-9]*-*/data/**/
+!/[0-9][0-9]*-*/data/**/*.json
+!/[0-9][0-9]*-*/data/**/*.csv
+!/[0-9][0-9]*-*/data/**/*.txt
+!/[0-9][0-9]*-*/data/**/*.md
+!/[0-9][0-9]*-*/data/**/*.log
+!/[0-9][0-9]*-*/data/**/*.tsv
+!/[0-9][0-9]*-*/img/**/.gitkeep
+!/[0-9][0-9]*-*/data/**/.gitkeep
+/[0-9][0-9]*-*/data/analysis/
+# 被 md 引用的文件（放行）
+!/00-introduction/img/all_halos.jpg
+!/00-introduction/img/crystal03.png
+!/01-symmetry/img/c6.png
+!/01-symmetry/img/c6_table.png
+!/01-symmetry/img/d6_f.png
+!/01-symmetry/img/d6_table_shade.png
+!/01-symmetry/img/halos_3-5.jpg
+!/01-symmetry/img/raypath_symmetry.png
+!/01-symmetry/img/wallpaper_p6m.png
+!/02-raypath-enumeration/img/Tricker_arc_raypath.png
+!/02-raypath-enumeration/img/expand_rp132_fn_00.png
+!/02-raypath-enumeration/img/geo_validation.png
+!/02-raypath-enumeration/img/light_corridor_rp132_00.png
+!/02-raypath-enumeration/img/light_corridor_rp132_01.png
+!/02-raypath-enumeration/img/light_corridor_rp132_02_note.png
+!/02-raypath-enumeration/img/light_corridor_rp132_03.png
+!/02-raypath-enumeration/img/light_corridor_rp31574_00.png
+!/02-raypath-enumeration/img/rp1-3_plt0.5_s25_i2_note.png
+!/03-parallel-raypaths/img/ch3_standard_frame.png
+!/03-parallel-raypaths/img/ch3_wedge_path.jpg
+!/03-parallel-raypaths/img/rotation_steps.png
+!/03-parallel-raypaths/img/tricker_arc_cone_plot_1200.jpg
+!/03-parallel-raypaths/img/tricker_arc_plot_1200.jpg
+!/03-parallel-raypaths/img/tricker_arc_raypath_expand.jpg
+!/04-render-equation/img/ch4_raypath_all.png
+!/05-rotation-3d/img/Slerp_factor_explanation.png
+!/05-rotation-3d/img/ch5_interp.gif
+!/05-rotation-3d/img/hist01.png
+!/05-rotation-3d/img/hist02.png
+!/05-rotation-3d/img/numerical_err.png
+!/06-monte-carlo-vs-integration/img/compare_two_methods.jpg
+!/06-monte-carlo-vs-integration/img/crystal_pose.jpg
+!/06-monte-carlo-vs-integration/img/dual_fisheye.jpg
+!/06-monte-carlo-vs-integration/img/state_space_integrate.jpg
+!/06-monte-carlo-vs-integration/img/trace.jpg
+!/07-reflection-group/img/conjugate_rot90.png
+!/07-reflection-group/img/four_mirrors.png
+!/07-reflection-group/img/grid_6x2.png
+!/07-reflection-group/img/halos_2_vs_11.jpg
+!/07-reflection-group/img/halos_3_vs_2.jpg
+!/07-reflection-group/img/pose_to_sky.png
+!/07-reflection-group/img/two_mirrors_120.png
+!/08-wedge-times-fold/img/cross_section_renders.png
+!/08-wedge-times-fold/img/cross_section_sensitivity.png
+!/08-wedge-times-fold/img/direction_scan.png
+!/08-wedge-times-fold/img/five_wedges.png
+!/08-wedge-times-fold/img/phi_class_grid.png
+!/08-wedge-times-fold/img/same_class.jpg
+!/08-wedge-times-fold/img/unfold_wedge_fold.png
+!/08-wedge-times-fold/img/unnamed_cell.png
+!/08.1-tape-vs-matrix/img/concentric_projection.png
+!/08.1-tape-vs-matrix/img/kaleidoscope.png
+!/08.1-tape-vs-matrix/img/plate_vs_column.png
+!/08.1-tape-vs-matrix/img/two_matrices.png
+!/08.1-tape-vs-matrix/img/unfold_3457.png
+!/09-pyramid/img/closure_growth.png
+!/09-pyramid/img/corridor_1_3.png
+!/09-pyramid/img/crowded_profiles.png
+!/09-pyramid/img/direct_wedges.png
+!/09-pyramid/img/family_remainder.png
+!/09-pyramid/img/fold_edge_density.png
+!/09-pyramid/img/isolated_ring.png
+!/09-pyramid/img/off_family_ring.png
+!/09-pyramid/img/panorama_triptych.png
+!/09-pyramid/img/plate_arcs.png
+!/09-pyramid/img/pyramid_faces.png
+# <<< repo-slim 受管块 <<<
