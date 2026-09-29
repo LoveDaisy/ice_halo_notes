@@ -10,18 +10,22 @@ type: note
 
 ## 演练结论（供裁定）
 
-| | 提交数 | LFS 对象 | LFS 总量 | git 包 |
-|---|---|---|---|---|
-| 重写前（本地 mirror，全部 refs） | 337 | 399 | 479.4 MB | 24.6 MiB |
-| 重写后 · oid 精确保留（默认） | 334 | 70 | 42.6 MB | 4.3 MiB |
-| 重写后 · 仅按路径保留 | 337 | 154 | 99.4 MB | 7.8 MiB |
+| | 提交数 | LFS 对象 | LFS 总量 | 本地缺的 LFS 对象 | git 包 |
+|---|---|---|---|---|---|
+| 重写前（本地 mirror，全部 refs） | 339 | 399 | 479.4 MB | 100 | 24.7 MiB |
+| 重写后 · oid 精确保留（默认） | 336 | 69 | 42.0 MB | 0 | 4.3 MiB |
+| 重写后 · 仅按路径保留 | 339 | 153 | 98.7 MB | 36 | 7.8 MiB |
+
+「本地缺的 LFS 对象」= 历史 pointer 引用、但本地 LFS 存储里没有的对象（可能只在 GitHub 上，也可能已丢失）；oid 模式保留的对象本地全有，
+path 模式要先从 GitHub 补齐这 36 个才能完整推送。
 
 - 「被引用插图」**按 HEAD 时刻的引用集合、精确到内容 oid** 判定（默认）。理由：
   (a) 目标是瘦身，按每个提交当时的引用会把所有被替换过的旧版图都留下，体量接近现状；
-  (b) 只按 HEAD 路径保留时，同一路径反复覆盖的旧版本仍被历史 pointer 引用，`git lfs push --all` 会全部上传（演练：99 MB vs 43 MB）；
+  (b) 只按 HEAD 路径保留时，同一路径反复覆盖的旧版本仍被历史 pointer 引用，`git lfs push --all` 会全部上传（演练：98.7 MB vs 42.0 MB）；
   (c) 旧提交里的 md 图链在旧版本图缺失时会「断」，但没人 checkout 旧提交看图，要保的是 md / 代码的演化历史。
   另外，oid 模式下内容 oid 在保留集里的文件连改名前的旧路径也保留（不增加 LFS 体量），重组前的旧提交里这些图照常可看。
 - md 历史完整：抽查 4 个文件（ch1 / ch6 / ch8 正文与 `docs/roadmap.md`）的 `git log --follow`，重写前后提交数与标题序列逐条一致。
+- 被丢弃的还有 2022 年曾用 LFS 跟踪的仿真器可执行文件 `halo2. All Possible Raypaths/IceHaloEndless`（规则：LFS 存储的二进制且未被引用）。
 - 3 个提交在重写后变空（只改了被丢弃的文件），由 filter-repo 自动裁剪；它们在 commit-map 里映射为全 0。
 - 被保留的非 LFS 大 blob 只有 legacy `plot_figures.nb`（2.06 MB，AGENTS 规定不删旧 `.nb`）；没有按大小一刀切的兜底删除（演练实测那样会误删它）。
 - commit message 里的旧短哈希由 filter-repo 默认改写为新哈希（不加 `--preserve-commit-hashes`）。
@@ -117,7 +121,7 @@ python3 tools/history-rewrite/remap_hashes.py --old $B/backup.git --map $MAP \
   --paths docs README.md AGENTS.md [0-9]*/ scratchpad/ --report $B/remap.json          # dry-run：看清单
 ```
 
-演练（dry-run）：扫描 4773 个文件，319 个十六进制词是旧仓 commit，358 处待替换；2 处指向被裁剪的空提交、50 处是旧仓里已不可达的提交（被 amend / rebase 掉的），均不替换、列入清单。确认后：
+演练（dry-run）：扫描 4775 个文件，320 个十六进制词是旧仓 commit，759 处（359 个文件）待替换；2 处指向被裁剪的空提交、139 处是旧仓里已不可达的提交（被 amend / rebase 掉的），均不替换、列入清单。确认后：
 
 - `scratchpad/` 是本地文件（不入 git）：在 `$MAIN` 上 `--apply` 即可。
 - 入 git 的 `docs/`、各章 md / 代码注释：在重写后的仓库上改。先 `git clone $B/work.git $B/wc`，对 `$B/wc` 跑 `remap_hashes.py --apply`（`--old` 仍指向备份），在 `$B/wc` 提交一次 `docs: 旧 commit 哈希替换为重写后的哈希`，`git -C $B/wc push origin main` 回到 `$B/work.git`（LFS 对象已在 work.git 里）。
@@ -126,7 +130,7 @@ python3 tools/history-rewrite/remap_hashes.py --old $B/backup.git --map $MAP \
 
 1. GitHub 上删除 `LoveDaisy/ice_halo_notes`（不可逆；备份与 `$B/verify` 验证通过之后才做）。
 2. 新建同名空仓库（不勾选 README / license），可见性与原库一致。
-3. 推送（新库尚未装 pre-push 闸；若已装，首推约 43 MB 会超 30 MB 预算，需 `SLIM_PUSH_OVERRIDE="repo rebuild"`）：
+3. 推送（新库尚未装 pre-push 闸；若已装，首推约 42 MB 会超 30 MB 预算，需 `SLIM_PUSH_OVERRIDE="repo rebuild"`）：
 
 ```bash
 cd $B/work.git
@@ -147,7 +151,7 @@ uv sync && uv run pytest -q                                 # 全绿，local_dat
 uv run python -m halo_notes.repo.layout check-tree          # 0 条违规
 ```
 
-另在 GitHub 仓库 Settings → Billing / LFS 看存储用量（预期 ≈ 43 MB），README 里的链接逐个点开。
+另在 GitHub 仓库 Settings → Billing / LFS 看存储用量（预期 ≈ 42 MB），README 里的链接逐个点开。
 
 ### (6) 本地 checkout 的处理
 
