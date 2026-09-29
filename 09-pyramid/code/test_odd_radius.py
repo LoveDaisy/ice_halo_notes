@@ -78,6 +78,7 @@ def test_single_raypath_filter():
 # ---- 族外 top-3 与 MC 份额口径 ----
 
 
+@pytest.mark.local_data
 def test_top3_out_of_family_grouped_by_pbd_orbit():
     """分组求和口径：`13-24-26`（19.5°）0.300% 居首（plan §2 假设 5 核实过的数字），三条都是 raypaths csv 里的族外代表。"""
     top = S.top_out_of_family(3)
@@ -100,6 +101,7 @@ def _energy_table_default_column() -> dict[str, float]:
     return out
 
 
+@pytest.mark.local_data
 def test_mc_family_shares_match_energy_table():
     """脚本从 rows csv 重算的 MC 份额与 energy_table.md 逐位一致（同一口径，不是抄表）。"""
     got = FAM.mc_family_shares()
@@ -215,6 +217,7 @@ def test_exposure_stats_and_total_energy_per_i():
         S.total_energy_per_i(bad, dim)
 
 
+@pytest.mark.local_data
 def test_energy_map_pixel_is_energy_not_radiance():
     """钉死像素语义的实测证据（task-pixel-energy-semantics；原始证据见 task-draw-ch9-figs 2026-09-23 23:40 DECISION）：随机取向下天空关于太阳
     旋转对称，已入库余量图 θ∈(65°,72°) 环带上，高纬（lat 70–80°）/ 低纬（40–70°）两段的辐亮度 L/w 一致，而 :func:`energy_map` 给出的像素能量
@@ -253,6 +256,7 @@ def test_panorama_configs_share_crystal_and_scene():
     assert fish["render"][0]["lens"]["type"] == "fisheye_equal_area" and fish["render"][0]["view"] == {"elevation": 90}
 
 
+@pytest.mark.local_data
 def test_family_and_remainder_configs():
     cfg = FAM.build(63.8)(0.2, 1000)
     assert S.filter_paths(cfg["filter"]) == set(S.renderable_members(63.8))

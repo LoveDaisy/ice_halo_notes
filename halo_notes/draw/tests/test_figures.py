@@ -298,6 +298,7 @@ def continues_a_full_path(path: RayPath, ev: RayEvent, others: list[RayPath]) ->
     return False
 
 
+@pytest.mark.local_data
 @pytest.mark.parametrize("fig", sorted(FIGURES))
 def test_every_drawn_raypath_is_the_declared_light_path(fig, monkeypatch):
     script = FIGURES[fig]
@@ -667,6 +668,7 @@ def _tricker_point(ns_helper, psi_deg: float) -> np.ndarray:
     return ns_helper.TRICKER.tricker_arc(np.radians(psi_deg))
 
 
+@pytest.mark.local_data
 def test_7_5_pose_to_sky_compresses_theta_for_br_but_not_for_s(monkeypatch):
     """三个晶体姿态 = column_attitude(ψ0, θi)（同一 ψ0）；三面板入射方向逐位相等（= −太阳方向）；每条光路由 search_raypath
     在固定入射方向下解出、面序列 == PATHS；上行：三出射方向两两 |Δ| < 1e-9、== −sky_direction(br, R_i, ŝ)、落在特里克尔弧
@@ -791,6 +793,7 @@ def _peak_offset(profile: np.ndarray, offsets: np.ndarray, outer: float = 5.0) -
     return int(offsets[np.argmax(res)]), float(res.max() / max(res[far].std(), 1e-9))
 
 
+@pytest.mark.local_data
 def test_7_5_overlay_projection_is_aligned_with_the_lumice_backdrop(monkeypatch):
     """R1-1 / R2-3 的对齐核验（globe 底图上；对不齐不许出图）：
     (b) 底图自带的每条经纬线按 `halo_notes.sim.projection` 投影后，沿线叠加的亮度横截面（扣掉晕光的线性梯度）峰值落在
@@ -845,6 +848,7 @@ def test_7_5_overlay_projection_is_aligned_with_the_lumice_backdrop(monkeypatch)
         assert np.sqrt(((uv - q) ** 2).sum(axis=1)).min() < 1.0
 
 
+@pytest.mark.local_data
 def test_7_5_gif_sky_point_holds_still_for_br_and_moves_for_s(monkeypatch):
     """每帧光路可行且面序列 == 声明；只有一段 ψ（= ψ0，R1-3）、θ 在 [θa, θb] ⊂ [0°, 60°] 内来回；br 版：所有帧天空点两两距离
     < 1e-9、都在特里克尔弧上；s 版：天空点沿曲线单调移动（相邻步方向不反转、步长 > 0）；所有帧尺寸相同；θ 区间来自 1° 扫描

@@ -26,5 +26,8 @@ dev = ["pytest"]
 packages = ["halo_notes"]
 
 [tool.pytest.ini_options]
-markers = ["slow: 真跑 Lumice CLI，默认不执行（uv run pytest -m slow 才跑）"]
+markers = [
+    "slow: 真跑 Lumice CLI，默认不执行（uv run pytest -m slow 才跑）",
+    "local_data: 依赖只留本地的产物（原始渲染 / 中间缓存）；干净 checkout 上缺文件时 skip（见 halo_notes/repo/testing.py）",
+]
 addopts = "-m 'not slow'"

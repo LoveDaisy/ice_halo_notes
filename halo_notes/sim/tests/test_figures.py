@@ -148,6 +148,7 @@ def test_halo_columns_configs_differ_only_by_filter_and_view():
         assert grid["label"] is False
 
 
+@pytest.mark.local_data
 def test_halo_columns_frame_center_is_reproducible_from_the_reference_render():
     """R2-3 帧中心机械选取：对落盘的全天 rectangular 参考图（同一 sim）重算各候选中心 75.5° 球冠内能量占比，argmax 必须等于
     落盘 config 里的帧中心；参考图 config 与子图 config 除 render / ray_num 外相同；#3 反日点、#2 太阳（占比 > 0.8），
@@ -198,6 +199,7 @@ def test_halo_columns_complex_filters_are_exactly_the_class_representatives():
     assert len(S.class_representatives(3)) == 36 and len(S.class_representatives(2)) == 88 and len(S.class_representatives(11)) == 22
 
 
+@pytest.mark.local_data
 def test_halo_columns_figures_are_composed_from_the_sub_images():
     """6a = col_2 | col_11、6b = col_3 | col_2：成图对应区域的像素与子图一致（jpg 重压缩容差），且 6a/6b 共用同一 halo_col_2.jpg。"""
     import numpy as np
@@ -328,6 +330,7 @@ def test_ch8_b_figures_configs_share_crystal_and_differ_in_sun_altitude():
         assert r["intensity_factor"] == b2m["REF_INTENSITY"]                                # 三张参考图同一绝对曝光，剖面曲线可直接比
 
 
+@pytest.mark.local_data
 def test_ch8_b1_three_paths_share_phi_class_and_shape():
     """B1：过滤器各是一条单光路（PBD），三条同属 Φ 类 A60-10；参考图（rectangular、absolute、不削顶）机械复现：主对照两条
     （`3-1-5-2-6-7` / `3-1-5-6-2-7`）全天能量之比在 0.9–1.1、窗口内像素相关 > 0.98（同形同亮）；反衬 `3-1-2-5-6-7` 能量比在 0.1–0.3
@@ -387,6 +390,7 @@ def test_ch8_b2_complex_filters_are_exactly_the_phi_class_members():
         assert paths == set(S.class_representatives(cid, mod["RATIO"]))                    # 重新枚举（约 50 s，进程内缓存）
 
 
+@pytest.mark.local_data
 def test_ch8_b2_globe_offset_window_and_profile_numbers_are_reproducible():
     """B2 三件套的机械锚点：globe 帧中心在幻日环高度上、方位偏离反日点 GLOBE_OFFSET_DEG=10°（作者：不正对；25° 时远侧亮斑压球缘，
     2026-09-19 试渲 10/15/25 后收到 10°）；rect 裁切窗口
@@ -427,6 +431,7 @@ def test_ch8_b2_globe_offset_window_and_profile_numbers_are_reproducible():
     assert (ROOT / CH8 / "data" / "far_side_profile_numbers.txt").read_text().count("\n") >= 8
 
 
+@pytest.mark.local_data
 def test_ch8_b1_figure_is_composed_from_the_sub_images():
     import numpy as np
     from PIL import Image
@@ -443,6 +448,7 @@ def test_ch8_b1_figure_is_composed_from_the_sub_images():
         assert np.abs(region - s).mean() < 2.0 and np.corrcoef(region.ravel(), s.ravel())[0, 1] > 0.95, tag   # 画面大片纯黑，jpg 暗部噪声压低相关，均差 < 0.5
 
 
+@pytest.mark.local_data
 def test_ch8_b2_composite_figure_and_rect_without_grid():
     """B2 拼版（图 6）：正式图只有一张 `unnamed_cell.png`（2100×1050：左 globe 反相定位 + 右上 rect 局部 + 右下方位剖面），旧的三张
     分立文件不再存在；rect 渲染 config 不带 Lumice 网格（拼版时由坐标轴给参考，网格线会压在骑地平线的亮斑上），globe 仍带 30° 网格；
@@ -466,6 +472,7 @@ def test_ch8_b2_composite_figure_and_rect_without_grid():
     assert set(mod["STEPS"]) == {"refs", "globe", "rect", "compose"}
 
 
+@pytest.mark.local_data
 def test_ch8_cross_section_sensitivity_configs_and_trends():
     """截面敏感性（图 7）：4 档 d × 2 类 = 8 份 config，crystal 只差 `face_distance == [1, d, 1, d, 1, d]`（其余与 B2 片晶相同），太阳 0°、
     过滤器 == 各类全部代表（与 B2 参考图同一过滤器段）、同一绝对曝光；summary.csv（从参考图重算核对）里的现象方向：A60-10 锐边位置四档
