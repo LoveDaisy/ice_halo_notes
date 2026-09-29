@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from halo_notes.sim import run
+from halo_notes.sim import fetch, run
 from halo_notes.sim import config as C
 
 FAKE_OK = r"""#!/bin/sh
@@ -101,4 +101,33 @@ def test_real_lumice_minimal_render(tmp_path):
     cfg = C.build_config([plate], [C.raypath_filter(1, [1, 3])], sc, [C.render_unit(1, C.lens("fisheye_equal_area", fov=180), [200, 200], view={"elevation": 90})])
     res = run.render(cfg, tmp_path / "out", timeout=120)
     assert res.images and res.images[0].stat().st_size > 0
-    assert res.provenance["lumice_version"] == "v4.5.1" and len(res.provenance["lumice_bin_sha256"]) == 64
+    assert res.provenance["lumice_version"] == fetch.LUMICE_VERSION and len(res.provenance["lumice_bin_sha256"]) == 64
+
+
+FAKE_NPY = FAKE_OK.replace("printf 'PNG' > \"$out/img_01.$fmt\"", "printf 'NPY' > \"$out/img_01.$fmt\"; echo '{}' > \"$out/img_01.json\"")
+FAKE_METAL = FAKE_OK.replace('echo "ARGS: $ARGS_ECHO"', 'echo "routing via MetalTraceBackend gpu_route=true"')
+
+
+def test_render_npy_collects_npy_and_passes_format(tmp_path):
+    binary = _script(tmp_path, FAKE_NPY)
+    res = run.render(_cfg(), tmp_path / "out", fmt="npy", bin=binary)
+    assert [p.name for p in res.images] == ["img_01.npy"]
+    assert res.provenance["format"] == "npy" and res.provenance["cli_args"][4:6] == ["--format", "npy"]
+    assert res.provenance["gpu_route"] is False
+
+
+def test_render_metal_fallback_to_cpu_raises(tmp_path):
+    binary = _script(tmp_path, FAKE_OK)
+    with pytest.raises(run.LumiceError, match="Metal"):
+        run.render(_cfg(), tmp_path / "out", backend="metal", bin=binary)
+
+
+def test_render_metal_confirmed_records_gpu_route(tmp_path):
+    binary = _script(tmp_path, FAKE_METAL)
+    res = run.render(_cfg(), tmp_path / "out", backend="metal", bin=binary)
+    assert res.provenance["gpu_route"] is True and res.provenance["backend"] == "metal"
+
+
+def test_render_rejects_unknown_format(tmp_path):
+    with pytest.raises(ValueError):
+        run.render(_cfg(), tmp_path / "out", fmt="tiff", bin=_script(tmp_path, FAKE_OK))

@@ -131,7 +131,8 @@ def rectangular_pixel_directions(render: Mapping[str, Any]) -> tuple[np.ndarray,
     R = camera_rotation(view)
     # c = (c_x, c_y, c_z)：lon = atan2(−c_x, c_z)、lat = asin(−c_y)
     c = np.stack([-np.cos(lat) * np.sin(lon), -np.sin(lat), np.cos(lat) * np.cos(lon)], axis=-1)
-    return c @ R.T, np.cos(lat)
+    # 2-D matmul：3-D (H, W, 3) @ (3, 3) 在 numpy 2.5.3 + Accelerate 下 2880×1440 第 2–3 次调用 SIGSEGV
+    return (c.reshape(-1, 3) @ R.T).reshape(c.shape), np.cos(lat)
 
 
 PROJECTORS = {"fisheye_equal_area": project_equal_area, "globe": project_globe, "rectangular": project_rectangular}
