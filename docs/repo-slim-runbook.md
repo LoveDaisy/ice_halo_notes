@@ -42,6 +42,12 @@ done
 
 四条都已并入 `origin/main`、领先 0 个提交。**建议删除**：重建的新库只推 `main`（本仓没有 tag），这四条自然消失；本地同名分支（`ch2`–`ch5`）同样可以删除。
 
+## ⚠️ 撤出跟踪的提交会删掉其它 checkout 里的本地文件
+
+`task/repo-slim` 的提交对 203 个文件做了 `git rm --cached`。在做这个操作的 worktree 里文件还在，但**任何其它 checkout 合并或 pull 到这个提交时，git 会把这些文件从工作区真正删除**。2026-09-29 合入主仓时实际踩中：`09-pyramid/data/zenith/*.zip` 等全部消失，之后用 `git restore --source=<合并前提交> --worktree --pathspec-from-file=<被删清单>` 从本地 LFS 存储恢复（只写回工作区、不进索引）。
+
+⇒ 其它机器上的旧 clone（例如家用开发机）**不要 pull**，按第 (6) 步重新 clone，再用 rsync 把只存本地的产物搬过来。确实需要 pull 时，先备份 `data/`、`img/`，或者用上面的 restore 命令恢复。
+
 ## 步骤
 
 以下 `$MAIN` = 本地主仓（`~/Codes/Writing-Lab/现代冰晕研究漫谈`），`$B` = 备份目录（放在仓库之外，例如 `~/Backups/ice_halo_notes-<日期>`）。
