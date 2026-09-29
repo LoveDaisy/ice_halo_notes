@@ -25,6 +25,7 @@ import numpy as np
 
 from halo_notes.sim import config as C
 from halo_notes.sim import compose as X
+from halo_notes.sim.energy import pixel_energy
 from halo_notes.sim.figure import img_path, parse_args, sim_figure, with_ray_num
 from halo_notes.sim.projection import GLOBE_CAP_DEG, frame_center, globe_view_for, rectangular_pixel_directions
 
@@ -85,18 +86,12 @@ def build_reference(number: int) -> dict:
     return C.build_config(crystals, flts, sc, [render])
 
 
-def linear_luminance(image: np.ndarray) -> np.ndarray:
-    """8-bit sRGB → 线性亮度（三通道之和）。"""
-    a = np.asarray(image, float) / 255.0
-    lin = np.where(a <= 0.04045, a / 12.92, ((a + 0.055) / 1.055) ** 2.4)
-    return lin.sum(axis=-1) if lin.ndim == 3 else lin
-
-
 def cap_energy_fractions(image: np.ndarray, render: dict, candidates: dict[str, np.ndarray],
                          cap_deg: float = GLOBE_CAP_DEG) -> dict[str, float]:
-    """参考图（rectangular）上，各候选中心周围 ``cap_deg`` 球冠内的能量占全天的比例（像素按 cos(lat) 立体角加权）。"""
-    dirs, weight = rectangular_pixel_directions(render)
-    energy = linear_luminance(image) * weight
+    """参考图（rectangular）上，各候选中心周围 ``cap_deg`` 球冠内的能量占全天的比例
+    （像素能量 = 线性亮度本身：Lumice 像素值已含立体角，不再乘 cos(lat)，见 `halo_notes.sim.energy`）。"""
+    dirs, _ = rectangular_pixel_directions(render)
+    energy = pixel_energy(image)
     total = energy.sum()
     cos_cap = np.cos(np.radians(cap_deg))
     return {name: float(energy[(dirs @ c) > cos_cap].sum() / total) for name, c in candidates.items()}

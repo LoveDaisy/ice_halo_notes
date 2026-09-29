@@ -420,6 +420,8 @@ def test_ch8_b2_globe_offset_window_and_profile_numbers_are_reproducible():
     with (ROOT / CH8 / "data" / "far_side_profile.csv").open() as f:
         table = list(csv.DictReader(f))
     assert [row["az_deg"] for row in table] == [f"{c:.2f}" for c in centers]
+    # 口径 v2（task-pixel-energy-cos-lat）：像素能量 = 线性亮度本身、不再乘 cos(lat)；CSV 经 `fig_b2_unnamed_cell.py --recompute` 从同一批
+    # 参考图重算，逐桶相对旧值 +0.000%…+0.011%（太阳 0° 条带 cos ≥ 0.9997），特征位置不变。atol 2e-6 = CSV 6 位小数的舍入余量。
     for name, h in hists.items():
         assert np.allclose([float(row[name]) for row in table], h, atol=2e-6), name
     assert (ROOT / CH8 / "data" / "far_side_profile_numbers.txt").read_text().count("\n") >= 8
@@ -492,6 +494,7 @@ def test_ch8_cross_section_sensitivity_configs_and_trends():
             assert S.strip_max(image, cfg["render"][0], mod["SUN_ALT"], half_deg=mod["PROFILE_HALF_DEG"], az_range=S.FEATURE_WINDOW) < 255, (d, cid)
             centers, hist = S.azimuth_profile(image, cfg["render"][0], mod["SUN_ALT"], half_deg=mod["PROFILE_HALF_DEG"], bin_deg=mod["PROFILE_BIN_DEG"])
             fe = S.profile_features(centers, hist)
+            # 口径 v2（像素能量不乘 cos(lat)，`--recompute` 重算）：条带能量相对旧值 +0.00%…+0.008%，其余特征不变
             assert all(abs(fe[k] - summary[(d, cid)][k]) < 1e-3 for k in ("energy", "peak_az", "edge_az", "fwhm_deg")), (d, cid)
     a = [summary[(d, "A60-10")] for d in mod["DS"]]
     assert all(141 < x["edge_az"] < 144 for x in a) and max(x["edge_az"] for x in a) - min(x["edge_az"] for x in a) < 1.5, a

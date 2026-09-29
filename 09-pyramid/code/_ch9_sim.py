@@ -20,8 +20,8 @@
 # 都把它削顶，所以全景与 0° 族各多渲染一份 dim 曝光只取盘内能量，与 bright 曝光的盘外能量按 intensity 归一后相加。像素积分 vs MC 光子计数是两条
 # 独立链路（D65 vs 550 nm、R+G+B vs Y、量化残余），单轨道探针相对偏差 −2%…+9%，容差在 fig_odd_radius_families.py 里先用 63.8° 族实测后写死。
 # 模块分两区：**领域专属**（族 / 过滤器 / top-3 / 场景段）与**通用角度统计**（径向剖面、峰/背景、环带方位覆盖率——只认图与方向，不认晶体），
-# 后者是将来第三个同类实例出现时提炼进 `halo_notes/` 的切分点（本任务 `halo_notes/` 只读）。`linear_luminance` 与 `_ch8_sim` 同一份实现的
-# 章内复制（跨章上提待另立任务，与 ch8 记的同一笔债）。
+# 后者是将来第三个同类实例出现时提炼进 `halo_notes/` 的切分点。像素能量口径（`linear_luminance` / `pixel_energy`）取自
+# `halo_notes.sim.energy` 唯一实现（task-pixel-energy-cos-lat 上提），此处 re-export 供脚本 / 测试以 `S.` 引用。
 from __future__ import annotations
 
 import csv
@@ -38,6 +38,7 @@ from PIL import Image
 
 from halo_notes.sim import config as C
 from halo_notes.sim import fetch
+from halo_notes.sim.energy import linear_luminance, pixel_energy  # noqa: F401  （re-export：脚本 / 测试经 S. 引用）
 from halo_notes.sim.figure import sim_figure
 from halo_notes.sim.projection import rectangular_pixel_directions
 from halo_notes.sim.run import RenderResult, render
@@ -440,18 +441,11 @@ def assign_peaks(peaks: list[dict], radii: dict[float, float] | None = None) -> 
     return out
 
 
-def linear_luminance(image: np.ndarray) -> np.ndarray:
-    """8-bit sRGB → 线性亮度（三通道之和）；与 `_ch8_sim.linear_luminance` 同一实现。"""
-    a = np.asarray(image, float) / 255.0
-    lin = np.where(a <= 0.04045, a / 12.92, ((a + 0.055) / 1.055) ** 2.4)
-    return lin.sum(axis=-1) if lin.ndim == 3 else lin
-
-
 def energy_map(image: np.ndarray, render: dict) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """``(每像素能量 L, 立体角权重 w=cos(lat)（辐亮度 = L/w）, 像素天空方向 dirs)``——Lumice rectangular 像素本身已是该像素立体角上
     积分过的能量（`src/core/lens_proj_build.hpp:157`），不再乘 cos(lat)。本章全部像素取数只经这一个入口。"""
     dirs, weight = rectangular_pixel_directions(render)
-    return linear_luminance(image), weight, dirs
+    return pixel_energy(image), weight, dirs
 
 
 def sky_energy(image: np.ndarray, render: dict) -> float:

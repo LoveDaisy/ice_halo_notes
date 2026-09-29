@@ -11,6 +11,8 @@
 # 三张参考图（rectangular 1440×720、absolute、同一 intensity、REF_RAY_NUM 光线）只用于取数，不入正文：
 #   锐边 / 峰值 / 外缘方位（`S.profile_features`：峰值 = 剖面 argmax；锐边 = 内侧半高交点；外缘 = 外侧降到峰值 OUTER_FRAC 的交点；
 #   都在 0.5° 桶上线性插值）、两个亮斑质心与 5° 圆内能量占比（`spot_stats`，沿上一轮）、A0-02 窄峰的峰位与半高全宽。
+# `--recompute`：不跑 Lumice，读已落盘的三张参考图（`../data/unnamed_cell/ref_*/img_01.png` + 同名 config / provenance）重新取数，
+# 重写 far_side_profile.csv / _numbers.txt（取数口径改动后用；不动正式图）。跑仿真与重算两条路径共用 `measure_refs` 一份取数实现。
 # 其余参数沿图 B1 / ch7（D65、globe fov 30、经纬网格 30°、max_hits 9）；config 与 B1 共用 crystal 段（有单测）。
 import csv
 import json
@@ -95,10 +97,11 @@ def globe_offset_of(config: dict) -> float:
 
 
 def spot_stats(image: np.ndarray, render: dict, radius_deg: float = SPOT_RADIUS_DEG) -> dict[str, float]:
-    """参考图（rectangular）上按方位角正负分成两半，各取能量质心（方位 / 仰角），并算两个质心 ``radius_deg`` 圆内能量占全天的比例。
+    """参考图（rectangular）上按方位角正负分成两半，各取能量质心（方位 / 仰角），并算两个质心 ``radius_deg`` 圆内能量占全天的比例；
+    能量 = :func:`S.pixel_energy`（像素值已含立体角，不再乘 cos(lat)）。
     场景关于太阳竖直面镜像对称，两个质心理应 ±方位对称；返回 ``{"az_deg", "el_deg", "within_frac"}``（方位取正侧）。"""
-    dirs, weight = rectangular_pixel_directions(render)
-    energy = S.linear_luminance(image) * weight
+    dirs, _ = rectangular_pixel_directions(render)
+    energy = S.pixel_energy(image)
     total = energy.sum()
     if total <= 0:
         raise ValueError("参考图全黑")
@@ -125,6 +128,53 @@ def crop_sub(image: "X.Image.Image", render: dict) -> "X.Image.Image":
     out = image.crop((cols.start, rows.start, cols.stop, rows.stop))
     assert out.size == (SUB_W, SUB_H), out.size
     return out
+
+
+def load_ref(data_dir: Path, name: str) -> tuple[np.ndarray, dict, float]:
+    """已落盘的参考图 ``ref_<name>``：``(图像, config, 渲染墙钟秒)``（`--recompute` 用）。"""
+    cfg = json.loads((data_dir / f"{NAME}.ref_{name}.lumice.json").read_text())
+    out_dir = data_dir / NAME / f"ref_{name}"
+    prov = json.loads((out_dir / "provenance.json").read_text())
+    return np.asarray(X.Image.open(out_dir / prov["images"][0]).convert("RGB")), cfg, float(prov["wall_clock_s"])
+
+
+def measure_refs(refs: dict[str, tuple[np.ndarray, dict, float]], data_dir: Path) -> tuple[np.ndarray, dict[str, np.ndarray], dict[str, dict[str, float]]]:
+    """三张参考图 ``{曲线名: (图像, config, 墙钟秒)}`` → 剖面 / 特征 / 亮斑统计，写 ../data/far_side_profile.csv 与 _numbers.txt。
+    跑仿真（``refs`` 步）与 `--recompute` 共用这一份取数实现。"""
+    lines: list[str] = []
+
+    def say(msg: str) -> None:
+        print(msg)
+        lines.append(msg)
+
+    hists: dict[str, np.ndarray] = {}
+    features: dict[str, dict[str, float]] = {}
+    centers = None
+    for name, cid in CURVES.items():
+        image, cfg, wall = refs[name]
+        render = cfg["render"][0]
+        window_max = S.strip_max(image, render, SUN_ALT, half_deg=PROFILE_HALF_DEG, az_range=FEATURE_WINDOW)
+        assert window_max < 255, f"ref_{name} saturated within FEATURE_WINDOW: max_px={window_max} @intensity {REF_INTENSITY:g}"
+        centers, hists[name] = profile(image, render)
+        features[name] = S.profile_features(centers, hists[name])
+        n_paths = len(cfg["filter"]) - 1 if cfg["filter"] else "all"
+        say(f"ref_{name}: {wall:.1f} s, ray_num={cfg['scene']['ray_num']:,}, sun {cfg['scene']['light_source']['altitude']:g}°, paths {n_paths}, "
+            f"max_px {image.max()} (in-window {window_max}), sky energy {S.sky_energy(image, render):.2f} @intensity {REF_INTENSITY:g}")
+        fe = features[name]
+        say(f"  strip profile {FEATURE_WINDOW[0]:g}–{FEATURE_WINDOW[1]:g}°: peak @{fe['peak_az']:.2f}°, inner half-max (edge) @{fe['edge_az']:.2f}°, "
+            f"edge width 10%→half {fe['edge_width_deg']:.2f}°, outer {OUTER_FRAC:g}×peak @{fe['outer_az']:.2f}°, FWHM {fe['fwhm_deg']:.2f}°, energy {fe['energy']:.3f}")
+        if cid == CLASS_ID:
+            st = spot_stats(image, render)
+            say(f"  spots: centroid az ±{st['az_deg']:.2f}° el {st['el_deg']:.2f}°, {SPOT_RADIUS_DEG:g}° 圆内能量 {st['within_frac']:.3f}")
+    a, b = features[CLASS_ID], features[LILJEQUIST_ID]
+    say(f"{LILJEQUIST_ID} peak − {CLASS_ID} edge = {b['peak_az'] - a['edge_az']:.2f}°; strip energy ratio {LILJEQUIST_ID}/{CLASS_ID} = {b['energy'] / a['energy']:.3f}")
+    with (data_dir / f"{PROFILE_NAME}.csv").open("w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["az_deg", *CURVES])
+        for i, c in enumerate(centers):
+            w.writerow([f"{c:.2f}"] + [f"{hists[n][i]:.6f}" for n in CURVES])
+    (data_dir / f"{PROFILE_NAME}_numbers.txt").write_text("\n".join(lines) + "\n")
+    return centers, hists, features
 
 
 def load_profiles(data_dir: Path) -> tuple[np.ndarray, dict[str, np.ndarray], dict[str, dict[str, float]]]:
@@ -222,53 +272,33 @@ STEPS = ("refs", "globe", "rect", "compose")
 
 
 def main(argv=None) -> Path:
-    p_extra = [a for a in (argv or []) if a.startswith("--steps")]
-    args = parse_args([a for a in (argv or []) if not a.startswith("--steps")], default_ray_num=RAY_NUM, description=NAME, replot=True)
+    argv = list(argv or [])
+    p_extra = [a for a in argv if a.startswith("--steps")]
+    recompute = "--recompute" in argv
+    args = parse_args([a for a in argv if not a.startswith("--steps") and a != "--recompute"], default_ray_num=RAY_NUM, description=NAME,
+                      replot=True)
     steps = set(STEPS)
     if p_extra:
         steps = set(p_extra[0].split("=", 1)[1].split(","))
         assert steps <= set(STEPS), steps
     if args.replot:
         steps = {"compose"}
+    if recompute:
+        assert not args.replot and not p_extra, "--recompute 只重算取数，不与 --replot / --steps 同用"
     ref_ray = min(args.ray_num, REF_RAY_NUM)
     data_dir = (args.out or CHAPTER) / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
-    lines: list[str] = []
 
-    def say(msg: str) -> None:
-        print(msg)
-        lines.append(msg)
-
+    if recompute:
+        measure_refs({name: load_ref(data_dir, name) for name in CURVES}, data_dir)
+        return data_dir / f"{PROFILE_NAME}.csv"
     if "refs" in steps:
-        hists: dict[str, np.ndarray] = {}
-        features: dict[str, dict[str, float]] = {}
-        centers = None
+        refs = {}
         for name, cid in CURVES.items():
             cfg = with_ray_num(build_reference(cid), ref_ray)
             ref = sim_figure(NAME, CHAPTER, cfg, out_root=args.out, variant=f"ref_{name}", workers=args.workers, backend=args.backend)
-            image = np.asarray(X.Image.open(ref.images[0]).convert("RGB"))
-            render = cfg["render"][0]
-            window_max = S.strip_max(image, render, SUN_ALT, half_deg=PROFILE_HALF_DEG, az_range=FEATURE_WINDOW)
-            assert window_max < 255, f"ref_{name} saturated within FEATURE_WINDOW: max_px={window_max} @intensity {REF_INTENSITY:g}"
-            centers, hists[name] = profile(image, render)
-            features[name] = S.profile_features(centers, hists[name])
-            n_paths = len(cfg["filter"]) - 1 if cfg["filter"] else "all"
-            say(f"ref_{name}: {ref.wall_clock_s:.1f} s, ray_num={ref_ray:,}, sun {cfg['scene']['light_source']['altitude']:g}°, paths {n_paths}, "
-                f"max_px {image.max()} (in-window {window_max}), sky energy {S.sky_energy(image, render):.2f} @intensity {REF_INTENSITY:g}")
-            fe = features[name]
-            say(f"  strip profile {FEATURE_WINDOW[0]:g}–{FEATURE_WINDOW[1]:g}°: peak @{fe['peak_az']:.2f}°, inner half-max (edge) @{fe['edge_az']:.2f}°, "
-                f"edge width 10%→half {fe['edge_width_deg']:.2f}°, outer {OUTER_FRAC:g}×peak @{fe['outer_az']:.2f}°, FWHM {fe['fwhm_deg']:.2f}°, energy {fe['energy']:.3f}")
-            if cid == CLASS_ID:
-                st = spot_stats(image, render)
-                say(f"  spots: centroid az ±{st['az_deg']:.2f}° el {st['el_deg']:.2f}°, {SPOT_RADIUS_DEG:g}° 圆内能量 {st['within_frac']:.3f}")
-        a, b = features[CLASS_ID], features[LILJEQUIST_ID]
-        say(f"{LILJEQUIST_ID} peak − {CLASS_ID} edge = {b['peak_az'] - a['edge_az']:.2f}°; strip energy ratio {LILJEQUIST_ID}/{CLASS_ID} = {b['energy'] / a['energy']:.3f}")
-        with (data_dir / f"{PROFILE_NAME}.csv").open("w", newline="") as f:
-            w = csv.writer(f)
-            w.writerow(["az_deg", *CURVES])
-            for i, c in enumerate(centers):
-                w.writerow([f"{c:.2f}"] + [f"{hists[n][i]:.6f}" for n in CURVES])
-        (data_dir / f"{PROFILE_NAME}_numbers.txt").write_text("\n".join(lines) + "\n")
+            refs[name] = (np.asarray(X.Image.open(ref.images[0]).convert("RGB")), cfg, ref.wall_clock_s)
+        measure_refs(refs, data_dir)
 
     if "globe" in steps:
         res = sim_figure(NAME, CHAPTER, with_ray_num(build_globe(), args.ray_num), out_root=args.out, variant="globe",

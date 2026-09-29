@@ -1,5 +1,6 @@
 # 产出 ../img/cross_section_sensitivity.png（图 7「截面敏感性」，task-revise-ch8 作者终审第 8 条；版式按 _ch8_plot 统一：中文标签、
-# 格子用正文称呼、系列配色；`--replot` 不跑 Lumice，只从 ../data/cross_section_sensitivity*.csv 重画）：
+# 格子用正文称呼、系列配色；`--replot` 不跑 Lumice，只从 ../data/cross_section_sensitivity*.csv 重画；`--recompute` 不跑 Lumice，
+# 读已落盘的 8 张参考图重新取数、重写两份 CSV，不动正式图——取数口径改动后用；跑仿真与重算共用 `measure` 一份取数实现）：
 # 片晶截面从正六边形逐步偏向正三角形时，A60-10（142° 锐边鼓包）与 A0-02（Liljequist 窄峰）两格在幻日环条带上的方位剖面怎么变。
 # Lumice `face_distance` 六项按侧面 3..8 交替 [1, d, 1, d, 1, d]：d=1 正六边形，d→2 趋向正三角形（三个偶数面缩成点）；本图 d ∈ DS 四档。
 # 太阳 0°、片晶 h/a=0.2（zenith σ=0.5°）、rectangular 全天参考图（1440×720、absolute、同一 intensity）、每次 RAY_NUM 光线，
@@ -12,6 +13,7 @@
 # 条带能量 / 峰位 / 锐边 / 半高全宽），Lumice config 与 provenance 按 `sim_figure` 约定落 ../data/cross_section.d<d>_<class>.lumice.json
 # 与 ../data/cross_section/d<d>_<class>/。
 import csv
+import json
 import sys
 from pathlib import Path
 
@@ -55,6 +57,45 @@ def build(d: float, class_id: str, ray_num: int = RAY_NUM) -> dict:
 
 def variant(d: float, class_id: str) -> str:
     return f"d{d:g}_{class_id}"
+
+
+def load_render(data_dir: Path, d: float, class_id: str) -> tuple[np.ndarray, dict, float]:
+    """已落盘的参考图 ``d<d>_<class>``：``(图像, config, 渲染墙钟秒)``（`--recompute` 用）。"""
+    v = variant(d, class_id)
+    cfg = json.loads((data_dir / f"{NAME}.{v}.lumice.json").read_text())
+    prov = json.loads((data_dir / NAME / v / "provenance.json").read_text())
+    return np.asarray(X.Image.open(data_dir / NAME / v / prov["images"][0]).convert("RGB")), cfg, float(prov["wall_clock_s"])
+
+
+def measure(renders: dict[tuple[float, str], tuple[np.ndarray, dict, float]], data_dir: Path
+            ) -> tuple[np.ndarray, dict[tuple[float, str], np.ndarray], dict[tuple[float, str], dict[str, float]]]:
+    """8 张参考图 ``{(d, class): (图像, config, 墙钟秒)}`` → 剖面 / 特征，写 ../data/cross_section_sensitivity.csv 与 _summary.csv。"""
+    profiles: dict[tuple[float, str], np.ndarray] = {}
+    features: dict[tuple[float, str], dict[str, float]] = {}
+    centers = None
+    keys = [(d, cid) for d in DS for cid in CLASSES]
+    for d, cid in keys:
+        image, cfg, wall = renders[(d, cid)]
+        render = cfg["render"][0]
+        window_max = S.strip_max(image, render, SUN_ALT, half_deg=PROFILE_HALF_DEG, az_range=S.FEATURE_WINDOW)
+        assert window_max < 255, f"d={d:g} {cid} saturated within FEATURE_WINDOW: max_px={window_max}"
+        centers, profiles[(d, cid)] = S.azimuth_profile(image, render, SUN_ALT, half_deg=PROFILE_HALF_DEG, bin_deg=PROFILE_BIN_DEG)
+        fe = features[(d, cid)] = S.profile_features(centers, profiles[(d, cid)])
+        print(f"d={d:g} {cid}: {wall:.1f} s, ray_num={cfg['scene']['ray_num']:,}, max_px {image.max()} (in-window {window_max}); strip energy {fe['energy']:.3f}, "
+              f"peak @{fe['peak_az']:.2f}°, edge @{fe['edge_az']:.2f}°, FWHM {fe['fwhm_deg']:.2f}°, outer @{fe['outer_az']:.2f}°")
+    data_dir.mkdir(parents=True, exist_ok=True)
+    with (data_dir / f"{FIG_NAME}.csv").open("w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["az_deg", *(f"{cid}_d{d:g}" for d, cid in keys)])
+        for i, c in enumerate(centers):
+            w.writerow([f"{c:.2f}"] + [f"{profiles[k][i]:.6f}" for k in keys])
+    with (data_dir / f"{FIG_NAME}_summary.csv").open("w", newline="") as f:
+        w = csv.writer(f)
+        cols = ["energy", "peak_az", "edge_az", "edge_width_deg", "fwhm_deg", "outer_az"]
+        w.writerow(["d", "class", *cols])
+        for d, cid in keys:
+            w.writerow([f"{d:g}", cid] + [f"{features[(d, cid)][c]:.4f}" for c in cols])
+    return centers, profiles, features
 
 
 def load_profiles(data_dir: Path) -> tuple[np.ndarray, dict[tuple[float, str], np.ndarray], dict[tuple[float, str], dict[str, float]]]:
@@ -104,43 +145,27 @@ def plot(centers: np.ndarray, profiles: dict[tuple[float, str], np.ndarray], fea
 
 
 def main(argv=None) -> Path:
-    args = parse_args(argv, default_ray_num=RAY_NUM, description=FIG_NAME, replot=True)
+    argv = list(argv or [])
+    recompute = "--recompute" in argv
+    args = parse_args([a for a in argv if a != "--recompute"], default_ray_num=RAY_NUM, description=FIG_NAME, replot=True)
     data_dir = (args.out or CHAPTER) / "data"
     if args.replot:
+        assert not recompute, "--recompute 与 --replot 不同用"
         out = plot(*load_profiles(data_dir), img_path(FIG_NAME, CHAPTER, "png", args.out))
         print(out)
         return out
-    profiles: dict[tuple[float, str], np.ndarray] = {}
-    features: dict[tuple[float, str], dict[str, float]] = {}
-    centers = None
+    if recompute:
+        measure({(d, cid): load_render(data_dir, d, cid) for d in DS for cid in CLASSES}, data_dir)
+        return data_dir / f"{FIG_NAME}_summary.csv"
+    renders = {}
     for d in DS:
         for cid in CLASSES:
             cfg = with_ray_num(build(d, cid), args.ray_num)
             res = sim_figure(NAME, CHAPTER, cfg, out_root=args.out, variant=variant(d, cid), workers=args.workers, backend=args.backend)
-            image = np.asarray(X.Image.open(res.images[0]).convert("RGB"))
-            window_max = S.strip_max(image, cfg["render"][0], SUN_ALT, half_deg=PROFILE_HALF_DEG, az_range=S.FEATURE_WINDOW)
-            assert window_max < 255, f"d={d:g} {cid} saturated within FEATURE_WINDOW: max_px={window_max}"
-            centers, profiles[(d, cid)] = S.azimuth_profile(image, cfg["render"][0], SUN_ALT, half_deg=PROFILE_HALF_DEG, bin_deg=PROFILE_BIN_DEG)
-            fe = features[(d, cid)] = S.profile_features(centers, profiles[(d, cid)])
-            print(f"d={d:g} {cid}: {res.wall_clock_s:.1f} s, ray_num={args.ray_num:,}, max_px {image.max()} (in-window {window_max}); strip energy {fe['energy']:.3f}, "
-                  f"peak @{fe['peak_az']:.2f}°, edge @{fe['edge_az']:.2f}°, FWHM {fe['fwhm_deg']:.2f}°, outer @{fe['outer_az']:.2f}°")
-    data_dir.mkdir(parents=True, exist_ok=True)
-    keys = [(d, cid) for d in DS for cid in CLASSES]
-    with (data_dir / f"{FIG_NAME}.csv").open("w", newline="") as f:
-        w = csv.writer(f)
-        w.writerow(["az_deg", *(f"{cid}_d{d:g}" for d, cid in keys)])
-        for i, c in enumerate(centers):
-            w.writerow([f"{c:.2f}"] + [f"{profiles[k][i]:.6f}" for k in keys])
-    with (data_dir / f"{FIG_NAME}_summary.csv").open("w", newline="") as f:
-        w = csv.writer(f)
-        cols = ["energy", "peak_az", "edge_az", "edge_width_deg", "fwhm_deg", "outer_az"]
-        w.writerow(["d", "class", *cols])
-        for d, cid in keys:
-            w.writerow([f"{d:g}", cid] + [f"{features[(d, cid)][c]:.4f}" for c in cols])
-    out = plot(centers, profiles, features, img_path(FIG_NAME, CHAPTER, "png", args.out))
+            renders[(d, cid)] = (np.asarray(X.Image.open(res.images[0]).convert("RGB")), cfg, res.wall_clock_s)
+    out = plot(*measure(renders, data_dir), img_path(FIG_NAME, CHAPTER, "png", args.out))
     print(out)
     return out
-
 
 if __name__ == "__main__":
     main(sys.argv[1:])

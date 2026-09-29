@@ -9,8 +9,8 @@
 # 它的子图是 rectangular 全天图裁到反日点一侧的窗口（`rectangular_window`），不走 globe 选帧中心。
 # 晶体口径：本仓 `HexPrism` 的 h/a（a = 六边形边长），Lumice `height` 经 `config.hex_prism_height_ratio` 换算（÷2），
 # 与 `analyze_energy.py` / `data/energy_table.md` 同一口径；ch7 图 6 直接写 Lumice height=2（本仓口径 h/a=4），本篇不沿用那个数。
-# 帧中心机械选取（`choose_center` / `cap_energy_fractions` / `linear_luminance` / `sky_grid`）照抄 ch7 `fig_halos_columns.py`——
-# 跨章复用的代码按 AGENTS.md 应上提到 `halo_notes/`，本任务 plan 划定 `halo_notes/` 只读，先章内复制、上提另起任务（progress 有记）。
+# 帧中心机械选取（`choose_center` / `cap_energy_fractions` / `sky_grid`）照抄 ch7 `fig_halos_columns.py`（上提另起任务）；
+# 像素能量口径（`linear_luminance` / `pixel_energy`）取自 `halo_notes.sim.energy` 唯一实现，此处 re-export 供脚本 / 测试以 `S.` 引用。
 # 太阳高度：B1（图 5）沿用模块默认 `SUN_ALTITUDE`=10°；B2 系列（`fig_b2_unnamed_cell.py`、`fig_cross_section_sensitivity.py`）改太阳 0°
 # （task-revise-ch8：Liljequist 窄峰与 142° 鼓包两层同现需太阳贴地平线），一律经 `scene(..., sun_alt=)` / `candidates_for(sun_alt)` 显式传入，
 # 不改全局常量。幻日环条带方位剖面 `azimuth_profile` 是唯一实现（抽自 scratchpad probe_liljequist_azimuth.py），B1 / B2 / 截面敏感性图都调它。
@@ -24,6 +24,7 @@ from lumice_integral.geometry.feasibility import LatLonGrid
 from lumice_integral.symmetry import reflection_group as rg
 from lumice_integral.symmetry.signature import phi_class, phi_class_table
 from halo_notes.sim import config as C
+from halo_notes.sim.energy import linear_luminance, pixel_energy  # noqa: F401  （re-export：脚本 / 测试经 S. 引用）
 from halo_notes.sim.projection import GLOBE_CAP_DEG, project_rectangular, rectangular_pixel_directions
 
 FILTER_ID = 1          # 顶层过滤器的 id（复合或单光路）；scattering entry 引用它
@@ -146,19 +147,6 @@ def globe_render(view: dict, *, ev_mode: str = "relative", intensity_factor: flo
                          grid=sky_grid() if grid is None else grid)
 
 
-def linear_luminance(image: np.ndarray) -> np.ndarray:
-    """8-bit sRGB → 线性亮度（三通道之和）。"""
-    a = np.asarray(image, float) / 255.0
-    lin = np.where(a <= 0.04045, a / 12.92, ((a + 0.055) / 1.055) ** 2.4)
-    return lin.sum(axis=-1) if lin.ndim == 3 else lin
-
-
-def pixel_energy(image: np.ndarray) -> np.ndarray:
-    """``rectangular`` 参考图每像素能量 = 线性亮度本身：Lumice 像素值已是该像素立体角上积分过的能量（`src/core/lens_proj_build.hpp:157`
-    「A rendered pixel holds a radiance INTEGRATED over its own solid angle」），不再乘 cos(lat)（task-pixel-energy-semantics 修正）。"""
-    return linear_luminance(image)
-
-
 def cap_energy_fractions(image: np.ndarray, render: dict, candidates: dict[str, np.ndarray],
                          cap_deg: float = GLOBE_CAP_DEG) -> dict[str, float]:
     """参考图（rectangular）上，各候选中心周围 ``cap_deg`` 球冠内的能量占全天的比例（像素能量见 :func:`pixel_energy`）。"""
@@ -186,21 +174,17 @@ def sky_energy(image: np.ndarray, render: dict) -> float:
 
 def azimuth_profile(image: np.ndarray, render: dict, sun_alt: float, *, half_deg: float = 1.5,
                     edges: np.ndarray | None = None, bin_deg: float = 0.5) -> tuple[np.ndarray, np.ndarray]:
-    """幻日环条带方位剖面：``rectangular`` 参考图上仰角 = ``sun_alt`` ± ``half_deg`` 的条带，线性能量（立体角加权）沿 |方位角|
-    （太阳 = 0°；场景左右镜像对称，两侧合并）按 ``edges``（度，默认 0…180 每 ``bin_deg``）分桶。返回 ``(桶中心, 各桶能量)``。
+    """幻日环条带方位剖面：``rectangular`` 参考图上仰角 = ``sun_alt`` ± ``half_deg`` 的条带，像素能量
+    （:func:`pixel_energy`，像素值已含立体角，不再乘 cos(lat)）沿 |方位角|（太阳 = 0°；场景左右镜像对称，两侧合并）按 ``edges``（度，默认 0…180 每 ``bin_deg``）分桶。返回 ``(桶中心, 各桶能量)``。
     抽自 scratchpad/task-write-ch8/probe_liljequist_azimuth.py::profile，B1 `strip_profile`、B2 三曲线、截面敏感性图共用这一份实现。"""
     if edges is None:
         edges = np.arange(0.0, 180.0 + bin_deg, bin_deg)
     edges = np.asarray(edges, float)
-    dirs, weight = rectangular_pixel_directions(render)
+    dirs, _ = rectangular_pixel_directions(render)
     el = np.degrees(np.arcsin(np.clip(dirs[..., 2], -1.0, 1.0)))
     az = np.abs(np.degrees(np.arctan2(dirs[..., 1], dirs[..., 0])))
     strip = np.abs(el - sun_alt) <= half_deg
-    # KNOWN BUG（刻意不修，见 scratchpad/task-pixel-energy-semantics progress.md D1）：与修正前 cap_energy_fractions 同一「多乘 cos(lat)」模式。
-    # 不修的原因：halo_notes/sim/tests/test_figures.py 以 atol 比对按旧口径落盘的 far_side_profile.csv / cross_section_sensitivity_summary.csv，
-    # 重算两份 CSV 须重渲（两脚本无只重算路径）。影响：条带只 ±half_deg 宽，cos(lat) 在条带内近乎常数（太阳 0° 时 ≥ 0.9997、10° 时 0.978–0.991），
-    # 只差一个近乎均匀的比例因子。新代码要像素能量请用 pixel_energy，不要照抄这一行。
-    hist, _ = np.histogram(az[strip], bins=edges, weights=(linear_luminance(image) * weight)[strip])
+    hist, _ = np.histogram(az[strip], bins=edges, weights=pixel_energy(image)[strip])
     return (edges[:-1] + edges[1:]) / 2, hist
 
 
