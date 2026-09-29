@@ -12,6 +12,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 
+from halo_notes.sim.energy import pixel_radiance
+
 CODE_DIR = Path(__file__).resolve().parent
 if str(CODE_DIR) not in sys.path:
     sys.path.insert(0, str(CODE_DIR))
@@ -101,12 +103,12 @@ def test_rect_pixel_is_energy_not_radiance():
     img, cfg = S.load_product("odd_radius_remainder", "rect")
     render = cfg["render"][0]
     dirs, w = F.rectangular_pixel_directions(render)
-    lin = F._srgb_decode(img).sum(axis=-1)
+    lin = S.pixel_energy(img)
     theta = np.degrees(np.arccos(np.clip(dirs @ S.sun_direction(), -1, 1)))
     lat = np.degrees(np.arcsin(dirs[..., 2]))
     ring = (theta > 65) & (theta < 72)
     hi, lo = ring & (lat >= 70) & (lat < 80), ring & (lat >= 40) & (lat < 70)
-    rad = lin / w
+    rad = pixel_radiance(lin, w)
     assert rad[hi].mean() == pytest.approx(rad[lo].mean(), rel=0.1)
     assert lin[hi].mean() < 0.6 * lin[lo].mean()
 

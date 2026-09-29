@@ -5,5 +5,6 @@
 - :mod:`.run`     调 CLI、收图、写 ``provenance.json``（版本 / 二进制与 config 的 sha256 / 墙钟 / 平台）
 - :mod:`.compose` Lumice 输出与 matplotlib 标注、``halo_notes.draw`` inset 的合成
 - :mod:`.analyze` ``Lumice analyze`` 子命令（4.6.x，本地 build）：随机朝向光路分析 CSV → Φ 类聚合 / 与精确枚举互证
+- :mod:`.energy`  Lumice 渲染图的像素能量（= 线性亮度，像素已含立体角，不再乘 cos(lat)）/ 辐亮度（= 能量 / cos(lat)）唯一实现
 - :mod:`.raypath_probe` 固定取向单光路渲染 vs ``phi`` 预测：面编号 / 手性 / 旋转链取证（锥晶 fixture 的生成器）
 """

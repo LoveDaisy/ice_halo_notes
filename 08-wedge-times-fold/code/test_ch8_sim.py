@@ -43,6 +43,17 @@ def test_cap_energy_fractions_do_not_reweight_by_latitude():
     assert fr["eq"] == pytest.approx(0.5, abs=0.02) and fr["hi"] == pytest.approx(0.5, abs=0.02)
 
 
+
+def test_azimuth_profile_bins_pixel_energy_without_cos_weight():
+    """幻日环条带剖面的桶值 = 条带内像素能量之和（task-pixel-energy-cos-lat：旧实现多乘 cos(lat)，高仰角条带被系统性压低）。
+    同样多的亮像素放在仰角 0° / 60° 条带里，两条剖面总和应相等（旧口径下差 cos 60° = 一半）。"""
+    low, high = _patch_image(0.0, 90.0), _patch_image(60.0, 90.0)
+    _, h_low = S.azimuth_profile(low, RENDER, 0.0, half_deg=3.0)
+    _, h_high = S.azimuth_profile(high, RENDER, 60.0, half_deg=3.0)
+    assert h_low.sum() == pytest.approx(float(S.pixel_energy(low).sum()))
+    assert h_high.sum() == pytest.approx(h_low.sum())
+
+
 # task-math-depend-on-lumice-integral 迁移前（main 8e8a74b，本仓 halo_notes.math.reflection_group.pbd_orbit）跑出的
 # phi_class_filters("A60-10", 0.2) 代表序列，按返回顺序（子过滤器 id 2, 3, … 依此分配）；B2 config 只锁集合，这里连顺序一起锁。
 A60_10_RATIO_02_MAIN = tuple(tuple(map(int, s.split("-"))) for s in (

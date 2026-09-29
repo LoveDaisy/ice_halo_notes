@@ -57,18 +57,14 @@ PNG_META = {"Software": None}
 # 像素值 ∝ 辐亮度 × cos(lat)：同一张随机取向图上、与太阳同一夹角的一圈，靠近天顶 / 天底的像素暗到 1/10 以下（实测参考几何余量图
 # θ ≈ 68°：lat 70–80° 与 40–70° 两段 L / cos(lat) 都是 0.0297，L 本身差 2.2 倍）。因此：
 #   - 像素**能量** = 线性亮度 L 本身；像素**辐亮度** = L / cos(lat)；径向剖面的平均辐亮度 = ΣL / Σcos(lat)（`radiance_profile`）；
-#   - `_ch9_sim.energy_map` 取的是 L·cos(lat)（多乘了一次 cos），它的剖面 / 能量份额带一个随 θ 缓变的偏置：局部峰 / 背景比几乎不变
-#     （余量 124.6° 1.55 → 1.55、`13-15-26-28` 3.72 → 3.69），全天能量份额会变（余量 12.1% → 13.2%，MC 为 13.04%）。
-#     `_ch9_sim` 与已入库 numbers.json 本任务不改（issue 硬边界），偏差回抛作者，见 progress。本文件的新图一律按正确语义取数与显示。
+#   - 像素能量 / 辐亮度口径的唯一实现在 `halo_notes.sim.energy`（`pixel_energy` / `pixel_radiance`）；`_ch9_sim.energy_map` 早先取的是
+#     L·cos(lat)（多乘了一次 cos），已在 task-pixel-energy-semantics 修正并重算 numbers.json（余量 12.1% → 13.2%，MC 为 13.04%；
+#     局部峰 / 背景比 124.6° 1.55 → 1.55、`13-15-26-28` 3.72 → 3.69）。
 
 import numpy as np  # noqa: E402
 
+from halo_notes.sim.energy import pixel_energy, pixel_radiance  # noqa: E402
 from halo_notes.sim.projection import rectangular_pixel_directions  # noqa: E402
-
-def _srgb_decode(img: np.ndarray) -> np.ndarray:
-    a = np.asarray(img, float) / 255.0
-    return np.where(a <= 0.04045, a / 12.92, ((a + 0.055) / 1.055) ** 2.4)
-
 
 def _srgb_encode(lin: np.ndarray) -> np.ndarray:
     lin = np.clip(lin, 0.0, 1.0)
@@ -92,7 +88,7 @@ def linear_radiance(lin: np.ndarray, render: dict) -> np.ndarray:
             pad = np.concatenate([row[-(k // 2):], row, row[: k - k // 2 - 1]], axis=0) if k // 2 else np.concatenate([row, row[: k - 1]], axis=0)
             cs = np.cumsum(np.concatenate([np.zeros((1,) + row.shape[1:]), pad], axis=0), axis=0)
             row = (cs[k:] - cs[:-k]) / k
-        out[i] = row / cos_lat[i]
+        out[i] = pixel_radiance(row, cos_lat[i])
     return out
 
 
@@ -100,7 +96,7 @@ def radiance_profile(image: np.ndarray, render: dict, center_dir: np.ndarray, *,
                      max_deg: float = 180.0) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """以 ``center_dir`` 为极点的径向剖面（正确像素语义）：``(桶中心, 平均辐亮度 ΣL/Σcos(lat), 桶能量 ΣL)``，L = 三通道线性亮度之和。
     与 `_ch9_sim.angular_radial_profile` 同一分桶，只是不再多乘一次 cos(lat)。"""
-    lin = _srgb_decode(image).sum(axis=-1)
+    lin = pixel_energy(image)
     dirs, w = rectangular_pixel_directions(render)
     c = np.asarray(center_dir, float)
     c = c / np.linalg.norm(c)

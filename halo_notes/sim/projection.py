@@ -121,7 +121,8 @@ def project_rectangular(directions, render: Mapping[str, Any]) -> np.ndarray:
 
 def rectangular_pixel_directions(render: Mapping[str, Any]) -> tuple[np.ndarray, np.ndarray]:
     """``rectangular`` 图每个像素中心对应的天空方向 (H, W, 3) 与它的立体角权重 cos(lat) (H, W)——
-    :func:`project_rectangular` 的逆（像素中心 ``(j + ½, i + ½)``）。"""
+    :func:`project_rectangular` 的逆（像素中心 ``(j + ½, i + ½)``）。Lumice 像素已含立体角，求能量不要再乘这个权重
+    （能量 = :func:`~.energy.pixel_energy`）；要辐亮度用 :func:`~.energy.pixel_radiance`（能量 / 权重）。"""
     w, h = int(render["resolution"][0]), int(render["resolution"][1])
     scale = rectangular_scale(w, h)
     j, i = np.meshgrid(np.arange(w), np.arange(h))
