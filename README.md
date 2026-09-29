@@ -17,8 +17,8 @@
 | 6 | `06-monte-carlo-vs-integration/` | [蒙特卡洛 vs. 直接积分](06-monte-carlo-vs-integration/蒙特卡洛%20vs.%20直接积分.md) | published | [p/536772578](https://zhuanlan.zhihu.com/p/536772578) | `[[现代冰晕研究漫谈(6)： 蒙特卡洛 vs. 直接积分]]` |
 | 7 | `07-reflection-group/` | [为什么恰好是十二个](07-reflection-group/为什么恰好是十二个.md) | published | [p/2082646907952821740](https://zhuanlan.zhihu.com/p/2082646907952821740) | `[[现代冰晕研究漫谈(7)： 十二种矩阵背后的数学结构]]` |
 | 8 | `08-wedge-times-fold/` | [三种楔子、十二种折叠](08-wedge-times-fold/三种楔子-十二种折叠.md) | published | [p/2084963224814990674](https://zhuanlan.zhihu.com/p/2084963224814990674) | `[[现代冰晕研究漫谈(8)： 楔角光路]]` |
-| 8.1 番外 | `08.1-tape-vs-matrix/` | [从古典几何到现代矩阵](08.1-tape-vs-matrix/从古典几何到现代矩阵.md) | published | [p/2087212931775837732](https://zhuanlan.zhihu.com/p/2087212931775837732) | —（待回拉，见 `scratchpad/backlog.md`） |
-| 9 | `09-pyramid/` | [锥晶的有限与无限](09-pyramid/锥晶的有限与无限.md) | published | [p/2087225407133304432](https://zhuanlan.zhihu.com/p/2087225407133304432) | —（待回拉，见 `scratchpad/backlog.md`） |
+| 8.1 番外 | `08.1-tape-vs-matrix/` | [从古典几何到现代矩阵](08.1-tape-vs-matrix/从古典几何到现代矩阵.md) | published | [p/2087212931775837732](https://zhuanlan.zhihu.com/p/2087212931775837732) | `[[现代冰晕研究漫谈(8.1 番外)： 从古典几何到现代矩阵]]` |
+| 9 | `09-pyramid/` | [锥晶的有限与无限](09-pyramid/锥晶的有限与无限.md) | published | [p/2087225407133304432](https://zhuanlan.zhihu.com/p/2087225407133304432) | `[[现代冰晕研究漫谈(9)： 锥晶的有限与无限]]` |
 | 9.1 番外 | `09.1-orientation-space/` | [姿态空间的形状](09.1-orientation-space/姿态空间的形状.md) | outline | — | — |
 | 10 | `10-radius-and-azimuth/` | [半径与方位](10-radius-and-azimuth/半径与方位.md) | outline | — | — |
 | 11 | `11-five-halos-one-wedge/` | [同一个楔，五种晕](11-five-halos-one-wedge/同一个楔-五种晕.md) | outline | — | — |
