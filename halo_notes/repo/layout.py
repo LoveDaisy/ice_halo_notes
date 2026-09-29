@@ -8,7 +8,8 @@
 3. 章目录（``NN-slug`` / ``NN.k-slug``）下 ``img/**``：``.gitkeep`` 进 git，其余一律 ignore
 4. 章目录下 ``data/**``：``data/analysis*/**``（光路分析中间缓存目录）ignore；文本（``DATA_TEXT_EXTS``）且单文件
    ≤ ``DATA_TEXT_MAX_BYTES`` 进 git；其余（二进制 / 超限文本）ignore
-5. 其余路径带媒体扩展名（``.gitattributes`` 里的 LFS 扩展名）→ ignore
+5. 其余路径带媒体扩展名（``.gitattributes`` 里的 LFS 扩展名），或内容本身是 LFS pointer（``lfs=True``，历史上曾用 LFS 跟踪的
+   无扩展名二进制，如 2022 年的仿真器可执行文件）→ ignore
 6. 其余 → 进 git（md、代码、配置……）
 
 ``.gitignore`` 受管块只能表达路径 + 扩展名（规则 1、3、4 的路径部分、5 不表达）；大小阈值与规则 5 由
@@ -240,8 +241,9 @@ def _is_any_chapter_dir(name: str) -> bool:
 
 
 def classify(path: str, referenced: Set[str], size: Optional[int] = None,
-             exts: Optional[Tuple[str, ...]] = None) -> Tuple[str, str]:
-    """返回 ``("keep" | "ignore", 理由)``。``size`` 为文件字节数（LFS 文件取真实大小），未知时不做大小判定。"""
+             exts: Optional[Tuple[str, ...]] = None, lfs: bool = False) -> Tuple[str, str]:
+    """返回 ``("keep" | "ignore", 理由)``。``size`` 为文件字节数（LFS 文件取真实大小），未知时不做大小判定；
+    ``lfs`` 为该版本内容是否 LFS pointer（未知时 False）。"""
     exts = media_exts() if exts is None else exts
     parts = path.split("/")
     name = parts[-1]
@@ -268,6 +270,8 @@ def classify(path: str, referenced: Set[str], size: Optional[int] = None,
         return "ignore", "data 下非文本"
     if ext in exts:
         return "ignore", "img 之外的媒体文件且未被引用"
+    if lfs:
+        return "ignore", "LFS 存储的二进制且未被引用"
     return "keep", "md / 代码 / 配置"
 
 
@@ -466,7 +470,7 @@ def check_push(lines: Iterable[str], root: Path = REPO_ROOT, env: Optional[Dict[
         total = 0
         for path, sha in sorted(changed):
             size, is_lfs = sizes[sha]
-            verdict, why = classify(path, refs, size, exts)
+            verdict, why = classify(path, refs, size, exts, lfs=is_lfs)
             if verdict == "ignore":
                 problems.append(f"{local_ref}: 按规则应 ignore：{path}（{why}，{size / 1e6:.2f} MB）")
             if size > file_max * 1e6:

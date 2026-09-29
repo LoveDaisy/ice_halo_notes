@@ -65,7 +65,7 @@ def main(argv=None) -> int:
                 continue
             path = fc.filename.decode("utf-8", "surrogateescape")
             oid, size, is_ptr = blobs.get(fc.blob_id, (None, None, False))
-            verdict, why = layout.classify(path, keep_paths, size, exts)
+            verdict, why = layout.classify(path, keep_paths, size, exts, lfs=is_ptr)
             if a.mode == "oid" and oid in keep_oids:
                 verdict, why = "keep", "内容 oid 在 HEAD 保留集"
             elif a.mode == "oid" and path in keep_paths:

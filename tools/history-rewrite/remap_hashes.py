@@ -112,11 +112,11 @@ def main(argv=None) -> int:
     n_rep = sum(len(v) for v in replaced.values())
     print(f"扫描 {len(files)} 个文件、{len(tokens)} 个十六进制词，其中 {len(commits)} 个是旧仓 commit；"
           f"{'已替换' if a.apply else '将替换'} {n_rep} 处（{len(replaced)} 个文件），被裁剪 {sum(map(len, pruned.values()))} 处，"
-          f"不在 commit-map {sum(map(len, unmapped.values()))} 处")
+          f"不在 commit-map（不可达 / 被删分支）{sum(map(len, unmapped.values()))} 处")
     for f, v in sorted(pruned.items()):
         print(f"  被裁剪（不替换）：{f}: {', '.join(sorted(set(v)))}")
     for f, v in sorted(unmapped.items()):
-        print(f"  不在 commit-map（不替换）：{f}: {', '.join(sorted(set(v)))}")
+        print(f"  不在 commit-map（旧仓中已不可达或只在被删分支上，不替换）：{f}: {', '.join(sorted(set(v)))}")
     return 0
 
 

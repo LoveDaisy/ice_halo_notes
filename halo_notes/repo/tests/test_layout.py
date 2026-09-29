@@ -117,6 +117,13 @@ def test_classify(path, size, expect):
     assert L.classify(path, {"01-a/img/ref.png"}, size, EXTS)[0] == expect
 
 
+def test_lfs_binary_without_media_ext_is_ignored():
+    assert L.classify("halo2. All Possible Raypaths/IceHaloEndless", set(), 1_000_000, EXTS, lfs=True)[0] == "ignore"
+    assert L.classify("halo2. All Possible Raypaths/IceHaloEndless", set(), 1_000_000, EXTS)[0] == "keep"
+    assert L.classify("halo_notes/sim/tests/data/f.png", set(), 10, EXTS, lfs=True)[0] == "keep"
+    assert L.classify("01-a/img/ref.png", {"01-a/img/ref.png"}, 10, EXTS, lfs=True)[0] == "keep"
+
+
 def test_referenced_overrides_everything():
     assert L.classify("01-a/data/run/img_01.png", {"01-a/data/run/img_01.png"}, None, EXTS)[0] == "keep"
 
