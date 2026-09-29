@@ -28,7 +28,7 @@ __pycache__/
 !/[0-9][0-9]*-*/img/**/.gitkeep
 !/[0-9][0-9]*-*/data/**/.gitkeep
 /[0-9][0-9]*-*/data/analysis/
-# 被 md 引用的文件（放行）
+# 被 md 引用的文件 + UNREGENERABLE_INPUTS（放行）
 !/00-introduction/img/all_halos.jpg
 !/00-introduction/img/crystal03.png
 !/01-symmetry/img/c6.png
@@ -59,6 +59,7 @@ __pycache__/
 !/05-rotation-3d/img/hist01.png
 !/05-rotation-3d/img/hist02.png
 !/05-rotation-3d/img/numerical_err.png
+!/06-monte-carlo-vs-integration/data/column1.0_direct.jpg
 !/06-monte-carlo-vs-integration/img/compare_two_methods.jpg
 !/06-monte-carlo-vs-integration/img/crystal_pose.jpg
 !/06-monte-carlo-vs-integration/img/dual_fisheye.jpg

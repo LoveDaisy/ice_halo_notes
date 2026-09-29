@@ -103,6 +103,8 @@ def test_md_skip_dirs():
     ("01-a/code/legacy/x.nb", None, "keep"),
     ("docs/pic.png", None, "ignore"),
     ("01-a/正文.md", None, "keep"),
+    ("06-monte-carlo-vs-integration/data/column1.0_direct.jpg", None, "keep"),
+    ("06-monte-carlo-vs-integration/data/data_251x801.bin", None, "ignore"),
 ])
 def test_classify(path, size, expect):
     assert L.classify(path, {"01-a/img/ref.png"}, size, EXTS)[0] == expect

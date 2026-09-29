@@ -2,7 +2,8 @@
 
 规则（按顺序判定，先中先得）：
 
-1. 被任一 ``.md`` 引用的文件 → 进 git（「被正文引用的插图」；引用集合由 :func:`referenced_files` 扫描得出）
+1. 被任一 ``.md`` 引用的文件 → 进 git（「被正文引用的插图」；引用集合由 :func:`referenced_files` 扫描得出）；
+   ``UNREGENERABLE_INPUTS`` 显式列出的「重生成被引用插图所需、本身无法重生成」的输入同样进 git
 2. ``halo_notes/**/tests/data/**`` → 进 git（测试夹具）
 3. 章目录（``NN-slug`` / ``NN.k-slug``）下 ``img/**``：``.gitkeep`` 进 git，其余一律 ignore
 4. 章目录下 ``data/**``：``data/analysis/**``（光路分析中间缓存）ignore；文本（``DATA_TEXT_EXTS``）且单文件
@@ -44,6 +45,12 @@ DATA_TEXT_EXTS = (".json", ".csv", ".txt", ".md", ".log", ".tsv")
 DATA_TEXT_MAX_BYTES = 512 * 1024
 DATA_CACHE_DIRS = ("analysis",)
 KEEP_NAMES = (".gitkeep",)
+
+# 重生成被引用插图所需、但本身无法用本仓脚本重生成的输入（逐条写理由；增补须有被引用图依赖它的证据）
+UNREGENERABLE_INPUTS = {
+    "06-monte-carlo-vs-integration/data/column1.0_direct.jpg":
+        "compare_two_methods.jpg 第四条带（直接积分）；直接积分项目尚未用 python 重做，源数据只有 legacy matlab 的 data_251x801.bin",
+}
 
 # 扫描 md 时跳过的顶层目录（本地任务管理 / 环境 / 缓存）；任何层级的隐藏目录也跳过
 MD_SKIP_TOP = ("scratchpad", ".venv", ".lumice", "node_modules")
@@ -235,6 +242,8 @@ def classify(path: str, referenced: Set[str], size: Optional[int] = None,
     ext = posixpath.splitext(name)[1].lower()
     if path in referenced:
         return "keep", "被 md 引用"
+    if path in UNREGENERABLE_INPUTS:
+        return "keep", "不可重生成的输入"
     if parts[0] == "halo_notes" and any(parts[i] == "tests" and parts[i + 1] == "data" for i in range(len(parts) - 2)):
         return "keep", "测试夹具"
     if len(parts) >= 3 and is_chapter_dir(parts[0]) and parts[1] == "img":
@@ -283,8 +292,8 @@ def render_gitignore_block(referenced: Iterable[str]) -> str:
         lines.append(f"!{ch}/data/**/{n}")
     for d in DATA_CACHE_DIRS:
         lines.append(f"{ch}/data/{d}/")
-    lines.append("# 被 md 引用的文件（放行）")
-    lines += ["!/" + _gi_escape(p) for p in sorted(referenced)]
+    lines.append("# 被 md 引用的文件 + UNREGENERABLE_INPUTS（放行）")
+    lines += ["!/" + _gi_escape(p) for p in sorted(set(referenced) | set(UNREGENERABLE_INPUTS))]
     lines.append(MANAGED_END)
     return "\n".join(lines) + "\n"
 
@@ -378,6 +387,10 @@ def check_tree(root: Path = REPO_ROOT) -> List[str]:
                 problems.append(f"未被 .gitignore 覆盖但应 ignore：{f}（{why}）")
     for f in sorted(refs - tracked):
         problems.append(f"被引用但未跟踪：{f}")
+    for f in sorted(set(UNREGENERABLE_INPUTS) - tracked):
+        if not (root / f.split("/", 1)[0]).is_dir():
+            continue  # 该章不在此仓（合成测试仓）
+        problems.append(f"不可重生成的输入未跟踪：{f}")
     keep_tracked = [f for f in sorted(tracked) if classify(f, refs, None, exts)[0] == "keep"]
     if keep_tracked:
         out = _git(root, "check-ignore", "--no-index", "--stdin", "-z", input="\0".join(keep_tracked).encode() + b"\0",
