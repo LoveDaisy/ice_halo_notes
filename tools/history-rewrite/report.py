@@ -41,14 +41,11 @@ def main(argv=None) -> int:
         f = filt[m]
         L += [f"### mode = {m}", "",
               f"- 保留 file change {f['kept_changes']}，丢弃 {f['dropped_changes']}（涉及 {f['dropped_paths']} 个路径）",
-              f"- 兜底 strip（非 LFS blob > 1 MB）：{len(f['stripped_backstop'])} 个，其中 classify 判为 keep 的："
-              f"{len(f['stripped_backstop_should_keep'])} 个" + ("（✅ 无应保留者被删）" if not f["stripped_backstop_should_keep"] else "（⚠️ 见下）"),
+              f"- 被保留的非 LFS blob > 1 MB（不删，供作者过目）：{len(f['large_kept_plain_blobs'])} 个路径",
               f"- 回落（丢弃的修改落在一个更早版本被保留的路径上）：{len(f['fallbacks'])} 处",
               f"- 同一路径保留了多个版本：{len(f['paths_with_multiple_kept_versions'])} 个路径", ""]
-        for s in f["stripped_backstop"]:
-            L.append(f"  - strip：`{s['path']}` {s['size']} B（classify={s['classify']}）")
-        for s in f["stripped_backstop_should_keep"]:
-            L.append(f"  - ⚠️ 应保留却被兜底删掉：`{s['path']}`")
+        for p, sz in f["large_kept_plain_blobs"]:
+            L.append(f"  - 保留的大 blob：`{p}` 最大 {sz / 1e6:.2f} MB")
         for fb in f["fallbacks"][:40]:
             L.append(f"  - 回落：`{fb['path']}` @ {fb['commit'][:10] if fb['commit'] else '?'}（{fb['why']}）")
         if len(f["fallbacks"]) > 40:

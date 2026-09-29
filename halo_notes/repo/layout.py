@@ -6,7 +6,7 @@
    ``UNREGENERABLE_INPUTS`` 显式列出的「重生成被引用插图所需、本身无法重生成」的输入同样进 git
 2. ``halo_notes/**/tests/data/**`` → 进 git（测试夹具）
 3. 章目录（``NN-slug`` / ``NN.k-slug``）下 ``img/**``：``.gitkeep`` 进 git，其余一律 ignore
-4. 章目录下 ``data/**``：``data/analysis/**``（光路分析中间缓存）ignore；文本（``DATA_TEXT_EXTS``）且单文件
+4. 章目录下 ``data/**``：``data/analysis*/**``（光路分析中间缓存目录）ignore；文本（``DATA_TEXT_EXTS``）且单文件
    ≤ ``DATA_TEXT_MAX_BYTES`` 进 git；其余（二进制 / 超限文本）ignore
 5. 其余路径带媒体扩展名（``.gitattributes`` 里的 LFS 扩展名）→ ignore
 6. 其余 → 进 git（md、代码、配置……）
@@ -40,10 +40,12 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 CHAPTER_RE = re.compile(r"^\d\d(\.\d+)?-[^/]+$")
 CHAPTER_GLOB = "[0-9][0-9]*-*"  # .gitignore 里与 CHAPTER_RE 对应的通配（`*` 不跨 `/`）
+# 2026-09 布局重组前的章目录名（`halo6. Differentiable Render`、`ex-tape-vs-matrix`）：HEAD 上已不存在，只让历史重写按同一套规则判定
+LEGACY_CHAPTER_RE = re.compile(r"^(halo\d+(\.\d+)*\. .+|ex-[a-z0-9-]+)$")
 
 DATA_TEXT_EXTS = (".json", ".csv", ".txt", ".md", ".log", ".tsv")
 DATA_TEXT_MAX_BYTES = 512 * 1024
-DATA_CACHE_DIRS = ("analysis",)
+DATA_CACHE_DIR_RE = re.compile(r"^analysis(_.*)?$")  # data/analysis/、历史上的 data/analysis_<ha>/：光路分析中间缓存目录
 KEEP_NAMES = (".gitkeep",)
 
 # 重生成被引用插图所需、但本身无法用本仓脚本重生成的输入（逐条写理由；增补须有被引用图依赖它的证据）
@@ -233,6 +235,10 @@ def is_chapter_dir(name: str) -> bool:
     return bool(CHAPTER_RE.match(name))
 
 
+def _is_any_chapter_dir(name: str) -> bool:
+    return bool(CHAPTER_RE.match(name) or LEGACY_CHAPTER_RE.match(name))
+
+
 def classify(path: str, referenced: Set[str], size: Optional[int] = None,
              exts: Optional[Tuple[str, ...]] = None) -> Tuple[str, str]:
     """返回 ``("keep" | "ignore", 理由)``。``size`` 为文件字节数（LFS 文件取真实大小），未知时不做大小判定。"""
@@ -246,12 +252,12 @@ def classify(path: str, referenced: Set[str], size: Optional[int] = None,
         return "keep", "不可重生成的输入"
     if parts[0] == "halo_notes" and any(parts[i] == "tests" and parts[i + 1] == "data" for i in range(len(parts) - 2)):
         return "keep", "测试夹具"
-    if len(parts) >= 3 and is_chapter_dir(parts[0]) and parts[1] == "img":
+    if len(parts) >= 3 and _is_any_chapter_dir(parts[0]) and parts[1] == "img":
         if name in KEEP_NAMES:
             return "keep", "占位文件"
         return "ignore", "img 下未被引用"
-    if len(parts) >= 3 and is_chapter_dir(parts[0]) and parts[1] == "data":
-        if parts[2] in DATA_CACHE_DIRS and len(parts) >= 4:
+    if len(parts) >= 3 and _is_any_chapter_dir(parts[0]) and parts[1] == "data":
+        if len(parts) >= 4 and DATA_CACHE_DIR_RE.match(parts[2]):
             return "ignore", "data 中间缓存目录"
         if name in KEEP_NAMES:
             return "keep", "占位文件"
@@ -290,8 +296,8 @@ def render_gitignore_block(referenced: Iterable[str]) -> str:
     for n in KEEP_NAMES:
         lines.append(f"!{ch}/img/**/{n}")
         lines.append(f"!{ch}/data/**/{n}")
-    for d in DATA_CACHE_DIRS:
-        lines.append(f"{ch}/data/{d}/")
+    lines.append(f"{ch}/data/analysis/")
+    lines.append(f"{ch}/data/analysis_*/")
     lines.append("# 被 md 引用的文件 + UNREGENERABLE_INPUTS（放行）")
     lines += ["!/" + _gi_escape(p) for p in sorted(set(referenced) | set(UNREGENERABLE_INPUTS))]
     lines.append(MANAGED_END)

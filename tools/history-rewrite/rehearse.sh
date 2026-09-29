@@ -20,12 +20,12 @@ mkdir -p "$out"
 [ ! -e "$out/backup.git" ] || { echo "$out/backup.git 已存在" >&2; exit 1; }
 sha=$(git -C "$src" rev-parse "$rev^{commit}")
 
-echo "== 1. mirror 备份（取自本地仓 $src）"
+echo "== 1. mirror 备份（取自本地仓 ${src}）"
 git clone -q --mirror "$src" "$out/backup.git"
 [ "$(git -C "$out/backup.git" rev-parse "$rev^{commit}")" = "$sha" ] || { echo "mirror 的 $rev 与本地不一致" >&2; exit 1; }
 find "$common/lfs/objects" -type f -not -name '*.tmp' | xargs -n1 basename | "$here/../lfs-import.sh" "$common" "$out/backup.git"
 
-echo "== 2. 保留集（$rev = ${sha:0:10}）"
+echo "== 2. 保留集（${rev} = ${sha:0:10}）"
 "$py" "$here/build_keep_set.py" "$out/backup.git" --rev "$rev" --out "$out/keep"
 while read -r oid; do
   [ -f "$out/backup.git/lfs/objects/${oid:0:2}/${oid:2:2}/$oid" ] || { echo "keep oid 不在 mirror LFS 存储：$oid" >&2; exit 1; }
@@ -35,7 +35,7 @@ echo "== 3. 重写前体量"
 "$py" "$here/measure.py" "$out/backup.git" --rev "$rev" --follow "${follow[@]}" --out "$out/before-all.json"
 
 for mode in oid path; do
-  echo "== 4. 重写（mode=$mode）"
+  echo "== 4. 重写（mode=${mode}）"
   work="$out/work-$mode.git"
   rm -rf "$work"
   cp -Rc "$out/backup.git" "$work" 2>/dev/null || cp -R "$out/backup.git" "$work"
@@ -53,4 +53,4 @@ done
 refs_after=$(git -C "$src" for-each-ref --format='%(refname) %(objectname)' | shasum -a 256)
 [ "$refs_before" = "$refs_after" ] || { echo "真实仓 refs 在演练前后不一致！" >&2; exit 1; }
 "$py" "$here/report.py" "$out" --src "$src" --rev "$rev" --sha "$sha" > "$out/rehearsal-report.md"
-echo "== 完成：$out/rehearsal-report.md（真实仓 refs 前后一致）"
+echo "== 完成：${out}/rehearsal-report.md（真实仓 refs 前后一致）"

@@ -28,6 +28,7 @@ __pycache__/
 !/[0-9][0-9]*-*/img/**/.gitkeep
 !/[0-9][0-9]*-*/data/**/.gitkeep
 /[0-9][0-9]*-*/data/analysis/
+/[0-9][0-9]*-*/data/analysis_*/
 # 被 md 引用的文件 + UNREGENERABLE_INPUTS（放行）
 !/00-introduction/img/all_halos.jpg
 !/00-introduction/img/crystal03.png

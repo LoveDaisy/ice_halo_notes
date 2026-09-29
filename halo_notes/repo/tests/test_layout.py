@@ -104,6 +104,13 @@ def test_md_skip_dirs():
     ("docs/pic.png", None, "ignore"),
     ("01-a/正文.md", None, "keep"),
     ("06-monte-carlo-vs-integration/data/column1.0_direct.jpg", None, "keep"),
+    ("01-a/data/analysis_0.2/analysis.csv", 10, "ignore"),
+    ("01-a/data/analysis_0.2.lumice.json", 10, "keep"),
+    ("halo6. Differentiable Render/data/data_251x801.bin", None, "ignore"),
+    ("halo6. Differentiable Render/data/x.csv", 10, "keep"),
+    ("halo1. Symmetry/c6.png", None, "ignore"),
+    ("halo5.1. Spherical Distribution/a.m", None, "keep"),
+    ("ex-tape-vs-matrix/img/a.png", None, "ignore"),
     ("06-monte-carlo-vs-integration/data/data_251x801.bin", None, "ignore"),
 ])
 def test_classify(path, size, expect):
@@ -133,7 +140,7 @@ def test_gitignore_block_matches_classify(repo: Path):
     paths = sorted(refs | {
         "01-a/img/other.png", "01-a/img/legacy/old.png", "01-a/img/.gitkeep", "01-a/data/cfg.json",
         "01-a/data/run/img_01.png", "01-a/data/run/lumice.log", "01-a/data/analysis/rows.csv",
-        "01-a/data/analysis.zip", "01-a/data/deep/er/x.csv", "01-a/code/fig_a.py", "halo_notes/x/tests/data/f.png",
+        "01-a/data/analysis.zip", "01-a/data/deep/er/x.csv", "01-a/data/analysis_0.2/a.csv", "01-a/data/analysis_0.2.lumice.json", "01-a/code/fig_a.py", "halo_notes/x/tests/data/f.png",
     })
     for p in paths:
         write(repo, p)

@@ -61,11 +61,13 @@ git 只留写作本身；其余只留本地，需要时用同样的脚本和同�
 | `layout.UNREGENERABLE_INPUTS` 显式列出的「重生成被引用图所需、本身不可重生成」的输入（逐条带理由） | 进 |
 | `halo_notes/**/tests/data/**`（测试夹具） | 进 |
 | 章目录 `img/**` 其余（psd 源文件、`legacy/` 旧版、未引用的产物图） | 不进 |
-| 章目录 `data/analysis/**`（光路分析中间缓存） | 不进 |
+| 章目录 `data/analysis*/**`（光路分析中间缓存目录，含历史上的 `analysis_<ha>/`） | 不进 |
 | 章目录 `data/**` 下的文本（json / csv / txt / md / log / tsv）且单文件 ≤ 512 KB | 进 |
 | 章目录 `data/**` 其余（png / jpg / npy / zip / bin、超限文本） | 不进 |
 | 其余路径带 LFS 媒体扩展名 | 不进 |
 | 其余（md、代码、配置） | 进 |
+
+章目录的识别用 `NN-slug` / `NN.k-slug`；历史重写时另外认 2026-09 布局重组前的旧目录名（`haloN. 标题`、`ex-…`），同一套规则。
 
 - `.gitignore` 里的受管块由 `uv run python -m halo_notes.repo.layout sync-gitignore` 生成，**不手改**；正文新引用一张图后先跑它再 `git add`（忘了会被 `check-tree`、pytest `test_layout` 与 pre-push 挡住）。
 - `check-tree` 兜底 `.gitignore` 表达不了的部分（大小阈值、img 之外的媒体）：已跟踪却应 ignore、未被 ignore 覆盖、被引用却未跟踪 / 被 ignore、断链，全部列出。
