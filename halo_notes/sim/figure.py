@@ -1,5 +1,5 @@
 """章级 ``fig_<name>.py`` 的公共骨架：config 落 ``data/<name>.lumice.json``（入 git，"当年参数"的新载体）、
-Lumice 原始输出 + provenance 落 ``data/<name>/``（LFS）、正式图落 ``img/<name>.<ext>``。
+Lumice 原始输出 + provenance 落 ``data/<name>/``（原始图只留本地，config / provenance / log 入 git）、正式图落 ``img/<name>.<ext>``。
 
 脚本通过 ``--ray-num`` / ``--out`` 显式覆盖光线数与输出根目录（单测用小光线数跑到临时目录，不碰正式产物）。
 """

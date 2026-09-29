@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# repo-slim 体积闸：由 git common dir 的 pre-push 包装（tools/hooks/install.sh 安装）调用，stdin = git 传入的 ref 行。
+# 规则与预算的唯一实现在 halo_notes/repo/layout.py（check-push）；这里只找 python 并转发。只用系统 python3（≥ 3.9，标准库）。
+# 覆盖：SLIM_PUSH_OVERRIDE="<理由>" 放行（打印警告）；SLIM_PUSH_BUDGET_MB=<N> 只调单次推送预算。
+set -u
+top=$(cd "$(dirname "$0")/../.." && pwd)
+py=$(command -v python3 || true)
+if [ -z "$py" ] || ! "$py" -c 'import sys; sys.exit(sys.version_info < (3, 9))' 2>/dev/null; then
+  echo "repo-slim pre-push：找不到 python3 ≥ 3.9，跳过体积闸" >&2
+  exit 0
+fi
+cd "$top" && exec "$py" -m halo_notes.repo.layout check-push

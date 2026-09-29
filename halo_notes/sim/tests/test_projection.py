@@ -53,6 +53,7 @@ def test_equal_area_radius_formula_and_screen_handedness():
     assert pixels_per_degree(sky(10, 180), r) == pytest.approx(500 * np.radians(1) / 2 / np.sin(np.radians(30)), rel=1e-3)
 
 
+@pytest.mark.local_data
 def test_projection_reproduces_the_grid_lumice_drew():
     """图 6 col_3 渲染图（globe、fov 30、反日点为帧中心、每 30° 经纬网格）：把仰角 ±30° 圈与方位 150° / 210° 经线按本模块
     投影后，≥ 99% 的采样点 2 px 窗内有网格亮度（≥ 40）；同一条线平移 6 px 后只剩不到一半（排除「到处都亮」的假阳性）。"""

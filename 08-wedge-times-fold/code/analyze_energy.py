@@ -1,6 +1,6 @@
 # 产出 ../data/energy_table.md（34 个 Φ 类的蒙特卡洛能量份额表 + 与精确枚举的互证结论，入 git）与 ../data/analysis/
 # （每档 h/a 的原始 CSV / lumice.log / provenance.json 落 analysis/<ha>/，MC 逐行表落 analysis/rows_<ha>.csv：面序列 →
-# PBD 代表 → Φ 类，附互证状态；共 ~7 MB 文本，目录被 .gitignore 忽略，打包成 ../data/analysis.zip 走 LFS 入库；
+# PBD 代表 → Φ 类，附互证状态；共 ~7 MB 文本，目录与 ../data/analysis.zip（打包缓存）都只留本地、不入 git（见 AGENTS.md「数据约定」）；
 # 本脚本启动时若本地没有 analysis/ 而有 analysis.zip 就自动解包，跑完全五档后重新打包）：对 h/a ∈ {0.2, 0.5, 1, 2, 5}（与 enumerate_signatures.py
 # 同一组常量）用 Lumice 4.6.x `analyze` 子命令跑随机朝向六棱柱、全天 ROI、`--symmetry none`（归并在 python 侧按 Φ 类做），
 # 再与 enumerate_signatures.py 同一调用的精确枚举对表：MC 命中集 ⊆ 精确可达集（a01 独立证据链）。
@@ -33,7 +33,7 @@ from lumice_integral.symmetry.signature import PhiRow, phi_class, phi_class_tabl
 from halo_notes.sim import analyze as A
 
 DATA = Path(__file__).resolve().parent.parent / "data"
-CACHE = DATA / "analysis"      # 大体积文本产物（ignored）；打包为 ZIP 走 LFS
+CACHE = DATA / "analysis"      # 大体积文本产物（只留本地）；另打包为 ZIP 缓存（同样只留本地）
 ZIP = DATA / "analysis.zip"
 MC_MAX_LEN = 7                 # 见文件头：16384 槽驻留表 ⇒ finest 全集只在 ≤7 面时放得下
 RAYS = 50_000_000
@@ -45,7 +45,7 @@ RECHECK_STEP_DEG = 0.2         # 违反项归因：细网格复核的格距（�
 
 
 def ensure_unpacked() -> None:
-    """本地没有 data/analysis/ 而有 analysis.zip（LFS）时解包，让 --reuse 与读表脚本拿到文本文件。"""
+    """本地没有 data/analysis/ 而有 analysis.zip（本地打包缓存）时解包，让 --reuse 与读表脚本拿到文本文件。"""
     import zipfile
     if CACHE.exists() or not ZIP.exists():
         return
@@ -177,7 +177,7 @@ def write_md(rows: tuple[PhiRow, ...], results: dict[float, A.AnalysisResult], a
     lines.append(f"> 产出：`code/analyze_energy.py`（Lumice `analyze`，{build_desc}，"
                  f"二进制 sha256 `{any_prov['lumice_bin_sha256'][:12]}…`；`--roi {ROI} --symmetry {SYMMETRY} --rays {rays} "
                  f"--seed {SEED}`，`max_hits={MC_MAX_LEN}`，单波长 550 nm，随机朝向）；每档 h/a 的 config 在 "
-                 f"`analysis_<ha>.lumice.json`，原始 CSV / provenance 在 `analysis/<ha>/`，MC 逐行表在 `analysis/rows_<ha>.csv`（目录 ignored，打包为 `analysis.zip` 走 LFS；脚本会自动解包）。")
+                 f"`analysis_<ha>.lumice.json`，原始 CSV / provenance 在 `analysis/<ha>/`，MC 逐行表在 `analysis/rows_<ha>.csv`（目录 ignored，只留本地（打包缓存 `analysis.zip`）；脚本会自动解包）。")
     lines.append("> h/a 是本仓 `HexPrism` 口径（a = 六边形边长）；Lumice `height` = h/a ÷ 2（它的 a 是底面顶点对角线直径），"
                  "换算在 `halo_notes.sim.config.hex_prism_height_ratio`，方向已用判别光路实跑核实。")
     lines.append(f"> MC 侧链面数上限 {MC_MAX_LEN}（精确侧 {MAX_LEN}）：Lumice distinct 链驻留表每 worker 16384 槽，"

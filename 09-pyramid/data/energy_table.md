@@ -1,6 +1,6 @@
 # 锥晶九种楔角族的蒙特卡洛能量份额表与互证（ch9，与 `signature_table.md` 同 9 行同序）
 
-> 产出：`code/analyze_energy.py`（Lumice `analyze`，本地 build，Ice Halo 仓 HEAD `81e8d18a17511e66af4f6e17ce5e75a7c7996daf`，二进制 sha256 `a9cb3ded9cad…`；`--roi sky --symmetry none --rays 20000000 --seed 7`，`max_hits=4`，单波长 550 nm，随机朝向）；每档的 config 在 `analysis_<tier>.lumice.json`，原始 CSV / provenance 在 `analysis/<tier>/`，MC 逐行表在 `analysis/rows_<tier>.csv`（目录 ignored，打包为 `analysis.zip` 走 LFS；脚本会自动解包）。
+> 产出：`code/analyze_energy.py`（Lumice `analyze`，本地 build，Ice Halo 仓 HEAD `81e8d18a17511e66af4f6e17ce5e75a7c7996daf`，二进制 sha256 `a9cb3ded9cad…`；`--roi sky --symmetry none --rays 20000000 --seed 7`，`max_hits=4`，单波长 550 nm，随机朝向）；每档的 config 在 `analysis_<tier>.lumice.json`，原始 CSV / provenance 在 `analysis/<tier>/`，MC 逐行表在 `analysis/rows_<tier>.csv`（目录 ignored，只留本地（打包缓存 `analysis.zip`）；脚本会自动解包）。
 > 档位 (h/a, tip_ratio) 与 `signature_table.md` 同：Lumice `prism_h` = h/a ÷ 2、`upper_h` = `lower_h` = tip_ratio、锥面 Miller 指数 `[1,0,1]`，换算在 `halo_notes.sim.config.pyramid_crystal_from_geometry`，三条都已用固定取向单光路渲染 / 判别光路实跑核实（task-pyramid-sim-glue）。
 > **MC 侧链面数上限 4，精确侧 6**：Lumice distinct 链驻留表每 worker 16384 槽，锥晶 finest 链 `max_len=5` 就溢出（16385 行 + `record_full_hits` 20374@300k 光线），4 面是不溢出的硬上限，比六棱柱（ch8 用 7）低得多。精确侧长度 5–6 的记录在互证里**只标「MC 未覆盖」不算 unseen**；族级同理——某族在某档只在长度 > 4 出现时，MC 未命中它是设计使然，不是互证信号。
 > 能量份额 = 该族全部 finest 行的 `Energy`（占总出射能量的百分比）之和；命中数 = 各行由 `+/-` 列反推的 `(100/±)²` 之和；族 = 行的精确 Φ 类楔角落在 9 个已知楔角 ±0.5° 内，族外行合并成「族外」桶；相邻重复面行、单面外反射行、`other` 桶不进族表，在互证小节单列。

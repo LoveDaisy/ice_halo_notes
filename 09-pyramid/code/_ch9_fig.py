@@ -164,7 +164,7 @@ def mark_radii(ax, radii, *, labels: dict | None = None, color: str = PAL["ink_f
 # 像素语义（同 rectangular）：一个像素存的是辐亮度在该像素立体角上的积分。等面积盘每像素立体角恒为 2/r²（半球 2π sr 摊在 πr² 像素上），
 # 所以剖面 = 同一 θ 桶的像素求和 / 像素数，不需要任何 Jacobian；等距盘的像素立体角 = (π/2)² sinθ_p / (θ_p r²)，显示前除掉它（→ 辐亮度）。
 # npy 是未曝光的线性 XYZ 累加器（raw），除以 sidecar 的 `emitted_energy` 后跨场景、跨光线数可比——这就是「同一绝对亮度标尺」。
-# 入库形态：每景一个确定性 zip `data/<scene>.zip`（LFS）：`equidistant.npy`（XYZ）+ `equal_area.npy`（只留 Y），float16，各自乘一个
+# 落盘形态：每景一个确定性 zip `data/<scene>.zip`（只留本地、不入 git；重生成见 ../README.md）：`equidistant.npy`（XYZ）+ `equal_area.npy`（只留 Y），float16，各自乘一个
 # 标度（最亮像素 → 60000，标度记进 `meta.json`）；float16 相对量化误差 < 0.05%（暗到次正规数时量化步长 = 最亮像素的 1e-12）。
 # 全天总能量在量化**之前**用 float32 原图各算一次记进 meta，两种投影的一致性闸（< 2%）既在渲染时硬断言，也由单测从 zip 复算。
 

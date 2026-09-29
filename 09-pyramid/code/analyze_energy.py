@@ -1,6 +1,6 @@
 # 产出 ../data/energy_table.md（9 个楔角族在锥晶上的蒙特卡洛能量份额表 + 与精确枚举的族级 / 光路级互证，入 git）与 ../data/analysis/
 # （每档几何的原始 CSV / lumice.log / provenance.json 落 analysis/<tier>/，MC 逐行表落 analysis/rows_<tier>.csv：面序列 → PBD 代表 →
-# 楔角 / 族，附互证状态；目录被 .gitignore 忽略，打包成 ../data/analysis.zip 走 LFS 入库；启动时若本地没有 analysis/ 而有
+# 楔角 / 族，附互证状态；目录与 ../data/analysis.zip（打包缓存）都只留本地、不入 git；启动时若本地没有 analysis/ 而有
 # analysis.zip 就自动解包，跑完全部档位后重新打包）：对 enumerate_signatures.TIERS 的每个 (h/a, tip_ratio) 用 Lumice 4.6.x `analyze`
 # 子命令跑随机朝向锥晶、全天 ROI、`--symmetry none`（归并在 python 侧按 Φ 类 → 族做），再与 enumerate_signatures.py 产出的
 # raypaths_<tier>.csv（同一次枚举的 PBD 代表清单）对表：MC 命中集 ⊆ 精确可达集（a01 独立证据链）。
@@ -37,7 +37,7 @@ from lumice_integral.symmetry import reflection_group as rg
 from lumice_integral.symmetry.signature import A_MAX_DEG, PhiClass, phi_class
 from halo_notes.sim import analyze as A
 
-CACHE = DATA / "analysis"      # 大体积文本产物（ignored）；打包为 ZIP 走 LFS
+CACHE = DATA / "analysis"      # 大体积文本产物（只留本地）；另打包为 ZIP 缓存（同样只留本地）
 ZIP = DATA / "analysis.zip"
 MC_MAX_LEN = 4                 # 见文件头：16384 槽驻留表 ⇒ 锥晶 finest 全集只在 ≤4 面时放得下
 assert MC_MAX_LEN < L_STAR
@@ -53,7 +53,7 @@ Tier = tuple[float, float]
 
 
 def ensure_unpacked() -> None:
-    """本地没有 data/analysis/ 而有 analysis.zip（LFS）时解包，让 --reuse 与读表脚本拿到文本文件。"""
+    """本地没有 data/analysis/ 而有 analysis.zip（本地打包缓存）时解包，让 --reuse 与读表脚本拿到文本文件。"""
     import zipfile
     if CACHE.exists() or not ZIP.exists():
         return
@@ -276,7 +276,7 @@ def write_md(results: dict[Tier, A.AnalysisResult], fams: dict[Tier, dict[float,
     lines.append(f"> 产出：`code/analyze_energy.py`（Lumice `analyze`，{build_desc}，"
                  f"二进制 sha256 `{any_prov['lumice_bin_sha256'][:12]}…`；`--roi {ROI} --symmetry {SYMMETRY} --rays {rays} "
                  f"--seed {SEED}`，`max_hits={MC_MAX_LEN}`，单波长 550 nm，随机朝向）；每档的 config 在 `analysis_<tier>.lumice.json`，"
-                 "原始 CSV / provenance 在 `analysis/<tier>/`，MC 逐行表在 `analysis/rows_<tier>.csv`（目录 ignored，打包为 `analysis.zip` 走 LFS；"
+                 "原始 CSV / provenance 在 `analysis/<tier>/`，MC 逐行表在 `analysis/rows_<tier>.csv`（目录 ignored，只留本地（打包缓存 `analysis.zip`）；"
                  "脚本会自动解包）。")
     lines.append("> 档位 (h/a, tip_ratio) 与 `signature_table.md` 同：Lumice `prism_h` = h/a ÷ 2、`upper_h` = `lower_h` = tip_ratio、锥面 Miller 指数 "
                  "`[1,0,1]`，换算在 `halo_notes.sim.config.pyramid_crystal_from_geometry`，三条都已用固定取向单光路渲染 / 判别光路实跑核实（task-pyramid-sim-glue）。")

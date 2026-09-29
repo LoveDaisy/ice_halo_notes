@@ -1,7 +1,7 @@
 """调 Lumice CLI：写 ``config.json`` → ``subprocess.run`` → 收图 + ``lumice.log`` + ``provenance.json``。
 
 ``provenance.json`` 是可复现性契约（Lumice 版本 / 二进制 sha256 / config sha256 / 墙钟 / 平台 / workers / backend / 命令行），
-图像本身走 LFS，二进制走 ``.lumice/``（gitignore），三者职责不重叠。
+图像本身只留本地（git 只收 config / provenance / log，见 AGENTS.md「数据约定」），二进制走 ``.lumice/``（gitignore），三者职责不重叠。
 """
 
 from __future__ import annotations

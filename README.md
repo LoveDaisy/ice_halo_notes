@@ -36,8 +36,9 @@ NN-kebab-slug/         # 一章一目录
 ├── <副标题>.md         # 章正文（导演剪辑版），中文副标题命名
 ├── code/              # 本章专用画图/仿真脚本；一图一脚本：fig_<name>.py → ../img/<name>.png
 │   └── legacy/        # 已失效或待 python 重做的旧 .m/.nb/.py（不删，作为已发表插图的出处）
-├── img/               # 正文引用的图（含 .psd 源文件），正文中以 img/<file> 相对路径引用
-└── data/              # 仿真输出、中间产物、数据表
+├── img/               # 图；只有被正文 / 笔记 md 引用的进 git，其余（psd 源文件、旧版、未引用的产物）只留本地
+├── data/              # 仿真 config / provenance / 小体积文本数据进 git；原始渲染、中间缓存只留本地
+└── README.md          # 本章重生成说明（入口：code/regen.py）
 halo_notes/            # 系列级共享 python 包（晶体几何、光路渲染、仿真器封装）
 pyproject.toml         # 一个系列一个 python 环境
 ```
@@ -46,7 +47,9 @@ pyproject.toml         # 一个系列一个 python 环境
 
 ## 工具链
 
-- **git LFS**：图片、视频、psd、eps、svg 等二进制全部走 LFS（规则见 `.gitattributes`）。克隆后 `git lfs pull`；`git lfs ls-files` 应全部为 `*`（本地完整）。
+- **git 只留写作本身**：md、被 md 引用的插图、代码、小体积文本数据进 git；原始渲染、中间数据、未被引用的图只留本地，需要时按各章 `README.md`（入口 `code/regen.py`）重新生成。划界规则与命令见 [AGENTS.md](AGENTS.md)「数据约定」。
+- **git LFS**：进 git 的图片 / 视频等二进制走 LFS（规则见 `.gitattributes`）。克隆后 `git lfs pull`；`git lfs ls-files` 应全部为 `*`（本地完整）。
+- **pre-push 体积闸**：`tools/hooks/install.sh` 安装（每台机器、每个主仓 clone 一次；worktree 共享），推送按划界规则应 ignore 的路径或超预算时拒绝。
 - **Obsidian**：重命名 / 移动 md 文件必须走 `obsidian rename` / `obsidian move`（自动改写 wikilink），禁止裸 `mv` / `git mv`。只改目录名、不改 md 文件名时不受此限。
 - **Python 环境**：`uv` 管理——系列根 `pyproject.toml` + `uv.lock`，每个 checkout（含 worktree）各自 `uv sync`，`uv run python <脚本>` / `uv run pytest`；不用 `pip install -e` 装进共享环境。新章画图/仿真代码一律 python，跨章复用的上提到 `halo_notes/`。
 - **仿真器**：`~/Codes/Ice Halo Simulation`，本仓只放调用它的胶水代码与参数，不放仿真器本身。旧的 `render_raypaths.py`（ch2 / ch3 `code/legacy/`）依赖已删除的 `IceHaloEndless` 二进制，已失效。

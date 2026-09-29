@@ -1,6 +1,6 @@
 """task-draw-ch9-figs：ch9 十一张正文插图的机械核验——**唯一权威位置**（每图一条语义断言，fig 脚本不再内联重复判据）。
 被检量都由对应 `fig_*.py` / `_ch9_fig.py` 里的纯函数给出，这里只 import 调用、断言正文图题的语义；图面美观不在此列（owner 签核）。
-不跑 Lumice：图 4/5/6/9/10 读返工 R1 入库的天顶渲染（`data/zenith/*.zip`），图 8 读上一轮入库渲染，图 11 读已入库的 `data/plate_arcs*` 产物。"""
+不跑 Lumice：图 4/5/6/9/10 读返工 R1 的天顶渲染（`data/zenith/*.zip`），图 8 读上一轮渲染，图 11 读 `data/plate_arcs*` 产物——都只留本地，缺失时 `local_data` 测试 skip。"""
 
 from __future__ import annotations
 
@@ -97,6 +97,7 @@ def test_fig7_corridor_open_then_closed():
 # ---- 画图侧工具：Lumice 像素语义与重投影 ----
 
 
+@pytest.mark.local_data
 def test_rect_pixel_is_energy_not_radiance():
     """随机取向下天空关于太阳旋转对称：同一 θ 环带上，按 L/cos(lat) 算的辐亮度在高纬 / 低纬两段一致，而 L 本身不一致——
     这就是「像素 = 辐亮度 × 像素立体角」的实测证据（`_ch9_fig` 天空图一节）。"""
@@ -119,6 +120,7 @@ ZENITH_SCENES = ("panorama", "panorama_h3_t0.25", "panorama_h0.3_t0.85", "remain
                  "13-15-26-28")
 
 
+@pytest.mark.local_data
 @pytest.mark.parametrize("scene", ZENITH_SCENES)
 def test_zenith_two_projections_same_total_energy(scene):
     """同一景两种投影（同 config、同一批光线）的全天总能量相对偏差 < 2%：渲染时 float32 原图的数字（meta）与从 zip 复算的数字都要过；
@@ -133,6 +135,7 @@ def test_zenith_two_projections_same_total_energy(scene):
     assert sc.meta["sun_alt"] == 90.0 and sc.meta["lenses"] == list(F.DUAL_LENSES)
 
 
+@pytest.mark.local_data
 def test_zenith_pixel_mapping_agrees_between_projections():
     """两种投影各自的「像素 → 与太阳夹角」反解（`dual_theta`）互相独立：同一景按 1° 桶的能量分布两边一致（中位偏差 < 1%，
     除盘心 / 盘沿外每桶 < 5%），否则至少有一边的映射写错了。"""
@@ -174,6 +177,7 @@ def threshold_curve(centers: np.ndarray, radiance: np.ndarray) -> np.ndarray:
     return np.array([S.PEAK_RATIO * S.local_background(centers, radiance, float(t)) for t in centers])
 
 
+@pytest.mark.local_data
 def test_fig4_remainder_has_no_ring():
     prof = G4.profiles()
     c, r = prof["remainder"]
@@ -186,6 +190,7 @@ def test_fig4_remainder_has_no_ring():
     assert share == pytest.approx(s["energy"]["off"] + s["energy"]["single"], abs=1.0)    # 渲染像素能量与 MC 份额互证
 
 
+@pytest.mark.local_data
 def test_fig4_profiles_share_one_absolute_axis():
     fig, _ = G4.build()
     lines = plotted(fig)
@@ -203,6 +208,7 @@ def test_fig4_profiles_share_one_absolute_axis():
 # ---- 图 5：18° 晕单独拿出来 ----
 
 
+@pytest.mark.local_data
 def test_fig5_isolated_18_is_sharp_panorama_is_shoulder():
     for w in (G5.TARGET_WEDGE, G5.COMPARISON_WEDGE):
         c, fam, pan = G5.profiles(w)
@@ -216,6 +222,7 @@ def test_fig5_isolated_18_is_sharp_panorama_is_shoulder():
     assert peaks[G5.TARGET_WEDGE] is None and peaks[G5.COMPARISON_WEDGE] is not None
 
 
+@pytest.mark.local_data
 def test_fig5_profiles_share_one_absolute_axis():
     fig, _ = G5.build()
     lines = plotted(fig)
@@ -231,6 +238,7 @@ def test_fig5_profiles_share_one_absolute_axis():
 # ---- 图 6：三档全景 ----
 
 
+@pytest.mark.local_data
 def test_fig6_same_wedges_different_visible_rings():
     prof = G6.profiles()
     vis = {key: tuple(G6.visible(*prof[key])) for key, _, _ in G6.TIERS}
@@ -238,6 +246,7 @@ def test_fig6_same_wedges_different_visible_rings():
     assert [G6.scene(k).meta["tier"] for k, _, _ in G6.TIERS] == [[3.0, 0.25], [1.0, 0.5], [0.3, 0.85]]
 
 
+@pytest.mark.local_data
 def test_fig6_profiles_share_one_absolute_axis():
     fig, _ = G6.build()
     lines = plotted(fig)
@@ -260,6 +269,7 @@ def test_fig6_profiles_share_one_absolute_axis():
 # ---- 图 8：拥挤团加总 ----
 
 
+@pytest.mark.local_data
 def test_fig8_sum_loses_18_and_23():
     """返工 R2（作者裁定 (a)）：新批次下 18° 加总后没有局部极大；23° 只剩一个高出内侧谷底 < BUMP_MAX 的小鼓包，0.5° 桶即消失。"""
     c, prof = G8.family_profiles()
@@ -281,6 +291,7 @@ def test_fig8_sum_loses_18_and_23():
 # ---- 图 9：族外光路搬到反日侧 ----
 
 
+@pytest.mark.local_data
 def test_fig9_light_is_moved_to_antisolar_band():
     R = G9.min_deviation()
     assert R == pytest.approx(22.19, abs=0.01) and G9.wedge_deg() == 60.7

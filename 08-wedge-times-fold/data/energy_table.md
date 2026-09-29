@@ -1,6 +1,6 @@
 # 六棱柱 Φ 类的蒙特卡洛能量份额表与互证（ch8，与 `signature_table.md` 同 34 行同序）
 
-> 产出：`code/analyze_energy.py`（Lumice `analyze`，本地 build，Ice Halo 仓 HEAD `9232bccb77567b58b5b9342c1049e69337b2fb44`，二进制 sha256 `39836709069c…`；`--roi sky --symmetry none --rays 50000000 --seed 7`，`max_hits=7`，单波长 550 nm，随机朝向）；每档 h/a 的 config 在 `analysis_<ha>.lumice.json`，原始 CSV / provenance 在 `analysis/<ha>/`，MC 逐行表在 `analysis/rows_<ha>.csv`（目录 ignored，打包为 `analysis.zip` 走 LFS；脚本会自动解包）。
+> 产出：`code/analyze_energy.py`（Lumice `analyze`，本地 build，Ice Halo 仓 HEAD `9232bccb77567b58b5b9342c1049e69337b2fb44`，二进制 sha256 `39836709069c…`；`--roi sky --symmetry none --rays 50000000 --seed 7`，`max_hits=7`，单波长 550 nm，随机朝向）；每档 h/a 的 config 在 `analysis_<ha>.lumice.json`，原始 CSV / provenance 在 `analysis/<ha>/`，MC 逐行表在 `analysis/rows_<ha>.csv`（目录 ignored，只留本地（打包缓存 `analysis.zip`）；脚本会自动解包）。
 > h/a 是本仓 `HexPrism` 口径（a = 六边形边长）；Lumice `height` = h/a ÷ 2（它的 a 是底面顶点对角线直径），换算在 `halo_notes.sim.config.hex_prism_height_ratio`，方向已用判别光路实跑核实。
 > MC 侧链面数上限 7（精确侧 8）：Lumice distinct 链驻留表每 worker 16384 槽，8 面的 finest 全集放不下（h/a=1 为 29212 条）；8 面链能量份额约 0.7%，能量表因此少这一截，精确侧长度 8 的记录在互证里只标「MC 未覆盖」不算 unseen。
 > 能量份额 = 该类全部 finest 行的 `Energy`（占总出射能量的百分比）之和；命中数 = 各行由 `+/-` 列反推的 `(100/±)²` 之和；相邻重复面行、单面外反射行、`other` 桶不进类表，在互证小节单列。

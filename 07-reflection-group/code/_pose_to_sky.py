@@ -262,7 +262,7 @@ def backdrop_view(number: int) -> dict:
 
 @functools.lru_cache(maxsize=None)
 def backdrop(number: int) -> Backdrop:
-    """读 sim_pose_to_sky_backdrop.py 落盘的 config + 渲染图（data/，LFS）；惰性加载（底图脚本自己也 import 本模块）。
+    """读 sim_pose_to_sky_backdrop.py 落盘的 config + 渲染图（data/，只留本地）；惰性加载（底图脚本自己也 import 本模块）。
     核验：镜头 globe、帧中心 == backdrop_center(number)、Σ 一致。"""
     from PIL import Image
     cfg = json.loads((DATA / f"pose_to_sky_backdrop.col_{number}.lumice.json").read_text())
