@@ -88,6 +88,17 @@ def check_euler():
           f"赤道桶 = {eq:.3f}（解析 {exp_naive[9]/exp_haar[9]:.3f}）")
     # 份额比在 β→0 按 2/(πβ) 发散：这就是「反向换元的 1/sinβ」
     assert pole > 3 and abs(pole - pole_exact) / pole_exact < 0.05
+    # (c) 过密倍数不是普适常数：极冠带 β∈[0, δ] 的份额比 (δ/π)/((1−cosδ)/2) ≈ 4/(πδ)，与带宽成反比、δ→0 发散
+    print("    极冠带宽 δ(°)  份额比(解析)  4/(πδ)")
+    caps = (20.0, 10.0, 5.0, 1.0, 0.1)
+    ratios = []
+    for dd in caps:
+        d = np.radians(dd)
+        r = (d / np.pi) / ((1 - np.cos(d)) / 2)
+        ratios.append(r)
+        print(f"    {dd:10.1f}     {r:9.3f}    {4 / (np.pi * d):9.3f}")
+        assert dd > 10 or abs(r - 4 / (np.pi * d)) / r < 0.01
+    assert all(a < b for a, b in zip(ratios, ratios[1:]))
     assert stats.chisquare(np.histogram(beta_haar, edges)[0], exp_haar * N_HAAR).pvalue > P_MIN
 
 

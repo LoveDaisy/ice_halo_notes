@@ -1,6 +1,6 @@
 # 核验 ch10 提纲的数字（确定性，无网络，末行 OK）：3-5 光路的出射点角距离 D_P(u) 只看 u；片晶把 u 限在仰角 = h 的纬度圆上，
 # 圆上 D_P 的最小值（幻日）随 h 外移，与 Bravais 等效折射率闭式一致；纬度圆整条出光学定义域的临界高度；柱晶取到全局
-# D_min（切弧与 22° 晕相切）、切点在太阳正上 / 正下，与太阳高度无关。Lumice 独立链路见 check_parhelion_lumice.py。
+# D_min（切弧与 22° 晕相切）、切点在太阳正上 / 正下，与太阳高度无关；各块地上 D_P 的取值范围（像占哪一圈环带）。Lumice 独立链路见 check_parhelion_lumice.py。
 import numpy as np
 
 from halo_notes.math.wedge import min_deviation_deg
@@ -17,11 +17,17 @@ TOL_DEG = 1e-6                # 数值 D_P 最小值 / 方位差 vs 闭式：局
 TOL_HC = 1e-3                 # 临界高度：二分到 1e-5°，窗口网格 5e-4°
 COLUMN_SUN_H = (0, 20, 45)    # 柱晶在三个太阳高度上各扫一次，D_min 与切点应与 h 无关
 COLUMN_STEP = 1.0             # 柱晶 (ψ, θ) 粗网格（度），最优点附近再局部精化
+EXTENT_STEP = 0.1             # [4] u 球经纬网格（度）：柱晶可取 u = |u_z| ≤ cos h 的带，直接在 u 球上采样
 
 
 def unit_from(h_deg, az_deg):
     h, a = np.radians(h_deg), np.radians(np.asarray(az_deg, float))
     return np.stack([np.cos(h) * np.cos(a), np.cos(h) * np.sin(a), np.full_like(a, np.sin(h))], axis=-1)
+
+
+def unit_from_grid(el_deg, az_deg):
+    e, a = np.radians(el_deg), np.radians(az_deg)
+    return np.stack([np.cos(e) * np.cos(a), np.cos(e) * np.sin(a), np.sin(e)], axis=-1)
 
 
 def az_el(v):
@@ -190,11 +196,41 @@ def check_column():
     return d_min_closed
 
 
+def check_extent(hc):
+    """[4] 像占哪一圈环带（半径侧的形状）：柱晶带 / 片晶纬度圆上 D_P 的取值范围。
+    最小端 = 内缘（贴 22° 晕或幻日）；最大端落在光学定义域边界（掠射，透射率 → 0），只是几何外界，不是可见范围。"""
+    print("\n[4] 半径侧的形状：各块地上 D_P 的取值范围（下界 = 最近处，上界 = 掠射几何外界）")
+    el, az = np.arange(-90.0, 90.0, EXTENT_STEP), np.arange(0.0, 360.0, EXTENT_STEP)
+    E, A = [x.ravel() for x in np.meshgrid(el, az, indexing="ij")]
+    D, _ = dp(unit_from_grid(E, A))
+    d_min = min_deviation_deg(60.0, N)
+    for h in COLUMN_SUN_H:
+        m = np.abs(np.sin(np.radians(E))) <= np.cos(np.radians(h)) + 1e-12
+        Dp, _ = dp(unit_from(h, np.arange(0.0, 360.0, THETA_STEP / 10)))
+        print(f"  太阳高度 {h:4.1f}°：柱晶 D ∈ [{np.nanmin(D[m]):.3f}°, {np.nanmax(D[m]):.3f}°]    "
+              f"片晶 D ∈ [{np.nanmin(Dp):.3f}°, {np.nanmax(Dp):.3f}°]（网格 {EXTENT_STEP}°，上界为网格下估）")
+        assert abs(np.nanmin(D[m]) - d_min) < 0.01          # 柱晶像整片在 22° 晕外、只在切点处碰到
+        assert np.nanmin(Dp) >= d_min - 1e-9
+    # 全局最大 D 落在哪：局部加密两次
+    k = int(np.nanargmax(D))
+    e0, a0 = E[k], A[k]
+    for w, st in ((0.5, 1e-3), (5e-3, 1e-5)):
+        Ee, Aa = [x.ravel() for x in np.meshgrid(np.arange(e0 - w, e0 + w, st), np.arange(a0 - w, a0 + w, st), indexing="ij")]
+        Dd, _ = dp(unit_from_grid(Ee, Aa))
+        k = int(np.nanargmax(Dd))
+        e0, a0, dmax = Ee[k], Aa[k], Dd[k]
+    print(f"  全局 D_P 最大 ≈ {dmax:.3f}°，在 u 仰角 {e0:+.4f}°（|仰角| 与片晶消失临界高度 h_c = {hc:.4f}° 差 {abs(e0) - hc:+.1e}°）")
+    print(f"  ⇒ 柱晶像的几何外界：h ≤ 90° − h_c = {90 - hc:.2f}° 时就是这个 ≈{dmax:.1f}°，更高的太阳被带宽 cos h 截短；"
+          f"该点是掠射（透射 → 0），可见范围看渲染")
+    assert abs(abs(e0) - hc) < 1e-3
+
+
 def main():
     check_setup()
     rows = check_plate()
     hc = check_critical()
     dmin = check_column()
+    check_extent(hc)
     print(f"\n[小结] 22° 晕内缘 / 柱晶切点 D_min = {dmin:.4f}°；幻日 h=0 时 {rows[0][1]:.4f}°、h=40° 时 "
           f"{rows[H_LIST.index(40)][1]:.4f}°、h=60° 时 {rows[H_LIST.index(60)][1]:.4f}°；消失临界高度 {hc:.3f}°")
     print("OK")
