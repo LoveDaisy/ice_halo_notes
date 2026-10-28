@@ -1,0 +1,60 @@
+{
+  "schema": 1,
+  "compare_sha256": "8452842787f3621995316220b20e6bfdf12ab5b73f471f4a3f5394687c07f76c",
+  "figures": [
+    {
+      "figure": "1",
+      "image": "img/sky_comparison.png",
+      "sha256": "fc1eee3370b8bf90f5620da18c6ffbdd78b566a953955dbe0181d5fb88b7d916"
+    },
+    {
+      "figure": "2",
+      "image": "img/solar_circle.png",
+      "sha256": "c6335877b21344757377b0b42cde7890892060c8c907ce1f9c70d5c08422b6cf"
+    },
+    {
+      "figure": "3a",
+      "image": "img/terrain_domain.png",
+      "sha256": "3215961dfdbf0f5f0c6714dde42fd4ad2e88ce04d14a86b1f4034f7726484050"
+    },
+    {
+      "figure": "3b",
+      "image": "img/random_terrain.png",
+      "sha256": "9bd761d13c2ad287226c016864c5e20671760ed15a3cdaac0595096df2b46fc3"
+    },
+    {
+      "figure": "3c",
+      "image": "img/plate_terrain.png",
+      "sha256": "9023c84b24b23aadcee8cfcbf7b93ba581c5234b79777fa2521e8ce1a73334de"
+    },
+    {
+      "figure": "3d",
+      "image": "img/column_terrain.png",
+      "sha256": "af25c5ae5f9fa3b75fcc792cd11edee3c668823a9e84e5c9d209507f91ad6380"
+    },
+    {
+      "figure": "4",
+      "image": "img/bravais_prism.png",
+      "sha256": "8667444299dc0d29122db87c659ee0e0b322d38b8b003005adaaa59a9e7c8184"
+    },
+    {
+      "figure": "5",
+      "image": "img/parhelion_rulers.png",
+      "sha256": "9df79243debf78ddd0ea6c8f21b4364d12c00460e247db6df7e794a177a96fe6"
+    },
+    {
+      "figure": "6",
+      "image": "img/tangent_direction.png",
+      "sha256": "0499ba032ff331a72f59b6714076d6fb8198b3538aff13db61966d2e62824469"
+    },
+    {
+      "figure": "7",
+      "image": "img/column_sky.png",
+      "sha256": "2c78e8a6992d92ec702391891779a2a53d2e0b8556a1f891fd223c0535eb5376"
+    }
+  ],
+  "optional_pending": [
+    "8"
+  ],
+  "optional_omitted": []
+}

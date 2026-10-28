@@ -1,0 +1,26 @@
+$ /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/.lumice/v4.6.1/Lumice -f /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_probe_column_20_strict/config.json -o /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_probe_column_20_strict --format npy --workers 4
+--- stdout ---
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_probe_column_20_strict/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_probe_column_20_strict/img_01.json
+Stats: sim_rays=4820608, crystals=1, orientations=4820608, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_probe_column_20_strict/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_probe_column_20_strict/img_01.json
+Stats: sim_rays=9725312, crystals=1, orientations=9725312, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_probe_column_20_strict/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_probe_column_20_strict/img_01.json
+Stats: sim_rays=14691072, crystals=1, orientations=14691072, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_probe_column_20_strict/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_probe_column_20_strict/img_01.json
+Stats: sim_rays=19624960, crystals=1, orientations=19624960, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_probe_column_20_strict/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_probe_column_20_strict/img_01.json
+Stats: sim_rays=20000000, crystals=1, orientations=20000000, backend=cpu, fell_back=false
+
+--- stderr ---
+2026-10-29 01:11:36.563 [I] Lumice 4.6.1
+2026-10-29 01:11:36.563 [I] ServerImpl: gpu_route=false worker_count=4 analysis_pool_worker_count=0 render_thread_budget=2 (preferred_backend=0)
+2026-10-29 01:11:36.591 [I] CommitConfig: restart took 28.0ms (Stop 0.0ms + rebuild 28.0ms + Start 0.0ms)
+2026-10-29 01:11:36.591 [I] GenerateScene: first batch enqueued at 0.0ms after start
+2026-10-29 01:11:36.592 [I] ConsumeData: first batch consumed (896 ray segments)
+2026-10-29 01:11:40.877 [I] Consume profile: 156250 batches, avg 0.1us (proj 0.0us 0% + accum 0.1us 100%)
+

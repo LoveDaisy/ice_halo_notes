@@ -4,27 +4,59 @@ type: note
 
 # 10-radius-and-azimuth：重生成说明
 
-本章在 git 里只有正文、被引用的插图、代码与小体积文本数据（config / provenance / csv / numbers.json 等）；原始渲染、中间数据、未被引用的图只留在本地，需要时按下面的入口重新生成。划界规则见仓库根 `AGENTS.md`「数据约定」。
+本章只跟踪正文、被引用的插图、代码和小体积文本数据。原始 Lumice 线性输出、缓存及未引用的图只留本地；MC 重渲不要求逐字节相同。划界规则见根目录 `AGENTS.md`。
 
 ## 重生成入口
 
 ```bash
 uv sync
-uv run python -m halo_notes.sim.fetch            # 按钉住版本拉 Lumice release 二进制到 .lumice/（首次）
-uv run python 10-radius-and-azimuth/code/regen.py --dry-run   # 列步骤：是否需要 Lumice、粗估墙钟
-uv run python 10-radius-and-azimuth/code/regen.py             # 按序执行默认步骤
+uv run python -m halo_notes.sim.fetch
+uv run python 10-radius-and-azimuth/code/regen.py --dry-run
+uv run python 10-radius-and-azimuth/code/regen.py
 ```
 
-步骤表（顺序、参数、哪些默认不跑）的唯一权威是 `code/regen.py`，这里不复述。常用选项：`--only NAME …` 只跑某几步、`--skip-lumice` 只重画不需要 Lumice 的图、`--with-optional` 连同核验脚本等默认不跑的步骤。
+步骤表的唯一权威是 `code/regen.py`。`--only NAME …` 只跑指定步骤，`--skip-lumice` 跳过依赖仿真的步骤，`--with-optional` 包括既有数值/MC 核验。各绘图脚本支持 `--output <PNG>`，可在临时目录检验重生成而不覆盖正式图。
 
-## 如何验证
+## 语义与验证
 
-- `uv run pytest 10-radius-and-azimuth/code -q`：地形逐像素定义域、纬线最低点对 Bravais 闭式、沿棱分量守恒、临界后空域及全定义域可见性核验。
-- 既有 `check_parhelion` / `check_parhelion_lumice` 保持为可选核验项；本次两幅风格样图不需要 Lumice，不代表后续天象图已完成 MC 验证。
+- 图 2 直接加载 9.1 的 `_sun_rotation.solar_orbit`，只增加本章 `3–5` 出射光点与天空等距投影；两章没有第二份旋转实现。三维晶体使用真正的 perspective 相机，天空等距投影另作明确标示。
+- 图 3a–3d 共用 `fig_plate_terrain.draw_base()` 与只读 `base_terrain()`：同一像素对应同一真实球面方向、光学定义域和角距离。绘图层的数组、掩码、色阶由测试逐点对照；叠加的可取范围不更改地形数值。图 3c 保留作者第七轮认可的透视版，提取公共底图前后 PNG SHA256 相同。
+- 地形只陈述方向光学，不冒充有限晶体走廊或可见能量。片晶最低点由数值搜索产生，独立对照 Bravais；柱晶带用水平 c 轴姿态样本核验。色阶单调变暗，仅编码角距离，不加球面灯光改变数值颜色。
+- 图 4 由有限六棱柱内真实 `3–5` 光路生成，右图投影同一条光路。守恒量是 `k = n × 单位传播方向` 的竖直分量，不是冰内单位方向的竖直分量。图 6 的两个真实柱晶姿态分别给出上下切点；太阳 20° 时下切点在地平线下，空心点只表示几何方向，不伪造亮弧。
+- 图 5 调用既有 Bravais / 球面角距函数，两条曲线共用一个角度轴；临界处及之后不补画有效线。
+- 图 1/7 用 release v4.6.1、580 nm、0.2° 日面；三族固定同一高度参数 3.0 的六棱柱，只改变取向，避免高太阳下薄片的直接 `3–5` 走廊被底面截断。过滤器仅取 `3–5` 及 PBD 晶体对称像，不混入 Parry 或底面反射。每景同一批光线输出全天 rectangular 取证图和太阳中心等面积显示图，两投影总原始 Y 一致。12 景各 20M 光线，CPU 4 workers 实测累计 54.147 秒；seed 为 null，不承诺 MC 重渲逐字节相同。
+- 图 1 的单色光用伪彩区分族，同族四高度共用曝光；显示有单调拉伸与削顶，不用于族间亮度比较。所有取数直接读 raw XYZ 的 Y / emitted_energy，不经过显示曝光、阈值或额外 cos(纬度) 权重。现有 `sim.energy.pixel_energy` 接口只接收 8-bit sRGB，这里没有对 raw XYZ 再作该解码。
+- 图 7 共用图 1 的 20° 柱晶数据；图面只看上切弧。完整上下像有两个切点，单独上弧有一个；更外的圈上出现两侧亮峰及连续弱光，不能说只剩两个光点。本次上弧最远非零采样 49.37482°，完整上下像 49.40815°。几何上确界约 50.06262° 是掠射极限，不是可见亮边。裁窗保留上弧绕到太阳水平线下方的末端，并用两支间无光间隙作机械检查。
 
-## ch10 新图（第八批，待作者审看）
+已有原始数组时离线重画（不会启动 Lumice）：
 
-图 2 的旋转动作直接加载 9.1 `_sun_rotation.py`，只在本章增加 `3–5` 出射方向与天空等距投影；不复制旋转物理。图 3a–3d 共用 `fig_plate_terrain.draw_base()` 与只读缓存 `base_terrain()`，实际绘图层的数组/域/色阶由测试逐点对照。图 3c 重构前后 PNG SHA256 相同，保留作者认可版。图 5 调用既有 Bravais/球面角距函数，临界处之后不延伸有效曲线。
+```bash
+uv run python 10-radius-and-azimuth/code/fig_sky_comparison.py --replot --output /tmp/sky-comparison.png
+uv run python 10-radius-and-azimuth/code/fig_column_sky.py --replot --output /tmp/column-sky.png
+```
+
+指定 `--output` 后派生 JSON 写在图片旁，不改章内图和默认派生元数据。去掉 `--replot` 会在缓存缺失或配置失配时补渲；`--render` 强制重渲。低成本探针入口是 `fig_sky_comparison.py --probe`（0.02° 日面），与正式配置分开记录。
+
+```bash
+uv run pytest 10-radius-and-azimuth/code -q
+uv run python 10-radius-and-azimuth/code/check_parhelion.py
+uv run python 10-radius-and-azimuth/code/check_parhelion_lumice.py
+uv run python -m halo_notes.repo.layout check-tree
+```
+
+`test_prism_figures.py` 独立检查真实事件点、凸体半空间、两界面切向守恒及实际 Matplotlib 图元；`test_ch10_geometry.py` 读取实际四图 raster、独立 Rodrigues 转动及临界后曲线，避免只核验声明常量。缺原始渲染的测试按 `local_data` 约定跳过，不能把 skip 写成 MC 已通过。
+
+## 第八批十图预览（待作者审看）
+
+9.1 的八图已获作者认可，本页不是重复索取该批签核。ch10 图 3c 保持此前认可版，其余九图是新候选。可选图 8 **建议省略，尚未获作者裁定**，正文占位保留。正文第 97 行及附录 F 回引的问题单列在任务交接中，不通过改图掩盖，也未擅改正文。作者新图版裁定前不进入结项。
+
+![ch10 十图拼版](img/compare_radius.png)
+
+拼版只供整体比较；下面各图可打开原尺寸。`data/compare_radius.json` 由拼版脚本生成，记录逐图文件、SHA256 与图 8 待裁状态；它不是作者签核表。作者原始裁定、当时图版和本轮最终状态记录在本任务 scratchpad 中。
+
+### 图 1 · 同一光路，三种姿态族
+
+![图 1](img/sky_comparison.png)
 
 ### 图 2 · 绕太阳转，角距离不变
 
@@ -38,6 +70,12 @@ uv run python 10-radius-and-azimuth/code/regen.py             # 按序执行默�
 
 ![图 3b](img/random_terrain.png)
 
+### 图 3c · 片晶纬线与各自最低点
+
+![图 3c](img/plate_terrain.png)
+
+透视参数沿作者认可版：相机方位 310°、仰角 12°、距离 8；像素射线从同一相机点出发，与单位球求近交点得到真实 `u`；曲线按局部观察方向判遮挡，轮廓来自相机切线圈。全光学域在相机可见球面内。
+
 ### 图 3d · 柱晶可取带包含赤道
 
 ![图 3d](img/column_terrain.png)
@@ -46,7 +84,7 @@ uv run python 10-radius-and-azimuth/code/regen.py             # 按序执行默�
 
 ![图 4](img/bravais_prism.png)
 
-### 图 5 · 两把尺子
+### 图 5 · 角距离与方位差，两把尺子
 
 ![图 5](img/parhelion_rulers.png)
 
@@ -54,20 +92,10 @@ uv run python 10-radius-and-azimuth/code/regen.py             # 按序执行默�
 
 ![图 6](img/tangent_direction.png)
 
-图 4 的三段传播向量由有限六棱柱内 `3–5` 真光路产生，守恒的是 `k = n × 单位传播方向` 的竖直分量；水平截面直接投影同一条光路。图 6 的两个真实柱晶姿态分别给出上、下切点；太阳 20° 时下切点在地平线下，图中空心点仅标几何方向，不代表可见亮弧。`test_prism_figures.py` 从事件点、凸体半空间、两界面切向守恒及实际 Matplotlib 图元独立核验。
+### 图 7 · 同心角距圈与真实亮段
 
-## 图 3c（作者第七轮认可，图版未改变）
+![图 7](img/column_sky.png)
 
-![图 3c 候选：片晶纬线在同一球面地形上的最低点](img/plate_terrain.png)
+## 外观入口
 
-这是重启后的少量样图，不是定稿，尚未插入正文。第六轮改为共享 `Camera` 的真正透视（方位 310°、仰角 12°、距离 8）：像素从同一相机位置发散射线，与单位球求近交点得到真实 `u`；曲线按球面法向与局部观察方向判遮挡，轮廓来自相机切线圈，三者使用同一投影。着色与等值线直接来自 `check_parhelion.dp`，不以手画椭圆替代数据。颜色只表示角距离，不表示亮度；留白为光学域外，不判定有限晶体中的走廊或能量。0°、20°、40°、60° 纬线的最低点由数值搜索生成，65° 纬线无解；全光学域均在所选相机的可见球面内。`uv run pytest 10-radius-and-azimuth/code/test_plate_terrain.py -q` 独立核验像平面逆投影、同长横杆的深度缩放、同像素近远交点遮挡、切线轮廓与 raster 边界，以及 Bravais 最低点。
-
-复用 ch8 `_ch8_plot.py` 的字体/外观，沿用冰蓝色系作连续角距离标尺、橙色作纬线；正式图的配色通过 `P.PAL` 与脚本内少量语义 token 集中配置。后续 3a/3b/3d 须调用同一个地形生成器。作者第三轮审图选择 A 原版冰蓝，B/C 暖灰和青灰未被接受，不再沿它们扩展配图；本轮保留 A 色阶，但透视重渲已替换旧正射图，须重新交作者审看，不能继承此前签核。以下变体保留为历史比较入口，不是后续配色方向，也不表示其余图已获签核。
-
-`fig_plate_terrain.py` 默认生成上方 A 冰蓝透视图；`--style chalk` 为暖灰单调色阶，`--style mineral` 为低饱和青灰单调色阶。非默认版本须显式指定 `--output <本地 PNG 路径>`，未选版本只留本地：
-
-```bash
-uv run python 10-radius-and-azimuth/code/fig_plate_terrain.py --style mineral --output scratchpad/task-draw-ch9p1-ch10-figs/variants/terrain_mineral.png
-```
-
-这里的渐变是**角距离标尺，不是环面上的灯光 shade**；三版调用同一个 `terrain()`，共用 `Normalize(21,53)`、等值线及最低点，不给球面额外打光。测试检查三套色阶的线性亮度严格单调。纬线、点、等值线及直接数字标签沿用原有语义，并随同一透视相机重投影，可不依靠辨色读数。
+字体、底色和基础色板沿用 ch8 `_ch8_plot.py` / 系列 `P.PAL`。几何与定量图分别使用少量章级语义 token；文字、直接标签、线型和点型共同区分含义，不只靠颜色。图 3c 历史 `chalk` / `mineral` 变体仍可通过显式 `--output` 重生，但作者选择的是原版冰蓝，后续三幅底图不沿未选配色扩展；这些变体不是并列权威图版。
