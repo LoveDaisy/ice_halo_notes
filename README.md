@@ -19,8 +19,8 @@
 | 8 | `08-wedge-times-fold/` | [三种楔子、十二种折叠](08-wedge-times-fold/三种楔子-十二种折叠.md) | published | [p/2084963224814990674](https://zhuanlan.zhihu.com/p/2084963224814990674) | `[[现代冰晕研究漫谈(8)： 楔角光路]]` |
 | 8.1 番外 | `08.1-tape-vs-matrix/` | [从古典几何到现代矩阵](08.1-tape-vs-matrix/从古典几何到现代矩阵.md) | published | [p/2087212931775837732](https://zhuanlan.zhihu.com/p/2087212931775837732) | `[[现代冰晕研究漫谈(8.1 番外)： 从古典几何到现代矩阵]]` |
 | 9 | `09-pyramid/` | [锥晶的有限与无限](09-pyramid/锥晶的有限与无限.md) | published | [p/2087225407133304432](https://zhuanlan.zhihu.com/p/2087225407133304432) | `[[现代冰晕研究漫谈(9)： 锥晶的有限与无限]]` |
-| 9.1 番外 | `09.1-orientation-space/` | [姿态空间的形状](09.1-orientation-space/姿态空间的形状.md) | outline | — | — |
-| 10 | `10-radius-and-azimuth/` | [半径与方位](10-radius-and-azimuth/半径与方位.md) | outline | — | — |
+| 9.1 番外 | `09.1-orientation-space/` | [姿态空间的形状](09.1-orientation-space/姿态空间的形状.md) | draft | — | — |
+| 10 | `10-radius-and-azimuth/` | [圈圈圆圆圈圈](10-radius-and-azimuth/半径与方位.md) | draft | — | — |
 | 11 | `11-five-halos-one-wedge/` | [同一个楔，五种晕](11-five-halos-one-wedge/同一个楔-五种晕.md) | outline | — | — |
 | 11.1 番外 | `11.1-arc-shapes/` | [弧线的形状怎么算](11.1-arc-shapes/弧线的形状怎么算.md) | outline | — | — |
 | 12 | `12-sharp-edges/` | [锐边从哪来](12-sharp-edges/锐边从哪来.md) | outline | — | — |
