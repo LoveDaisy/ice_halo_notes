@@ -83,21 +83,21 @@ def cut_distance(kind, xyz):
     return np.minimum.reduce([xyz @ FRONT, r - WINDOW_R, WINDOW_Z - np.abs(xyz[..., 2])])
 
 
-def distance_bound(kind, xyz):
+def distance_bound(kind, xyz, cutter=cut_distance):
     # 到保留薄面的保守距离下界，不会把切口画成额外的实体封口面。
-    return np.maximum(np.abs(torus_distance(kind, xyz)), cut_distance(kind, xyz))
+    return np.maximum(np.abs(torus_distance(kind, xyz)), cutter(kind, xyz))
 
 
-def trace(origins, kind):
+def trace(origins, kind, cutter=cut_distance, *, tolerance=2e-5, max_steps=420):
     distance = np.zeros(len(origins))
     active = np.arange(len(origins))
     depths = np.full(len(origins), np.inf)
-    for _ in range(420):
+    for _ in range(max_steps):
         if not len(active):
             break
         xyz = origins[active] - distance[active, None] * EYE
-        step = distance_bound(kind, xyz)
-        found = step < 2e-5
+        step = distance_bound(kind, xyz, cutter)
+        found = step < tolerance
         depths[active[found]] = distance[active[found]]
         distance[active] += step
         active = active[~found & (distance[active] < 16)]
@@ -112,11 +112,11 @@ def periodic_distance(angle, period):
     return np.abs((angle + period / 2) % period - period / 2)
 
 
-def surface_pixels(width=1601):
+def surface_pixels(width=1601, cutter=cut_distance):
     height = round(width * (EXTENT[3] - EXTENT[2]) / (EXTENT[1] - EXTENT[0]))
     x, y = np.meshgrid(np.linspace(*EXTENT[:2], width), np.linspace(*EXTENT[2:], height))
     origins = (x[..., None] * RIGHT + y[..., None] * UP + 8 * EYE).reshape(-1, 3)
-    depths = np.stack([trace(origins, kind) for kind in (LOWITZ, COLUMN)])
+    depths = np.stack([trace(origins, kind, cutter) for kind in (LOWITZ, COLUMN)])
     nearest, kinds = depths.min(axis=0), depths.argmin(axis=0)
     hit = np.isfinite(nearest)
     xyz, kinds = origins[hit] - nearest[hit, None] * EYE, kinds[hit]
