@@ -12,6 +12,7 @@ import fig_intersecting_tori as F
 
 P = F.P
 # 前侧扇区揭面；母圆、姿态映射及相机均沿用上一版。
+DEFAULT_VARIANT = 'staggered'
 CUTS = {
     'aligned': ((-65, 40), (-65, 40)),
     'staggered': ((-75, 55), (-55, 35)),
@@ -97,7 +98,7 @@ def draw_section(ax):
     ax.set_title('径向剖面 · 两个相交的母圆', color=ink, fontsize=10, pad=7)
 
 
-def main(out=None, variant='aligned', width=1601):
+def main(out=None, variant=DEFAULT_VARIANT, width=1601):
     P.apply_style()
     ink = P.PAL['ink_soft']
     fig = plt.figure(figsize=(12.8, 7.6))
@@ -132,9 +133,9 @@ def main(out=None, variant='aligned', width=1601):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path)
-    parser.add_argument('--variant', choices=CUTS, default='aligned')
+    parser.add_argument('--variant', choices=CUTS, default=DEFAULT_VARIANT)
     parser.add_argument('--width', type=int, default=1601, help='表面采样宽度；探针可用 601')
     args = parser.parse_args()
-    if (args.variant != 'aligned' or args.width != 1601) and args.output is None:
+    if (args.variant != DEFAULT_VARIANT or args.width != 1601) and args.output is None:
         parser.error('非默认候选或低分辨率探针须显式指定 --output')
     main(args.output, args.variant, args.width)

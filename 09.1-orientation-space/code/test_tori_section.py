@@ -8,6 +8,14 @@ import fig_intersecting_tori as F
 import fig_tori_section as S
 
 
+def test_default_is_author_selected_staggered(monkeypatch, tmp_path):
+    seen = []
+    monkeypatch.setattr(S, 'draw_scene', lambda ax, variant, width: seen.append(variant))
+    S.main(tmp_path / 'default.png')
+    assert S.DEFAULT_VARIANT == 'staggered'
+    assert seen == ['staggered']
+
+
 def inside_sector(kind, points, variant):
     # 角度区间判据独立于渲染所用半空间距离。
     azimuth = np.arctan2(points[..., 1], points[..., 0])

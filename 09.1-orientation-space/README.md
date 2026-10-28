@@ -65,14 +65,14 @@ uv run python 09.1-orientation-space/code/fig_column_torus.py --style chalk --ou
 
 ![图 3 径向剖切候选：母圆的两个交点各生成一条共享圈](img/tori_section.png)
 
-按作者第四轮提议，沿过轴的两个径向半平面揭去前侧一段曲面，直接露出两个相交母圆；右侧小剖面将同一几何正视展开，不填充圆盘，不把曲面冒充实体。默认版采用**平齐切口**，同一切面能直接对照两个交点与上下交圈。上一版开窗图保留为基准，未修改。当前仍是样图，作者对上一版的“效果好多了”不是对此版本的最终签核。
+按作者第四轮提议，沿过轴的两个径向半平面揭去前侧一段曲面，直接露出两个相交母圆；右侧小剖面将同一几何正视展开，不填充圆盘，不把曲面冒充实体。作者第五轮选择 **B 错层切口**（外环多揭、内环少揭），默认脚本与本图已统一为 B。两个切边不共面，右侧小图是另取的共同径向剖面，不冒充两条切边的正视图。A 平齐和旧开窗图只作历史比较，不是并列主图；方向裁定不是整篇最终签核。
 
 切口只影响表面显示，不改变母圆、姿态映射及完整交圈。新图两条橙圈在揭面段用虚线补全，保留段为实线；两种线都遵守真实遮挡，不透画背面。深浅两面分别由副标题和小剖面标识；蓝色只强调 Lowitz 上的片晶圈，切边用灰色轮廓，避免与片晶混淆。上下交圈分别对应 `t=+90° / −90°`；原始点集、roll 锁 0 半环和 D₆ 商空间的区别与上一版一致。
 
-`fig_tori_section.py` 调用 `fig_intersecting_tori.py` 的唯一曲面/姿态/射线渲染实现，只注入切口。错层候选让外环多揭一段、内环少揭一段；它更强调前后层次，但两个切边不再处在同一径向平面。可用以下命令在本地生成比较版，不替换默认图：
+`fig_tori_section.py` 调用 `fig_intersecting_tori.py` 的唯一曲面/姿态/射线渲染实现，只注入切口。B 是唯一默认版本；如需回看 A，用显式输出路径重生成历史对照，不覆盖主图：
 
 ```bash
-uv run python 09.1-orientation-space/code/fig_tori_section.py --variant staggered --output scratchpad/task-draw-ch9p1-ch10-figs/variants/tori_section_staggered.png
+uv run python 09.1-orientation-space/code/fig_tori_section.py --variant aligned --output scratchpad/task-draw-ch9p1-ch10-figs/variants/tori_section_aligned.png
 ```
 
-`test_tori_section.py` 从独立角度区间核对切口，以四次多项式全部实根核对像素/切边/两圈遮挡，并验证实际绘制的小剖面方程及交点、完整圈的闭合和两面姿态一致性。曲线在近切线处采用更紧精度与更多迭代，不能用面像素容差判断线条深度；旧版默认渲染参数不变。静态几何，不用 Lumice，无 MC 数据；两份新候选均待原尺寸目视裁定，不扩画其余图。
+`test_tori_section.py` 从独立角度区间核对切口，以四次多项式全部实根核对像素/切边/两圈遮挡，并验证实际绘制的小剖面方程及交点、完整圈的闭合和两面姿态一致性。曲线在近切线处采用更紧精度与更多迭代，不能用面像素容差判断线条深度；旧版默认渲染参数不变。静态几何，不用 Lumice，无 MC 数据；B 随 9.1 其余必需图成批交作者审看。
