@@ -76,4 +76,3 @@ uv run python 09.1-orientation-space/code/fig_tori_section.py --variant staggere
 ```
 
 `test_tori_section.py` 从独立角度区间核对切口，以四次多项式全部实根核对像素/切边/两圈遮挡，并验证实际绘制的小剖面方程及交点、完整圈的闭合和两面姿态一致性。曲线在近切线处采用更紧精度与更多迭代，不能用面像素容差判断线条深度；旧版默认渲染参数不变。静态几何，不用 Lumice，无 MC 数据；两份新候选均待原尺寸目视裁定，不扩画其余图。
-
