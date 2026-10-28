@@ -1,5 +1,6 @@
 """9.1 新概念图：从独立旋转、体轴约束、Jacobian 与实际绘图对象核验语义。"""
 import importlib
+import importlib.util
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -160,9 +161,16 @@ def test_clock_mark_uses_computed_relative_phase():
 
 def test_compare_manifest_binds_every_required_number_to_exact_images(tmp_path, monkeypatch):
     import json
+    from pathlib import Path
+    import sys
+    from types import ModuleType
     from PIL import Image
-    import make_compare as M
 
+    # 全仓多个章节都有 make_compare.py；即使同名模块已加载，也只读当前章。
+    monkeypatch.setitem(sys.modules, 'make_compare', ModuleType('foreign_compare'))
+    spec = importlib.util.spec_from_file_location('orientation_compare', Path(__file__).with_name('make_compare.py'))
+    M = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(M)
     monkeypatch.setattr(M, 'CHAPTER', tmp_path)
     (tmp_path/'img').mkdir()
     for _, name, _ in M.FIGURES:
