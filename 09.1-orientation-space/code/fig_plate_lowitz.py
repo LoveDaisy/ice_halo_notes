@@ -1,4 +1,4 @@
-# 图 2b：同一参数环面上的片晶赤道与 Parry 族两条原始圈 → ../img/plate_lowitz.png。
+# 图 2b：Lowitz 参数环面上的片晶圈与摆动方向 → ../img/plate_lowitz.png。
 from pathlib import Path
 import argparse
 
@@ -28,25 +28,15 @@ def parameter_point(phi, swing):
 
 def main(out=None):
     fig, ax = T.figure_axes('片晶是 Lowitz 环面上的一圈',
-                            '锁住摆角 t = 0°，得到片晶；摆到 ±90°，分别落在上下两条原始交圈。')
+                            '锁住摆角 t = 0°，只留下方位自由度；解锁摆动，就从片晶圈走上 Lowitz 环面。')
     ink = T.TOKENS['ink']
-    rings = [(0, T.TOKENS['plate'])] + [
-        (sign * I.CROSS_ANGLE[I.LOWITZ], T.TOKENS['parry']) for sign in (-1, 1)]
-    image, _ = T.surface_pixels(rings=rings, meridian_color=T.TOKENS['motion'],
-                                meridian_phi=-55)
+    image, _ = T.surface_pixels(rings=[(0, T.TOKENS['plate'])],
+                                meridian_color=T.TOKENS['motion'], meridian_phi=-55)
     ax.imshow(image, origin='lower', extent=T.EXTENT, interpolation='lanczos')
-    # 完整实体遮住了下交圈；只将实际被挡的段画作明示的遮挡虚线。
-    # 不是把正射可见性或整圈叠画伪装成透视可见的前表面。
-    hidden = parameter_point(np.linspace(-180, 180, 1601), -90)
-    xy = T.project(hidden)[:, :2]
-    xy[T.line_visibility(hidden)] = np.nan
-    ax.plot(xy[:, 0], xy[:, 1], color=T.TOKENS['parry'], lw=1.5, ls=(0, (4, 3)))
 
     for phi, swing, text, target in (
-        (10, 90, '上圈 · t = +90°\n经晶体对称对应 Parry', (3.85, 1.5)),
-        (-15, -90, '下圈 · t = −90°\nParry 原始姿态\n（被遮挡，以虚线示意）', (3.85, -1.4)),
         (-125, 0, '片晶圈 · t = 0°\n沿赤道转动方位 φ', (-3.85, 1.35)),
-        (-55, 30, '摆角 t\n绕长对角线摆动', (-3.85, -1.3)),
+        (-55, 30, '摆角 t\n绕长对角线摆动', (3.85, -.65)),
     ):
         point = parameter_point(phi, swing)
         ax.annotate(text, T.project(point)[:2], xytext=target, color=ink,
@@ -56,14 +46,11 @@ def main(out=None):
     T.motion_arrow(ax, parameter_point(np.linspace(-105, -85, 12), 0), T.TOKENS['plate'])
     T.motion_arrow(ax, parameter_point(-55, np.linspace(25, 40, 12)), T.TOKENS['motion'])
     handles = [Line2D([], [], color=T.TOKENS['plate'], lw=2, label='片晶圈'),
-               Line2D([], [], color=T.TOKENS['parry'], lw=2, label='Parry 族的两条交圈'),
                Line2D([], [], color=T.TOKENS['motion'], lw=2, label='固定方位下的摆动')]
     fig.legend(handles=handles, loc='lower center', bbox_to_anchor=(0.5, 0.205),
-               ncol=3, labelcolor=ink)
-    fig.text(0.5, 0.135, '上下两圈是不同的原始姿态点集；按 D₆ 晶体对称认同后同属 Parry 族。',
+               ncol=2, labelcolor=ink)
+    fig.text(0.5, 0.115, '片晶圈取 c 轴朝上的分支；圈上每一点都是一种片晶姿态。',
              ha='center', color=ink, fontsize=10)
-    fig.text(0.5, 0.085, '片晶圈取 c 轴朝上的分支；橙色虚线是被实体遮挡的下圈，不是表面上的另一道线。',
-             ha='center', color=ink, fontsize=9.5)
     fig.text(0.5, 0.035, '全摆幅参数环面示意 · 与图 3 同向；不是轴角球中的嵌入，网格间距没有物理刻度',
              ha='center', color=ink, fontsize=9)
     out = Path(out) if out is not None else Path(__file__).resolve().parents[1] / 'img/plate_lowitz.png'

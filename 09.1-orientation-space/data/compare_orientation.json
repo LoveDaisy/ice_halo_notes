@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "compare_sha256": "4a442a363ac629408076c3c4330f465a693c840c6fe735e463ac1d568321a9fc",
+  "compare_sha256": "21931dd24e2f9b37302d22c77d17a2cf88552e59ec3d0b493d938f36349cb042",
   "figures": [
     {
       "figure": "1",
@@ -15,7 +15,7 @@
     {
       "figure": "2b",
       "image": "img/plate_lowitz.png",
-      "sha256": "fc4a2c3e831a7fbc306d971c50e0c360d51565adf16b132cfddfb51d1b09c2d4"
+      "sha256": "3b3e6c191160123e50971bb22ebe9120e13e42369bc70c2b4467fdd8f0e3a3c7"
     },
     {
       "figure": "3",
@@ -40,10 +40,11 @@
     {
       "figure": "5b",
       "image": "img/angle_fibers.png",
-      "sha256": "aa9d90641b0f484403eccaf18838e93e9a29624f64333dfffe7671c0453a53bf"
+      "sha256": "2fd8a0ed12a430c6195443824a88821a4d3dbeabcda8b21e78275b11b6b0f4e3"
     }
   ],
-  "optional_pending": [
+  "optional_pending": [],
+  "optional_omitted": [
     "4c"
   ]
 }

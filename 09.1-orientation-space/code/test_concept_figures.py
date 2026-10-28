@@ -217,11 +217,64 @@ def test_rendered_panels_correspond_to_author_revision(monkeypatch):
     np.testing.assert_allclose(calls[::2], S.scene_data()[0])
     np.testing.assert_allclose(calls[1::2], np.tile(np.eye(3), (5, 1, 1)))
     plt.close(fig)
-    calls.clear()
+
+
+def test_rendered_reference_frames_match_sphere_points_and_marked_axes(monkeypatch):
+    from matplotlib.patches import ConnectionPatch
+    saved, calls = [], []
+    original = F.crystal
+    def record(ax, rotation, **kwargs):
+        calls.append(np.array(rotation))
+        return original(ax, rotation, **kwargs)
+    monkeypatch.setattr(F, 'crystal', record)
+    monkeypatch.setattr(F, 'save', lambda fig, *args: saved.append(fig))
     G.main()
     fig = saved.pop()
-    np.testing.assert_allclose(calls, [G.limiting_reference(a) for a in G.APPROACH_AZIMUTHS])
-    plt.close(fig)
+    try:
+        assert len(fig.axes) == 9
+        links = [a for a in fig.artists if isinstance(a, ConnectionPatch)]
+        assert len(links) == len(calls) == 8
+        for i, az in enumerate((0., 45.)):
+            a = np.radians(az)
+            axis = np.array([np.sin(a), -np.cos(a), 0.])
+            for j, distance in enumerate((95., 60., 25., 0.)):
+                k = 4*i+j
+                e = np.radians(distance)
+                u = np.array([np.sin(e)*np.cos(a), np.sin(e)*np.sin(a), -np.cos(e)])
+                expected = Rotation.from_rotvec(np.radians(180-distance)*axis).as_matrix()
+                np.testing.assert_allclose(calls[k], expected, atol=1e-14)
+                np.testing.assert_allclose(calls[k].T @ G.SUN, u, atol=1e-14)
+                np.testing.assert_allclose(links[k].xy2, G.CAMERA.project_xy(u)[0], atol=1e-14)
+                bx = fig.axes[k+1]
+                assert links[k].axesA is bx and links[k].axesB is fig.axes[0]
+                assert bx.get_gid() == f'{"AB"[i]}{j+1}'
+                mark = next(t for t in bx.texts if t.get_text() == 'e₁')
+                np.testing.assert_allclose(mark.xy, F.CAMERA.project_xy(1.2*expected[:, 0])[0])
+        np.testing.assert_allclose(links[3].xy2, links[7].xy2, atol=1e-14)
+        assert np.linalg.norm(calls[3]-calls[7]) > 1
+        # 连接线、标题和坐标约定的文字各占其位，不让顶部两行互相覆盖。
+        fig.canvas.draw()
+        renderer = fig.canvas.get_renderer()
+        note = next(t for t in fig.texts if t.get_text().startswith('选太阳方向'))
+        assert not note.get_window_extent(renderer).overlaps(fig.axes[0].title.get_window_extent(renderer))
+    finally:
+        plt.close(fig)
+
+
+def test_lowitz_render_emphasizes_only_plate_and_swing(monkeypatch, tmp_path):
+    from matplotlib.figure import Figure
+    saved = []
+    monkeypatch.setattr(Figure, 'savefig', lambda fig, *args, **kwargs: saved.append(fig))
+    L.main(tmp_path/'plate.png')
+    fig = saved.pop()
+    expected, _ = T.surface_pixels(rings=[(0, T.TOKENS['plate'])],
+                                   meridian_color=T.TOKENS['motion'], meridian_phi=-55)
+    np.testing.assert_array_equal(fig.axes[0].images[0].get_array(), expected)
+    text = [t.get_text() for t in fig.texts+fig.axes[0].texts]
+    text += [t.get_text() for legend in fig.legends for t in legend.get_texts()]
+    assert not any('Parry' in t or '交圈' in t for t in text)
+    assert not fig.axes[0].lines  # 不再叠加被遮挡的 Parry 虚线。
+    assert [t.get_text() for t in fig.legends[0].get_texts()] == ['片晶圈', '固定方位下的摆动']
 
 
 def test_compare_manifest_binds_every_required_number_to_exact_images(tmp_path, monkeypatch):
@@ -245,7 +298,8 @@ def test_compare_manifest_binds_every_required_number_to_exact_images(tmp_path, 
     record = json.loads(out.with_suffix('.json').read_text())
     assert [row['figure'] for row in record['figures']] == ['1', '2a', '2b', '3', '4a', '4b', '5a', '5b']
     assert record['compare_sha256'] == M.digest(out)
-    assert record['optional_pending'] == ['4c']
+    assert record['optional_pending'] == []
+    assert record['optional_omitted'] == ['4c']
     for row in record['figures']:
         assert row['sha256'] == M.digest(tmp_path/row['image'])
     assert not plt.get_fignums()

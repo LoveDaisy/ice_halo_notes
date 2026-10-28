@@ -41,14 +41,14 @@ def main(out=None):
         rows.append(dict(figure=number, image=f'img/{name}.png', sha256=digest(image)))
     fig.subplots_adjust(left=.025, right=.975, bottom=.055, top=.91, wspace=.08, hspace=.18)
     fig.text(.03, .965, '9.1 姿态空间的形状 · 全篇必需图待审预览', color=F.INK, fontsize=21)
-    fig.text(.03, .93, '第六批 · 8 张新图版。1a/b 合并；5b 降为局部辅助候选；全部待重新审看，4c 去留待裁定。', color=F.INK, fontsize=12)
+    fig.text(.03, .93, '第七批 · 2b 只突出片晶；5b 增加沿路姿态。其余六图不变；4c 经作者裁定省略。全篇待终审。', color=F.INK, fontsize=12)
     fig.text(.5, .023, '缩略图用于对照整体；逐图裁定请打开 README 中对应的原尺寸图片。', ha='center', color=F.INK, fontsize=11)
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=200, metadata={'Software': None})
     plt.close(fig)
     metadata.parent.mkdir(parents=True, exist_ok=True)
     metadata.write_text(json.dumps(dict(schema=1, compare_sha256=digest(out), figures=rows,
-                                        optional_pending=['4c']), ensure_ascii=False, indent=2)+'\n')
+                                        optional_pending=[], optional_omitted=['4c']), ensure_ascii=False, indent=2)+'\n')
     print(out)
     print(metadata)
 
