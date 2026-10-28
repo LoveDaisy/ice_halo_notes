@@ -60,7 +60,7 @@ def signed_distance(xyz):
     return np.hypot(radial - MAJOR, xyz[..., 2]) - MINOR
 
 
-def surface_pixels(width=1401, style="original"):
+def surface_pixels(width=1401, style="original", *, ring_color=PARRY_COLOR, meridian_color=ROLL_COLOR):
     """沿正射相机射线追踪最近表面；同一命中点着色，网格不会穿透或与表面争深度。"""
     height = int(width * 4.2 / 6)
     x, y = np.meshgrid(np.linspace(-3, 3, width), np.linspace(-2.1, 2.1, height))
@@ -99,8 +99,8 @@ def surface_pixels(width=1401, style="original"):
     grid_p = periodic_distance(psi, 2 * np.pi / n_psi) * radial
     grid_t = periodic_distance(tube, 2 * np.pi / n_theta) * MINOR
     ink_band(np.minimum(grid_p, grid_t), 0.003, grid_color)
-    ink_band(periodic_distance(tube - np.pi / 2, 2 * np.pi) * MINOR, 0.012, PARRY_COLOR)
-    ink_band(periodic_distance(psi - np.radians(15), 2 * np.pi) * radial, 0.018, ROLL_COLOR)
+    ink_band(periodic_distance(tube - np.pi / 2, 2 * np.pi) * MINOR, 0.012, ring_color)
+    ink_band(periodic_distance(psi - np.radians(15), 2 * np.pi) * radial, 0.018, meridian_color)
     image = np.ones((len(origins), 3))
     image[hit] = rgb
     return image.reshape(height, width, 3), xyz

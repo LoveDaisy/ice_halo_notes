@@ -16,6 +16,49 @@ uv run python 09.1-orientation-space/code/regen.py             # 按序执行默
 
 步骤表（顺序、参数、哪些默认不跑）的唯一权威是 `code/regen.py`，这里不复述。常用选项：`--only NAME …` 只跑某几步、`--skip-lumice` 只重画不需要 Lumice 的图、`--with-optional` 连同核验脚本等默认不跑的步骤。
 
+## 全篇必需图预览（第五批，待作者逐图审看）
+
+![9.1 全篇必需图比较版](img/compare_orientation.png)
+
+本批包含 1a/1b、2a/2b、3、4a/4b、5a/5b 共 9 张。图 3 默认已转为作者所选 B，其余新图沿用系列白底/冰蓝/有限强调色，不把曲面明暗强加到所有图。**均未作为最终签核图插入正文**；正文原有占位保留，作者两行修订未纳入本任务提交。
+
+| 图号 | 原尺寸图 | 核心语义与验证口径 |
+|---|---|---|
+| 1a | [轴角球](img/axis_angle_ball.png) | ±πa 的旋转矩阵及实际晶体顶点相同；边界对径粘合 |
+| 1b | [连续转动](img/rotation_seam.png) | 冰晶绕固定轴持续转动；主值坐标在 180° 跳边，逐帧旋转距离连续 |
+| 2a | [柱晶环面](img/column_torus.png) | 两角周期、Parry 圈；保持作者第三轮所选原版 A |
+| 2b | [片晶与 Lowitz](img/plate_lowitz.png) | c 轴朝上的片晶分支；Lowitz 的 t=0 圈，R e₂ 水平 |
+| 3 | [错层剖切](img/tori_section.png) | B 外多内少错层，保持上一批两交圈及独立遮挡证据 |
+| 4a | [抽样对照](img/euler_sampling.png) | 只投影 c 轴方向，不冒充全 SO(3)；两边各 1440 点，同视角、同 β 桶 |
+| 4b | [密度发散](img/euler_density.png) | 2/(π sinβ)；两端只截画框，不把 ∞ 画成有限峰 |
+| 5a | [绕太阳转](img/sun_rotation.png) | 世界系左乘旋转，晶体坐标太阳方向不变；箭头不是实际光路 |
+| 5b | [角纤维](img/angle_fibers.png) | 最短转动截面相对局部光滑截面卷绕 +2；南极坏点不伪造唯一参考 |
+
+以下原尺寸引用供本仓查图和划界工具识别，正式正文仍等作者审图：
+
+![图 1a：对径认同](img/axis_angle_ball.png)
+
+![图 1b：坐标跳跃与旋转连续](img/rotation_seam.png)
+
+![图 2b：片晶圆与 Lowitz 环面](img/plate_lowitz.png)
+
+![图 4a：欧拉角等间距与 Haar 均匀取向](img/euler_sampling.png)
+
+![图 4b：相对密度发散](img/euler_density.png)
+
+![图 5a：绕太阳转，u 不变](img/sun_rotation.png)
+
+![图 5b：局部参考的卷绕](img/angle_fibers.png)
+
+### 本批复现与边界
+
+- `test_concept_figures.py` 核验上述新图，并用临时目录实画每张图。4a 的 Haar 样本固定种子 `20261028`，使用 `lumice_integral.so3.haar_rotations`；不是 Lumice MC 渲染。欧拉角方向网格 α 步长 9°、β 中点步长 5°，第三角不改变 c 轴，图中明确未显示。
+- 4b 与附录 A 同一解析密度口径，测试另用独立 SciPy 旋转的数值 Jacobian 及极冠积分复核。图 5b 最短旋转复用 `check_orientation_space.min_rotation_to`，局部截面为先转到 −ŝ、再转到 ŝ，最后固定一次绕 ŝ 的常量转角使小圈起点重合；短刻线均按这个局部截面计，不能读成绝对全局角。
+- 5a 的唯一绕太阳动作在 `code/_sun_rotation.py`，ch10 图 2 后续应薄调用此实现，不再写一份世界/体坐标转换；本批不提前制作 ch10 新图，也不把任意等距方向的单测冒充物理光路核验。
+- `make_compare.py` 只读取本章图，按正文编号生成比较版与 `data/compare_orientation.json`（逐图 SHA256 及 compare SHA256）。改图后需重跑 compare；清单只是版本凭据，不是作者签核。
+- 可选图 **4c 仍待裁定**：4a/4b 已直接显示极点与体积元，地图类比的新增解释量有限；真实墨卡托的纬线并非等距，不能照占位画出假地图。本批不画、不删占位、不改正文，交作者决定省略或另议改图题。
+- 旧局部/开窗图保留为历史比较；当前图 3 的唯一主候选是 B。所有新图、4c 去留以及完整任务仍需作者逐图裁定，测试与本页预览不能代替审美签核。
+
 ## 如何验证
 
 - `uv run pytest 09.1-orientation-space/code -q`：柱晶体轴约束、Parry 柱面朝上、两个角的周期性，以及环面表面方程和遮挡核验。

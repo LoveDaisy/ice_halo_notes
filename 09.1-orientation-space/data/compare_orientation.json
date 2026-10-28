@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "compare_sha256": "b614edd603209f83fc3f131b3a693d8bc14d357bcdbcd3dd8e57ae9ef7000387",
+  "figures": [
+    {
+      "figure": "1a",
+      "image": "img/axis_angle_ball.png",
+      "sha256": "93016858900b1dc48c4dcbb46cb6266a9aa47724b4b2aa821f1fc8f6975cdaa3"
+    },
+    {
+      "figure": "1b",
+      "image": "img/rotation_seam.png",
+      "sha256": "7f1e8748839c1ed1073524c3cf63b11a892aa8abeaa81418bd9d6ba8bf41bbbc"
+    },
+    {
+      "figure": "2a",
+      "image": "img/column_torus.png",
+      "sha256": "48d5ced416e88a7e7f51e8f4a04062f8818bf0648905710f14a5862319c05c89"
+    },
+    {
+      "figure": "2b",
+      "image": "img/plate_lowitz.png",
+      "sha256": "23c669a3aa5b13665ad1deb3ebafaf404cef65d0d0b3b583080f72aab50b6590"
+    },
+    {
+      "figure": "3",
+      "image": "img/tori_section.png",
+      "sha256": "b5d4f5b1941a6ffe8ffeb092120e4571c2209dc1c88e752303593da796a5156d"
+    },
+    {
+      "figure": "4a",
+      "image": "img/euler_sampling.png",
+      "sha256": "fc68bffcb241f0f1790e9c26921ecec20a510d7dde75a78f06301ed91f2562fa"
+    },
+    {
+      "figure": "4b",
+      "image": "img/euler_density.png",
+      "sha256": "a2f9c73049ab40c15bddd8af5620de1a39d264dcecfc0640263ad763cc040729"
+    },
+    {
+      "figure": "5a",
+      "image": "img/sun_rotation.png",
+      "sha256": "7706b4eaef772a896f001e4d22e6aae631160083daa762c3ca240420d1bdf738"
+    },
+    {
+      "figure": "5b",
+      "image": "img/angle_fibers.png",
+      "sha256": "030cbcec07a9c74c6dd9f27ff583c26cd3d210dd9559ede269523971c7dc0a7f"
+    }
+  ],
+  "optional_pending": [
+    "4c"
+  ]
+}
