@@ -1,5 +1,6 @@
 """候选图 2a：参数环面必须对应真实柱晶姿态，不能以漂亮形状代替族约束。"""
 import numpy as np
+import pytest
 
 import fig_column_torus as F
 
@@ -41,3 +42,15 @@ def test_visible_surface_is_on_torus_and_faces_camera():
     assert (normals @ F.EYE).min() > -1e-6
     # 每个命中点前移一小段应在外部，防止误取背面表面。
     assert F.signed_distance(xyz + 0.002 * F.EYE).min() > 0
+
+
+@pytest.mark.parametrize("style", ["chalk", "mineral"])
+def test_surface_variants_keep_geometry_and_require_explicit_output(style):
+    original, points = F.surface_pixels(width=201)
+    variant, other = F.surface_pixels(width=201, style=style)
+    np.testing.assert_array_equal(points, other)
+    np.testing.assert_array_equal(np.all(original == 1, axis=-1), np.all(variant == 1, axis=-1))
+    assert np.mean(np.abs(original - variant)) > 0.01
+    assert np.isfinite(variant).all() and 0 <= variant.min() <= variant.max() <= 1
+    with pytest.raises(ValueError, match="输出路径"):
+        F.main(style)

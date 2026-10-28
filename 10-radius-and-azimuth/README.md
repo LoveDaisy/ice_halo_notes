@@ -28,4 +28,12 @@ uv run python 10-radius-and-azimuth/code/regen.py             # 按序执行默�
 
 这是重启后的少量样图，不是定稿，尚未插入正文。正射球面上每个像素对应一个真实 `u`；着色与等值线直接来自 `check_parhelion.dp`，不以手画椭圆替代数据。颜色只表示角距离，不表示亮度；留白为光学域外，不判定有限晶体中的走廊或能量。0°、20°、40°、60° 纬线的最低点由数值搜索生成，65° 纬线无解；全光学域均在所选可见半球内。
 
-复用 ch8 `_ch8_plot.py` 的字体/外观，沿用冰蓝色系作连续角距离标尺、橙色作纬线。后续 3a/3b/3d 须调用同一个地形生成器；目前不提前生成其余三张，先等作者裁定此候选方向。
+复用 ch8 `_ch8_plot.py` 的字体/外观，沿用冰蓝色系作连续角距离标尺、橙色作纬线。后续 3a/3b/3d 须调用同一个地形生成器。作者已允许沿此表达方向继续，但颜色未定稿；本批只比较原版与两种颜色变体，不提前生成其余三张。
+
+`fig_plate_terrain.py` 默认保留上方原图；`--style chalk` 为暖灰单调色阶，`--style mineral` 为低饱和青灰单调色阶。非默认版本须显式指定 `--output <本地 PNG 路径>`，未选版本只留本地：
+
+```bash
+uv run python 10-radius-and-azimuth/code/fig_plate_terrain.py --style mineral --output scratchpad/task-draw-ch9p1-ch10-figs/variants/terrain_mineral.png
+```
+
+这里的渐变是**角距离标尺，不是环面上的灯光 shade**；三版调用同一个 `terrain()`，共用 `Normalize(21,53)`、等值线及最低点，不给球面额外打光。新增测试检查三套色阶的线性亮度严格单调。纬线、点、等值线及直接数字标签保持原样，可不依靠辨色读数。

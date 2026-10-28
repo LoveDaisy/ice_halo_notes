@@ -1,6 +1,7 @@
 # 图 3c 候选：同一 3–5 地形上的片晶纬线与最低点 → ../img/plate_terrain.png。
 from __future__ import annotations
 
+import argparse
 import importlib.util
 from pathlib import Path
 
@@ -26,6 +27,16 @@ RIGHT = C.unit_from(0.0, VIEW_AZ + 90)
 UP = np.cross(EYE, RIGHT)
 CAMERA = np.stack([RIGHT, UP, EYE])
 LEVELS = (22, 25, 30, 40, 50)
+# 每套都是单调明度标尺，不叠加球面灯光；D 的数值与定义域不随外观变化。
+RAMPS = {
+    "original": (P.PAL["ice"], P.PAL["face_4"], P.PAL["ink_soft"]),
+    "chalk": ("#EFEDE7", "#AAA69B", "#5B5953"),
+    "mineral": ("#E5EEEB", "#92B1A8", "#385E55"),
+}
+
+
+def distance_cmap(style="original"):
+    return LinearSegmentedColormap.from_list(f"distance_{style}", RAMPS[style])
 
 
 def project(u):
@@ -63,13 +74,13 @@ def visible_curve(ax, u, **kwargs):
     return ax.plot(xy[:, 0], xy[:, 1], **kwargs)
 
 
-def main():
+def main(style="original", out=None):
+    if style != "original" and out is None:
+        raise ValueError("候选变体必须显式指定输出路径，不能覆盖原图")
     P.apply_style()
     ink, guide = P.PAL["ink_soft"], P.PAL["reference"]
     accent = P.PAL["face_5"]
-    cmap = LinearSegmentedColormap.from_list(
-        "distance_blue", [P.PAL["ice"], P.PAL["face_4"], P.PAL["ink_soft"]]
-    )
+    cmap = distance_cmap(style)
     norm = Normalize(21.0, 53.0)
     fig = plt.figure(figsize=(10.4, 7.6))
     ax = fig.add_axes([0.045, 0.20, 0.92, 0.68])
@@ -127,7 +138,7 @@ def main():
     cb.ax.tick_params(labelsize=9, length=3, color=ink)
     cb.set_label("地形数值 D：光点离太阳的角距离（°）", fontsize=10, color=ink)
     fig.text(0.67, 0.115, "着色表示角距离，不是亮度。", fontsize=9.5, color=ink)
-    out = Path(__file__).resolve().parents[1] / "img/plate_terrain.png"
+    out = Path(out) if out is not None else Path(__file__).resolve().parents[1] / "img/plate_terrain.png"
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=200, metadata={"Software": None})
     plt.close(fig)
@@ -135,4 +146,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--style", choices=RAMPS, default="original")
+    parser.add_argument("--output", type=Path)
+    args = parser.parse_args()
+    main(args.style, args.output)

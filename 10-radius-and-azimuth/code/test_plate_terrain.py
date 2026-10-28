@@ -59,3 +59,15 @@ def test_above_critical_latitude_empty_and_domain_visible():
     u = F.C.unit_from_grid(el.ravel(), az.ravel())
     d, _ = F.C.dp(u)
     assert (F.project(u[np.isfinite(d)])[:, 2] > 0).all()
+
+
+@pytest.mark.parametrize("style", F.RAMPS)
+def test_distance_ramps_monotonically_darken(style):
+    rgb = F.distance_cmap(style)(np.linspace(0, 1, 256))[:, :3]
+    linear = np.where(rgb <= 0.04045, rgb / 12.92, ((rgb + 0.055) / 1.055)**2.4)
+    luminance = linear @ np.array([0.2126, 0.7152, 0.0722])
+    assert np.all(np.diff(luminance) < 0)
+    assert luminance[0] - luminance[-1] > 0.5
+    if style != "original":
+        with pytest.raises(ValueError, match="输出路径"):
+            F.main(style)

@@ -1,6 +1,7 @@
 # 图 2a 候选：柱晶的两个周期自由度构成环面，锁住自转后留下 Parry 圆 → ../img/column_torus.png。
 from __future__ import annotations
 
+import argparse
 import importlib.util
 from pathlib import Path
 
@@ -28,6 +29,12 @@ EYE = np.array([np.cos(VIEW_EL) * np.cos(VIEW_AZ),
 UP = np.cross(EYE, RIGHT)
 CAMERA = np.stack([RIGHT, UP, EYE])
 ROLL_COLOR, PARRY_COLOR = P.PAL["arc_roll"], P.PAL["face_5"]
+# 待作者选择的表面处理；不改变参数、相机或强调圈的语义。
+SURFACES = {
+    "original": (P.PAL["ice"], 0.82, P.PAL["ice_edge"], 12, 8),
+    "chalk": ("#E7E3DB", 0.88, "#C6C0B5", 6, 4),
+    "mineral": ("#BFD0CA", 0.90, "#A4B6AF", 6, 4),
+}
 
 
 def torus(psi, theta, offset=0.0):
@@ -53,7 +60,7 @@ def signed_distance(xyz):
     return np.hypot(radial - MAJOR, xyz[..., 2]) - MINOR
 
 
-def surface_pixels(width=1401):
+def surface_pixels(width=1401, style="original"):
     """沿正射相机射线追踪最近表面；同一命中点着色，网格不会穿透或与表面争深度。"""
     height = int(width * 4.2 / 6)
     x, y = np.meshgrid(np.linspace(-3, 3, width), np.linspace(-2.1, 2.1, height))
@@ -78,8 +85,9 @@ def surface_pixels(width=1401):
                                np.cos(tube) * np.sin(psi), np.sin(tube)])
     light = np.array([-0.35, -0.45, 0.82])
     light /= np.linalg.norm(light)
-    brightness = 0.82 + 0.18 * np.maximum(normals @ light, 0)
-    rgb = brightness[:, None] * np.array(to_rgb(P.PAL["ice"]))
+    base, ambient, grid_color, n_psi, n_theta = SURFACES[style]
+    brightness = ambient + (1 - ambient) * np.maximum(normals @ light, 0)
+    rgb = brightness[:, None] * np.array(to_rgb(base))
 
     def periodic_distance(angle, period):
         return np.abs((angle + period / 2) % period - period / 2)
@@ -88,9 +96,9 @@ def surface_pixels(width=1401):
         coverage = np.clip((half_width + 0.003 - dist) / 0.006, 0, 1)
         rgb[:] = rgb * (1 - coverage[:, None]) + np.array(to_rgb(color)) * coverage[:, None]
 
-    grid_p = periodic_distance(psi, np.pi / 6) * radial
-    grid_t = periodic_distance(tube, np.pi / 4) * MINOR
-    ink_band(np.minimum(grid_p, grid_t), 0.003, P.PAL["ice_edge"])
+    grid_p = periodic_distance(psi, 2 * np.pi / n_psi) * radial
+    grid_t = periodic_distance(tube, 2 * np.pi / n_theta) * MINOR
+    ink_band(np.minimum(grid_p, grid_t), 0.003, grid_color)
     ink_band(periodic_distance(tube - np.pi / 2, 2 * np.pi) * MINOR, 0.012, PARRY_COLOR)
     ink_band(periodic_distance(psi - np.radians(15), 2 * np.pi) * radial, 0.018, ROLL_COLOR)
     image = np.ones((len(origins), 3))
@@ -98,17 +106,19 @@ def surface_pixels(width=1401):
     return image.reshape(height, width, 3), xyz
 
 
-def surface(ax):
-    image, _ = surface_pixels()
+def surface(ax, style="original"):
+    image, _ = surface_pixels(style=style)
     ax.imshow(image, origin="lower", extent=(-3, 3, -2.1, 2.1), interpolation="lanczos")
 
 
-def main():
+def main(style="original", out=None):
+    if style != "original" and out is None:
+        raise ValueError("候选变体必须显式指定输出路径，不能覆盖原图")
     P.apply_style()
     fig = plt.figure(figsize=(10.4, 6.4))
     ax = fig.add_axes([0.025, 0.14, 0.95, 0.75])
     ax.set_aspect("equal")
-    surface(ax)
+    surface(ax, style)
     ink = P.PAL["ink_soft"]
 
     def leader(psi, theta, xytext, text, *, ha="left"):
@@ -138,7 +148,7 @@ def main():
              fontsize=18, color=ink)
     fig.text(0.5, 0.05, "参数环面示意 · 不是轴角球中的形状，也不表示姿态之间的距离",
              ha="center", fontsize=9, color=ink)
-    out = Path(__file__).resolve().parents[1] / "img/column_torus.png"
+    out = Path(out) if out is not None else Path(__file__).resolve().parents[1] / "img/column_torus.png"
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=200, metadata={"Software": None})
     plt.close(fig)
@@ -146,4 +156,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--style", choices=SURFACES, default="original")
+    parser.add_argument("--output", type=Path)
+    args = parser.parse_args()
+    main(args.style, args.output)
