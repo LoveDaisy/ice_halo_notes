@@ -8,9 +8,11 @@ from halo_notes.repo.regen import Chapter, Step, main
 CH = Chapter(
     code_dir=Path(__file__).resolve().parent,
     steps=(
+        Step('fig_plate_terrain.py', minutes=0.2, note='图 3c 地形样图（待作者审图）'),
         Step('check_parhelion.py', note='核验（不产出文件）', default=False),
         Step('check_parhelion_lumice.py', lumice=True, note='Lumice 对照核验（不产出文件）', default=False),
     ),
+    helpers=('test_plate_terrain.py',),
 )
 
 if __name__ == "__main__":
