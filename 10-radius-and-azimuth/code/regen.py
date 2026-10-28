@@ -8,11 +8,16 @@ from halo_notes.repo.regen import Chapter, Step, main
 CH = Chapter(
     code_dir=Path(__file__).resolve().parent,
     steps=(
-        Step('fig_plate_terrain.py', minutes=0.2, note='图 3c 地形样图（待作者审图）'),
+        Step('fig_solar_circle.py', minutes=0.1, note='图 2：同源绕太阳动作与等角距轨迹'),
+        Step('fig_terrain_domain.py', minutes=0.1, note='图 3a：光学定义域与等值线'),
+        Step('fig_random_terrain.py', minutes=0.1, note='图 3b：随机取向的整球'),
+        Step('fig_plate_terrain.py', minutes=0.2, note='图 3c：片晶纬线；保持作者认可图版'),
+        Step('fig_column_terrain.py', minutes=0.1, note='图 3d：柱晶可取带'),
+        Step('fig_parhelion_rulers.py', minutes=0.1, note='图 5：角距离与方位差'),
         Step('check_parhelion.py', note='核验（不产出文件）', default=False),
         Step('check_parhelion_lumice.py', lumice=True, note='Lumice 对照核验（不产出文件）', default=False),
     ),
-    helpers=('test_plate_terrain.py',),
+    helpers=('test_plate_terrain.py', '_terrain_layers.py', 'test_ch10_geometry.py'),
 )
 
 if __name__ == "__main__":

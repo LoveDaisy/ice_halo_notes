@@ -22,7 +22,31 @@ uv run python 10-radius-and-azimuth/code/regen.py             # 按序执行默�
 - `uv run pytest 10-radius-and-azimuth/code -q`：地形逐像素定义域、纬线最低点对 Bravais 闭式、沿棱分量守恒、临界后空域及全定义域可见性核验。
 - 既有 `check_parhelion` / `check_parhelion_lumice` 保持为可选核验项；本次两幅风格样图不需要 Lumice，不代表后续天象图已完成 MC 验证。
 
-## 图 3c 风格样图（待作者审看）
+## ch10 新图（第八批，待作者审看）
+
+图 2 的旋转动作直接加载 9.1 `_sun_rotation.py`，只在本章增加 `3–5` 出射方向与天空等距投影；不复制旋转物理。图 3a–3d 共用 `fig_plate_terrain.draw_base()` 与只读缓存 `base_terrain()`，实际绘图层的数组/域/色阶由测试逐点对照。图 3c 重构前后 PNG SHA256 相同，保留作者认可版。图 5 调用既有 Bravais/球面角距函数，临界处之后不延伸有效曲线。
+
+### 图 2 · 绕太阳转，角距离不变
+
+![图 2](img/solar_circle.png)
+
+### 图 3a · 光学定义域与等值线
+
+![图 3a](img/terrain_domain.png)
+
+### 图 3b · 随机取向可到达全局最低点
+
+![图 3b](img/random_terrain.png)
+
+### 图 3d · 柱晶可取带包含赤道
+
+![图 3d](img/column_terrain.png)
+
+### 图 5 · 两把尺子
+
+![图 5](img/parhelion_rulers.png)
+
+## 图 3c（作者第七轮认可，图版未改变）
 
 ![图 3c 候选：片晶纬线在同一球面地形上的最低点](img/plate_terrain.png)
 

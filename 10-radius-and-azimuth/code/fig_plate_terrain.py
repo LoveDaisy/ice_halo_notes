@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import importlib.util
+from functools import lru_cache
 from pathlib import Path
 
 import matplotlib
@@ -120,18 +121,22 @@ def visible_curve(ax, u, **kwargs):
     return ax.plot(xy[:, 0], xy[:, 1], **kwargs)
 
 
-def main(style="original", out=None):
-    if style != "original" and out is None:
-        raise ValueError("候选变体必须显式指定输出路径，不能覆盖原图")
-    P.apply_style()
+@lru_cache(maxsize=2)
+def base_terrain(size=801):
+    """四幅地形共用的只读底图；同一进程只计算一次，不允许叠层修改数值。"""
+    arrays = terrain(size)
+    for array in arrays:
+        array.setflags(write=False)
+    return arrays
+
+
+def draw_base(ax, style="original"):
+    """3a–3d 的同一相机、光学域、数值色阶、经网与等值线。"""
     ink, guide = COLORS["ink"], COLORS["grid"]
-    accent = COLORS["latitude"]
     cmap = distance_cmap(style)
     norm = Normalize(21.0, 53.0)
-    fig = plt.figure(figsize=(10.4, 7.6))
-    ax = fig.add_axes([0.045, 0.20, 0.92, 0.68])
     ax.set_aspect("equal")
-    x, y, _, d = terrain()
+    x, y, _, d = base_terrain()
     radius = image_radius()
     ax.imshow(np.ma.masked_invalid(d), origin="lower",
               extent=(-radius, radius, -radius, radius),
@@ -151,6 +156,19 @@ def main(style="original", out=None):
                   fmt=lambda v: f"{v:g}°", manual=[position])
     outline = project(silhouette())
     ax.plot(outline[:, 0], outline[:, 1], color=COLORS["edge"], lw=0.8, zorder=4)
+    return cmap, norm
+
+
+def main(style="original", out=None):
+    if style != "original" and out is None:
+        raise ValueError("候选变体必须显式指定输出路径，不能覆盖原图")
+    P.apply_style()
+    ink = COLORS["ink"]
+    accent = COLORS["latitude"]
+    fig = plt.figure(figsize=(10.4, 7.6))
+    ax = fig.add_axes([0.045, 0.20, 0.92, 0.68])
+    cmap, norm = draw_base(ax, style)
+    az = np.linspace(0, 360, 1441)
     targets = {-0.0: -0.21, 20.0: 0.14, 40.0: 0.49, 60.0: 0.84, 65.0: 1.12}
     for h in HEIGHTS:
         row = latitude_minimum(h)
