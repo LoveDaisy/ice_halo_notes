@@ -39,9 +39,65 @@ def test_visible_surface_is_on_torus_and_faces_camera():
     radial = np.hypot(x, y)
     normals = np.column_stack([x * (1 - F.MAJOR / radial),
                                y * (1 - F.MAJOR / radial), z]) / F.MINOR
-    assert (normals @ F.EYE).min() > -1e-6
-    # 每个命中点前移一小段应在外部，防止误取背面表面。
-    assert F.signed_distance(xyz + 0.002 * F.EYE).min() > 0
+    toward = F.CAMERA.position - xyz
+    toward /= np.linalg.norm(toward, axis=1, keepdims=True)
+    assert np.einsum('ij,ij->i', normals, toward).min() > -1e-6
+    # 每个命中点沿自己的相机射线前移一小段应在外部，防止误取背面表面。
+    assert F.signed_distance(xyz + 0.002 * toward).min() > 0
+
+
+def test_inverse_projection_and_depth_scaling():
+    from halo_notes.draw.projection import Camera
+
+    # 非默认滚转相机，防止 helper 暗中使用全局 EYE/RIGHT。
+    camera = Camera(azimuth=23, elevation=41, distance=9, roll=17)
+    xy = np.array([[-2.1, 0.6], [0, 0], [1.2, -0.7]])
+    origins, directions = F.camera_rays(xy, camera)
+    np.testing.assert_allclose(origins, np.broadcast_to(camera.position, origins.shape))
+    np.testing.assert_allclose(np.linalg.norm(directions, axis=1), 1)
+    assert np.linalg.norm(directions[0] - directions[-1]) > 0.3
+    for distance in (3, 6, 12):
+        points = origins + distance * directions
+        np.testing.assert_allclose(camera.project_xy(points), xy, atol=1e-12)
+    near = camera.to_world(1, 0, 3)
+    far = camera.to_world(1, 0, -3)
+    np.testing.assert_allclose(camera.project_xy([near, far])[:, 0], [1.5, 0.75])
+    assert F.CAMERA.projection == 'perspective'
+
+
+def test_raster_hit_projects_to_its_own_pixel_center():
+    width = 161
+    image, xyz = F.surface_pixels(width)
+    height = image.shape[0]
+    left, right, bottom, top = F.EXTENT
+    row, col = np.where(np.any(image != 1, axis=-1))
+    expected = np.column_stack([left + (col + 0.5) * (right-left)/width,
+                                bottom + (row + 0.5) * (top-bottom)/height])
+    np.testing.assert_allclose(F.CAMERA.project_xy(xyz), expected, atol=1e-12)
+
+
+def test_single_torus_trace_matches_independent_quartic_nearest_root():
+    from numpy.polynomial import Polynomial
+
+    rng = np.random.default_rng(351)
+    xy = rng.uniform([-3.6, -2.1], [3.6, 2.1], (140, 2))
+    origins, directions = F.camera_rays(xy)
+    expected = []
+    for origin, direction in zip(origins, directions):
+        x, y, z = [Polynomial([a, b]) for a, b in zip(origin, direction)]
+        q = x*x + y*y + z*z + F.MAJOR**2 - F.MINOR**2
+        roots = (q*q - 4*F.MAJOR**2*(x*x+y*y)).roots()
+        forward = [r.real for r in roots if abs(r.imag) < 1e-8 and r.real > 0]
+        expected.append(min(forward, default=np.inf))
+    expected = np.array(expected)
+    actual = F.trace(origins, directions)
+    np.testing.assert_array_equal(np.isfinite(actual), np.isfinite(expected))
+    hit = np.isfinite(expected)
+    np.testing.assert_allclose(actual[hit], expected[hit], atol=0.001, rtol=0)
+    # 同一视线上的前后两面不能都被可见性测试放行。
+    points = origins[hit] + expected[hit, None] * directions[hit]
+    assert F.line_visibility(points).all()
+    assert not F.line_visibility(points + 0.1*directions[hit]).any()
 
 
 @pytest.mark.parametrize("style", ["chalk", "mineral"])

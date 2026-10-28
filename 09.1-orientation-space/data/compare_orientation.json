@@ -1,36 +1,31 @@
 {
   "schema": 1,
-  "compare_sha256": "b614edd603209f83fc3f131b3a693d8bc14d357bcdbcd3dd8e57ae9ef7000387",
+  "compare_sha256": "4a442a363ac629408076c3c4330f465a693c840c6fe735e463ac1d568321a9fc",
   "figures": [
     {
-      "figure": "1a",
+      "figure": "1",
       "image": "img/axis_angle_ball.png",
-      "sha256": "93016858900b1dc48c4dcbb46cb6266a9aa47724b4b2aa821f1fc8f6975cdaa3"
-    },
-    {
-      "figure": "1b",
-      "image": "img/rotation_seam.png",
-      "sha256": "7f1e8748839c1ed1073524c3cf63b11a892aa8abeaa81418bd9d6ba8bf41bbbc"
+      "sha256": "9393adb02696fcf5c6da1d951b90df107e1a08e64f251f7228c9f2275ee59206"
     },
     {
       "figure": "2a",
       "image": "img/column_torus.png",
-      "sha256": "48d5ced416e88a7e7f51e8f4a04062f8818bf0648905710f14a5862319c05c89"
+      "sha256": "d8c99f09d0272290f46ef9ac6f33cc1b3185a658eda1dcd143d2643804f33e5f"
     },
     {
       "figure": "2b",
       "image": "img/plate_lowitz.png",
-      "sha256": "23c669a3aa5b13665ad1deb3ebafaf404cef65d0d0b3b583080f72aab50b6590"
+      "sha256": "fc4a2c3e831a7fbc306d971c50e0c360d51565adf16b132cfddfb51d1b09c2d4"
     },
     {
       "figure": "3",
       "image": "img/tori_section.png",
-      "sha256": "b5d4f5b1941a6ffe8ffeb092120e4571c2209dc1c88e752303593da796a5156d"
+      "sha256": "485d9eafd45598e389a8f70bab917f63a6efb446f1afdc9d314ad9673988e910"
     },
     {
       "figure": "4a",
       "image": "img/euler_sampling.png",
-      "sha256": "fc68bffcb241f0f1790e9c26921ecec20a510d7dde75a78f06301ed91f2562fa"
+      "sha256": "2c2c4c7e14e087c3c2ed9241c34a53efa1226713491d7020b222ed8f02c0ca02"
     },
     {
       "figure": "4b",
@@ -40,12 +35,12 @@
     {
       "figure": "5a",
       "image": "img/sun_rotation.png",
-      "sha256": "7706b4eaef772a896f001e4d22e6aae631160083daa762c3ca240420d1bdf738"
+      "sha256": "db7210660b7a351e640291be6155f56c5279fbc34cc9e99cf23d705835ee7312"
     },
     {
       "figure": "5b",
       "image": "img/angle_fibers.png",
-      "sha256": "030cbcec07a9c74c6dd9f27ff583c26cd3d210dd9559ede269523971c7dc0a7f"
+      "sha256": "aa9d90641b0f484403eccaf18838e93e9a29624f64333dfffe7671c0453a53bf"
     }
   ],
   "optional_pending": [

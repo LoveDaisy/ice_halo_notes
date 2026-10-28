@@ -24,13 +24,13 @@ def inside_sector(kind, points, variant):
     return (relative > start + 1e-10) & (relative < end - 1e-10)
 
 
-def analytic_depth(origin, kind, variant):
+def analytic_depth(origin, direction, kind, variant):
     # 全四次根解独立于 sphere tracing；不调用被测的切口函数。
-    x, y, z = [Polynomial([a, -b]) for a, b in zip(origin, F.EYE)]
+    x, y, z = [Polynomial([a, b]) for a, b in zip(origin, direction)]
     q = x*x + y*y + z*z + F.MAJOR[kind]**2 - F.MINOR**2
     roots = (q*q - 4 * F.MAJOR[kind]**2 * (x*x + y*y)).roots()
     roots = sorted(r.real for r in roots if abs(r.imag) < 1e-8 and r.real >= 0)
-    return next((d for d in roots if not inside_sector(kind, origin - d*F.EYE, variant)), np.inf)
+    return next((d for d in roots if not inside_sector(kind, origin + d*direction, variant)), np.inf)
 
 
 @pytest.mark.parametrize('variant', S.CUTS)
@@ -67,14 +67,14 @@ def test_intersection_curves_are_complete_and_same_attitudes_on_both_surfaces():
 def test_new_cut_ray_hits_match_all_roots_without_phantom_caps(variant):
     rng = np.random.default_rng(749)
     xy = rng.uniform([-3.6, -1.9], [3.6, 1.9], (160, 2))
-    origins = xy[:, :1] * F.RIGHT + xy[:, 1:] * F.UP + 8 * F.EYE
+    origins, directions = F.T.camera_rays(xy, F.CAMERA)
     for kind in (F.LOWITZ, F.COLUMN):
-        expected = np.array([analytic_depth(o, kind, variant) for o in origins])
-        actual = F.trace(origins, kind, S.cutter_for(variant))
+        expected = np.array([analytic_depth(o, d, kind, variant) for o, d in zip(origins, directions)])
+        actual = F.trace(origins, directions, kind, S.cutter_for(variant))
         np.testing.assert_array_equal(np.isfinite(actual), np.isfinite(expected))
         keep = np.isfinite(expected)
         np.testing.assert_allclose(actual[keep], expected[keep], rtol=0, atol=0.001)
-        points = origins[keep] - actual[keep, None] * F.EYE
+        points = origins[keep] + actual[keep, None] * directions[keep]
         assert np.max(np.abs(F.torus_distance(kind, points))) < 2e-5
 
 
@@ -83,10 +83,10 @@ def test_visible_curve_masks_match_independent_occlusion_and_retain_both_rings(v
     cutter = S.cutter_for(variant)
     for sign in (-1, 1):
         points = S.circle_points(sign)
-        depth = 8 - F.project(points)[:, 2]
-        origins = points + depth[:, None] * F.EYE
-        nearest = np.array([min(analytic_depth(o, kind, variant) for kind in (F.LOWITZ, F.COLUMN))
-                            for o in origins])
+        depth = np.linalg.norm(points - F.CAMERA.position, axis=1)
+        directions = (points - F.CAMERA.position) / depth[:, None]
+        nearest = np.array([min(analytic_depth(F.CAMERA.position, d, kind, variant)
+                                for kind in (F.LOWITZ, F.COLUMN)) for d in directions])
         expected = depth <= nearest + 0.002
         actual = S.line_visibility(points, cutter)
         np.testing.assert_array_equal(actual, expected)
@@ -102,10 +102,10 @@ def test_cut_edge_visibility_matches_independent_all_roots(variant):
     for kind in (F.LOWITZ, F.COLUMN):
         for phi in S.cut_angles(kind, variant):
             points = F.surface(kind, phi, np.linspace(-np.pi, np.pi, 181))
-            depth = 8 - F.project(points)[:, 2]
-            origins = points + depth[:, None] * F.EYE
-            nearest = np.array([min(analytic_depth(o, k, variant) for k in (F.LOWITZ, F.COLUMN))
-                                for o in origins])
+            depth = np.linalg.norm(points - F.CAMERA.position, axis=1)
+            directions = (points - F.CAMERA.position) / depth[:, None]
+            nearest = np.array([min(analytic_depth(F.CAMERA.position, d, k, variant)
+                                    for k in (F.LOWITZ, F.COLUMN)) for d in directions])
             np.testing.assert_array_equal(S.line_visibility(points, S.cutter_for(variant)),
                                           depth <= nearest + 0.002)
 

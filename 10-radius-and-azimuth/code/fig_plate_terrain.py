@@ -10,7 +10,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap, Normalize
-from matplotlib.patches import Circle
+from halo_notes.draw.projection import Camera
 
 import check_parhelion as C
 
@@ -22,11 +22,16 @@ P = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(P)
 HEIGHTS = (0.0, 20.0, 40.0, 60.0, 65.0)
 VIEW_AZ, VIEW_EL = 310.0, 12.0
-EYE = C.unit_from(VIEW_EL, VIEW_AZ)
-RIGHT = C.unit_from(0.0, VIEW_AZ + 90)
-UP = np.cross(EYE, RIGHT)
-CAMERA = np.stack([RIGHT, UP, EYE])
+CAMERA = Camera(azimuth=VIEW_AZ, elevation=VIEW_EL,
+                projection="perspective", distance=8.0)
 LEVELS = (22, 25, 30, 40, 50)
+COLORS = {
+    "ink": P.PAL["ink_soft"],
+    "grid": P.PAL["reference"],
+    "latitude": P.PAL["face_5"],
+    "edge": P.PAL["ice_edge"],
+    "surface": P.PAL["background"],
+}
 # 每套都是单调明度标尺，不叠加球面灯光；D 的数值与定义域不随外观变化。
 RAMPS = {
     "original": (P.PAL["ice"], P.PAL["face_4"], P.PAL["ink_soft"]),
@@ -39,18 +44,59 @@ def distance_cmap(style="original"):
     return LinearSegmentedColormap.from_list(f"distance_{style}", RAMPS[style])
 
 
-def project(u):
+def project(u, camera=CAMERA):
+    """保留输入形状，最后一维为 Camera 的 (x, y, depth)。"""
     points = np.asarray(u)
-    return (points.reshape(-1, 3) @ CAMERA.T).reshape(points.shape)
+    xy, depth = camera.project(points.reshape(-1, 3))
+    return np.column_stack([xy, depth]).reshape(points.shape)
 
 
-def terrain(size=801):
-    """正射投影的逐像素 u、D 及定义域。仅计算方向光学，不声称有限晶体有能量。"""
-    t = np.linspace(-1, 1, size)
+def sphere_visible(u, camera=CAMERA):
+    """单位球面法向为 u；透视可见域不是 depth >= 0 的半球。"""
+    points = np.asarray(u)
+    view = camera.view_vector(points.reshape(-1, 3)).reshape(points.shape)
+    return np.sum(points * view, axis=-1) >= -1e-12
+
+
+def sphere_hit(x, y, camera=CAMERA):
+    """原点像平面的 (x,y) 发回同一个相机点，取射线与单位球的近交点。
+
+    未命中返回 NaN；射线用 camera.position 作共同起点，而非逐像素平移起点。
+    """
+    x, y = np.broadcast_arrays(x, y)
+    plane = x[..., None] * camera.right + y[..., None] * camera.cam_up
+    ray = plane - camera.position
+    ray /= np.linalg.norm(ray, axis=-1, keepdims=True)
+    b = ray @ camera.position
+    discriminant = b * b - (camera.position @ camera.position - 1)
+    hit = (discriminant >= -1e-12) & (b < 0)
+    distance = -b - np.sqrt(np.maximum(discriminant, 0))
+    u = camera.position + distance[..., None] * ray
+    return np.where(hit[..., None], u, np.nan)
+
+
+def silhouette(camera=CAMERA):
+    """相机到单位球的切线圈：u·camera.position = 1。"""
+    angle = np.linspace(0, 2 * np.pi, 1441)
+    depth = 1 / camera.distance
+    ring = (np.cos(angle)[:, None] * camera.right
+            + np.sin(angle)[:, None] * camera.cam_up)
+    return depth * camera.view_dir + np.sqrt(1 - depth**2) * ring
+
+
+def image_radius(camera=CAMERA):
+    """切线圈在 Camera 原点像平面上的半径，不是单位圆。"""
+    return camera.distance / np.sqrt(camera.distance**2 - 1)
+
+
+def terrain(size=801, camera=CAMERA):
+    """透视像素中心的真实 u、D 及定义域；仅方向光学，不声称有能量。"""
+    radius = image_radius(camera)
+    step = 2 * radius / size
+    t = -radius + (np.arange(size) + 0.5) * step
     x, y = np.meshgrid(t, t)
-    inside = x * x + y * y <= 1
-    z = np.sqrt(np.maximum(0, 1 - x * x - y * y))
-    u = x[..., None] * RIGHT + y[..., None] * UP + z[..., None] * EYE
+    u = sphere_hit(x, y, camera)
+    inside = np.isfinite(u).all(axis=-1)
     d = np.full(x.shape, np.nan)
     d[inside] = C.dp(u[inside])[0]
     return x, y, u, d
@@ -70,7 +116,7 @@ def latitude_minimum(h):
 
 def visible_curve(ax, u, **kwargs):
     q = project(u)
-    xy = np.where((q[:, 2] >= 0)[:, None], q[:, :2], np.nan)
+    xy = np.where(sphere_visible(u)[:, None], q[:, :2], np.nan)
     return ax.plot(xy[:, 0], xy[:, 1], **kwargs)
 
 
@@ -78,15 +124,17 @@ def main(style="original", out=None):
     if style != "original" and out is None:
         raise ValueError("候选变体必须显式指定输出路径，不能覆盖原图")
     P.apply_style()
-    ink, guide = P.PAL["ink_soft"], P.PAL["reference"]
-    accent = P.PAL["face_5"]
+    ink, guide = COLORS["ink"], COLORS["grid"]
+    accent = COLORS["latitude"]
     cmap = distance_cmap(style)
     norm = Normalize(21.0, 53.0)
     fig = plt.figure(figsize=(10.4, 7.6))
     ax = fig.add_axes([0.045, 0.20, 0.92, 0.68])
     ax.set_aspect("equal")
     x, y, _, d = terrain()
-    ax.imshow(np.ma.masked_invalid(d), origin="lower", extent=(-1, 1, -1, 1),
+    radius = image_radius()
+    ax.imshow(np.ma.masked_invalid(d), origin="lower",
+              extent=(-radius, radius, -radius, radius),
               cmap=cmap, norm=norm, interpolation="nearest", zorder=1)
     az = np.linspace(0, 360, 1441)
     for longitude in np.arange(0, 360, 30):
@@ -101,7 +149,8 @@ def main(style="original", out=None):
     for level, position in [(25, (0.2, -0.63)), (30, (-0.35, -0.68)), (40, (-0.52, -0.62))]:
         ax.clabel(contours, levels=[level], inline=True, fontsize=9,
                   fmt=lambda v: f"{v:g}°", manual=[position])
-    ax.add_patch(Circle((0, 0), 1, fill=False, edgecolor=P.PAL["ice_edge"], lw=0.8, zorder=4))
+    outline = project(silhouette())
+    ax.plot(outline[:, 0], outline[:, 1], color=COLORS["edge"], lw=0.8, zorder=4)
     targets = {-0.0: -0.21, 20.0: 0.14, 40.0: 0.49, 60.0: 0.84, 65.0: 1.12}
     for h in HEIGHTS:
         row = latitude_minimum(h)
@@ -113,13 +162,14 @@ def main(style="original", out=None):
         else:
             u, value = row
             xy = project(u)[:2]
-            ax.scatter(*xy, s=45, c=ink, edgecolor="white", linewidth=1.5, zorder=7)
+            ax.scatter(*xy, s=45, c=ink, edgecolor=COLORS["surface"],
+                       linewidth=1.5, zorder=7)
             text = f"h = {h:.0f}°    最近 {value:.2f}°"
             if h == 0:
                 text += "\n与全局最低点重合"
         target = targets[h]
         ax.plot([xy[0] + 0.025, 1.11, 1.19], [xy[1], target, target],
-                color=P.PAL["ice_edge"], lw=0.7, zorder=6)
+                color=COLORS["edge"], lw=0.7, zorder=6)
         ax.text(1.23, target, text, fontsize=11, color=ink, va="center", linespacing=1.6)
     pole = project(np.array([0, 0, 1.0]))[:2]
     ax.text(pole[0] - 0.04, pole[1] + 0.055, "c 轴", color=ink, ha="right", fontsize=10)

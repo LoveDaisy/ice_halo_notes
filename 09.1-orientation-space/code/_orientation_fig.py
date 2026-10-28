@@ -19,7 +19,10 @@ INK = P.PAL['ink_soft']
 BLUE = P.PAL['arc_roll']
 ORANGE = P.PAL['face_5']
 EDGE = P.PAL['ice_edge']
-CAMERA = Camera(azimuth=-55, elevation=24, projection='orthographic')
+CAMERA = Camera(azimuth=-55, elevation=24, distance=6)
+# 晶体外观交给系列 PRESETS；球面/二维标记只从既有 palette 取语义色。
+SURFACE = P.PAL['ice']
+PAPER = 'white'
 
 
 def canvas(title, subtitle, size=(11.8, 6.6)):
@@ -31,11 +34,13 @@ def canvas(title, subtitle, size=(11.8, 6.6)):
 
 
 def globe(ax, camera=CAMERA):
-    ax.add_patch(Circle((0, 0), 1, facecolor=P.PAL['ice'], alpha=0.24,
+    # 单位球的切线锥在原点像平面上的半径，与透视经纬网使用同一相机。
+    radius = camera.distance / np.sqrt(camera.distance**2 - 1)
+    ax.add_patch(Circle((0, 0), radius, facecolor=SURFACE, alpha=0.24,
                         edgecolor='none', zorder=0))
     graticule(ax, Sphere(), camera=camera, preset=PRESETS['default'],
               lat_step=30, lon_step=45)
-    ax.add_patch(Circle((0, 0), 1, facecolor='none', edgecolor=EDGE, lw=1.0, zorder=5))
+    ax.add_patch(Circle((0, 0), radius, facecolor='none', edgecolor=EDGE, lw=1.0, zorder=5))
     finish(ax, (-1.5, 1.5), (-1.4, 1.4))
 
 

@@ -91,31 +91,53 @@ def test_visible_hit_points_are_retained_surfaces_and_correct_families():
         assert np.count_nonzero(distance < 0.025) > 80
 
 
-def analytic_depth(origin, kind):
+def analytic_depth(origin, direction, kind):
     """独立四次多项式求所有射线/完整环面交点，再滤掉切口。"""
-    x, y, z = [Polynomial([a, -b]) for a, b in zip(origin, F.EYE)]
+    x, y, z = [Polynomial([a, b]) for a, b in zip(origin, direction)]
     q = x*x + y*y + z*z + F.MAJOR[kind]**2 - F.MINOR**2
     roots = (q*q - 4 * F.MAJOR[kind]**2 * (x*x + y*y)).roots()
     roots = sorted(root.real for root in roots if abs(root.imag) < 1e-8 and root.real >= 0)
-    return next((d for d in roots if F.cut_distance(kind, origin - d * F.EYE) <= 0), np.inf)
+    return next((d for d in roots if F.cut_distance(kind, origin + d * direction) <= 0), np.inf)
 
 
 def test_ray_marching_matches_independent_all_root_occlusion():
     rng = np.random.default_rng(369)
     xy = rng.uniform([-3.6, -2.0], [3.6, 2.0], (96, 2))
-    origins = xy[:, :1] * F.RIGHT + xy[:, 1:] * F.UP + 8 * F.EYE
+    origins, directions = F.T.camera_rays(xy, F.CAMERA)
     for kind in (F.LOWITZ, F.COLUMN):
-        actual = F.trace(origins, kind)
-        expected = np.array([analytic_depth(o, kind) for o in origins])
+        actual = F.trace(origins, directions, kind)
+        expected = np.array([analytic_depth(o, d, kind) for o, d in zip(origins, directions)])
         np.testing.assert_array_equal(np.isfinite(actual), np.isfinite(expected))
         keep = np.isfinite(expected)
         np.testing.assert_allclose(actual[keep], expected[keep], atol=0.001, rtol=0)
 
 
+def test_inverse_physical_parameter_and_shared_single_torus_geometry():
+    for kind in (F.LOWITZ, F.COLUMN):
+        physical = np.linspace(-2*np.pi, 2*np.pi, 193)
+        angle = F.display_angle(kind, physical)
+        recovered = F.physical_angle(kind, angle)
+        np.testing.assert_allclose(np.exp(1j*recovered), np.exp(1j*physical), atol=1e-12)
+    assert F.CAMERA is F.T.CAMERA and F.CAMERA.projection == 'perspective'
+    assert F.MAJOR[F.LOWITZ] == F.T.MAJOR and F.MINOR == F.T.MINOR
+
+
+def test_two_surface_raster_hits_project_to_pixel_centers():
+    width = 161
+    image, xyz, _ = F.surface_pixels(width)
+    height = image.shape[0]
+    row, col = np.where(np.any(image != 1, axis=-1))
+    left, right, bottom, top = F.EXTENT
+    expected = np.column_stack([left + (col + 0.5)*(right-left)/width,
+                                bottom + (row + 0.5)*(top-bottom)/height])
+    np.testing.assert_allclose(F.CAMERA.project_xy(xyz), expected, atol=1e-12)
+
+
 def test_leader_targets_are_visible_not_hidden_backside():
     for kind, phi, angle, *_ in F.LEADERS:
         p = F.surface(kind, phi, angle)
-        depth = 8 - F.project(p)[2]
-        origin = p + depth * F.EYE
-        nearest = min(analytic_depth(origin, k) for k in (F.LOWITZ, F.COLUMN))
+        origin = F.CAMERA.position
+        depth = np.linalg.norm(p - origin)
+        direction = (p - origin) / depth
+        nearest = min(analytic_depth(origin, direction, k) for k in (F.LOWITZ, F.COLUMN))
         np.testing.assert_allclose(nearest, depth, atol=1e-7)

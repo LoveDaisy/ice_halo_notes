@@ -39,11 +39,11 @@ def circle_points(sign, count=1601):
 
 
 def line_visibility(points, cutter):
-    depth = 8 - F.project(points)[:, 2]
-    origins = points + depth[:, None] * F.EYE
+    origins, directions = F.T.camera_rays(F.project(points)[:, :2], F.CAMERA)
+    depth = np.linalg.norm(points - origins, axis=1)
     # 轮廓附近表面距离误差会放大成深度误差；曲线单独用更紧的命中精度。
-    nearest = np.minimum(F.trace(origins, F.LOWITZ, cutter, tolerance=1e-8, max_steps=12000),
-                         F.trace(origins, F.COLUMN, cutter, tolerance=1e-8, max_steps=12000))
+    nearest = np.minimum(F.trace(origins, directions, F.LOWITZ, cutter, tolerance=1e-8, max_steps=12000),
+                         F.trace(origins, directions, F.COLUMN, cutter, tolerance=1e-8, max_steps=12000))
     return depth <= nearest + 0.002
 
 
@@ -84,7 +84,7 @@ def draw_section(ax):
         z = F.MINOR * np.sin(angle)
         color = P.PAL['ice_edge'] if kind == F.LOWITZ else P.PAL['ink_soft']
         ax.plot(r, z, style, color=color, lw=1.4)
-    for sign, text in ((1, '另一交圈'), (-1, 'Parry 圈')):
+    for sign, text in ((1, '另一原始圈\n经晶体对称对应 Parry'), (-1, 'Parry 原始圈')):
         ax.scatter([F.CROSS_R], [sign * F.CROSS_Z], s=34,
                    color=P.PAL['face_5'], edgecolor='white', lw=0.7, zorder=4)
         ax.annotate(text, (F.CROSS_R, sign * F.CROSS_Z),
@@ -113,11 +113,11 @@ def main(out=None, variant=DEFAULT_VARIANT, width=1601):
     fig.text(0.865, 0.315, '剖面不填充：这里只是两张薄面。',
              ha='center', fontsize=9, color=ink)
     handles = [Line2D([], [], color=P.PAL['arc_roll'], lw=2, label='蓝线：片晶圈（Lowitz 上）'),
-               Line2D([], [], color=P.PAL['face_5'], lw=2, label='橙线：两条共享圈'),
+               Line2D([], [], color=P.PAL['face_5'], lw=2, label='橙线：Parry 族的两条交圈'),
                Line2D([], [], color=P.PAL['face_5'], lw=1.5, ls='--', label='虚线：揭面处补全交圈')]
     fig.legend(handles=handles, loc='lower center', bbox_to_anchor=(0.5, 0.205),
                ncol=3, frameon=False, fontsize=10, labelcolor=ink)
-    fig.text(0.5, 0.155, '上圈 t = +90°；下圈 t = −90°（Parry）。片晶圈 t = 0° 与两圈都不相交。',
+    fig.text(0.5, 0.155, '下圈 t = −90°：Parry 原始姿态。上圈 t = +90°：另一原始圈，经晶体对称对应 Parry。',
              ha='center', fontsize=10, color=ink)
     fig.text(0.5, 0.105, '完整 Lowitz 有两条原始交圈；roll 锁 0 的半环只有下圈；按 D₆ 对称认同后两圈同属 Parry 族。',
              ha='center', fontsize=9.5, color=ink)

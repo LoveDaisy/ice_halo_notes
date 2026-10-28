@@ -11,15 +11,14 @@ import _orientation_fig as F
 
 CHAPTER = Path(__file__).resolve().parents[1]
 FIGURES = (
-    ('1a', 'axis_angle_ball', '对径点是同一姿态'),
-    ('1b', 'rotation_seam', '坐标跳跃，旋转连续'),
+    ('1', 'axis_angle_ball', '轴角球与对应姿态'),
     ('2a', 'column_torus', '柱晶与 Parry'),
     ('2b', 'plate_lowitz', '片晶与 Lowitz'),
     ('3', 'tori_section', '两环面 · B 错层剖切'),
     ('4a', 'euler_sampling', '等步长与均匀取向'),
     ('4b', 'euler_density', '两极相对密度发散'),
     ('5a', 'sun_rotation', '绕太阳转，u 不变'),
-    ('5b', 'angle_fibers', '角纤维与参考起点'),
+    ('5b', 'angle_fibers', '局部辅助候选 · 参考起点的坏点'),
 )
 
 
@@ -31,7 +30,7 @@ def main(out=None):
     out = Path(out) if out else CHAPTER/'img/compare_orientation.png'
     metadata = out.with_suffix('.json') if out.parent != CHAPTER/'img' else CHAPTER/'data/compare_orientation.json'
     F.P.apply_style()
-    fig, axes = plt.subplots(3, 3, figsize=(18, 14))
+    fig, axes = plt.subplots(4, 2, figsize=(16, 22))
     rows = []
     for ax, (number, name, caption) in zip(axes.flat, FIGURES):
         image = CHAPTER/f'img/{name}.png'
@@ -42,7 +41,7 @@ def main(out=None):
         rows.append(dict(figure=number, image=f'img/{name}.png', sha256=digest(image)))
     fig.subplots_adjust(left=.025, right=.975, bottom=.055, top=.91, wspace=.08, hspace=.18)
     fig.text(.03, .965, '9.1 姿态空间的形状 · 全篇必需图待审预览', color=F.INK, fontsize=21)
-    fig.text(.03, .93, '共 9 张；图 3 沿用作者选择的 B。此表不代表最终签核；图 4c 的去留仍待裁定。', color=F.INK, fontsize=12)
+    fig.text(.03, .93, '第六批 · 8 张新图版。1a/b 合并；5b 降为局部辅助候选；全部待重新审看，4c 去留待裁定。', color=F.INK, fontsize=12)
     fig.text(.5, .023, '缩略图用于对照整体；逐图裁定请打开 README 中对应的原尺寸图片。', ha='center', color=F.INK, fontsize=11)
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=200, metadata={'Software': None})

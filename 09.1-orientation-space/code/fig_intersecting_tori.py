@@ -15,26 +15,24 @@ import fig_parry_neighborhood as N
 P = T.P
 # 两个母圆的旋转曲面，仅实现集合关联，不是 SO(3) 的欧氏嵌入。
 LOWITZ, COLUMN = 0, 1
-MAJOR = np.array([2.5, 1.7])
-MINOR = 1.0
+MAJOR = np.array([T.MAJOR, 1.7])
+MINOR = T.MINOR
 CROSS_R = MAJOR.mean()
 CROSS_Z = np.sqrt(MINOR**2 - (CROSS_R - MAJOR[0])**2)
 CROSS_ANGLE = np.arccos((CROSS_R - MAJOR) / MINOR)
-AZ, EL = np.radians([-55.0, 19.0])
+AZ, EL = T.VIEW_AZ, T.VIEW_EL
 FRONT = np.array([np.cos(AZ), np.sin(AZ), 0.0])
-RIGHT = np.array([-np.sin(AZ), np.cos(AZ), 0.0])
-EYE = np.cos(EL) * FRONT + np.array([0.0, 0.0, np.sin(EL)])
-UP = np.cross(EYE, RIGHT)
-CAMERA = np.stack([RIGHT, UP, EYE])
-EXTENT = (-3.8, 3.8, -2.3, 2.3)
+CAMERA = T.CAMERA
+RIGHT, UP, EYE = CAMERA.right, CAMERA.cam_up, CAMERA.view_dir
+EXTENT = T.EXTENT
 # 开窗只移除面片，不加封口面；两条交圈的任何点都不落入切口。
 WINDOW_R, WINDOW_Z = 2.25, 0.84
 COLUMN_INNER = 1.42
 LEADERS = (
     (LOWITZ, AZ + np.radians(55), CROSS_ANGLE[LOWITZ], (3.5, 1.35),
-     '另一交圈\nt = +90°', 'left'),
-    (LOWITZ, AZ + np.radians(20), -CROSS_ANGLE[LOWITZ], (3.5, -1.55),
-     'Parry 圈\nt = −90°', 'left'),
+     '另一原始圈\n经晶体对称对应 Parry', 'left'),
+    (LOWITZ, AZ, -CROSS_ANGLE[LOWITZ], (3.5, -1.55),
+     'Parry 原始圈\nt = −90°', 'left'),
     (LOWITZ, AZ - np.radians(105), 0, (-3.75, 1.3),
      '片晶圈 · t = 0°\n在 Lowitz 上，\n不与橙圈相交', 'right'),
     (COLUMN, AZ - np.radians(45), 0, (-3.55, -1.15),
@@ -59,6 +57,13 @@ def physical_angle(kind, angle):
     """圆周的光滑重参数化：显示交线 ±CROSS_ANGLE 对应物理角 ±90°。"""
     k = np.tan(CROSS_ANGLE[kind] / 2)
     return 2 * np.arctan2(np.sin(angle / 2) / k, np.cos(angle / 2))
+
+
+def display_angle(kind, physical):
+    """physical_angle 的圆周逆映射；输入、输出均为弧度。"""
+    k = np.tan(CROSS_ANGLE[kind] / 2)
+    return 2 * np.arctan2(k * np.sin(np.asarray(physical) / 2),
+                          np.cos(np.asarray(physical) / 2))
 
 
 def attitude(kind, phi, angle):
@@ -88,24 +93,25 @@ def distance_bound(kind, xyz, cutter=cut_distance):
     return np.maximum(np.abs(torus_distance(kind, xyz)), cutter(kind, xyz))
 
 
-def trace(origins, kind, cutter=cut_distance, *, tolerance=2e-5, max_steps=420):
+def trace(origins, directions, kind, cutter=cut_distance, *, tolerance=2e-5, max_steps=420):
+    """按单位方向追踪；返回自相机点起的欧氏射线距离，非 Camera.depth。"""
     distance = np.zeros(len(origins))
     active = np.arange(len(origins))
     depths = np.full(len(origins), np.inf)
     for _ in range(max_steps):
         if not len(active):
             break
-        xyz = origins[active] - distance[active, None] * EYE
+        xyz = origins[active] + distance[active, None] * directions[active]
         step = distance_bound(kind, xyz, cutter)
         found = step < tolerance
         depths[active[found]] = distance[active[found]]
         distance[active] += step
-        active = active[~found & (distance[active] < 16)]
+        active = active[~found & (distance[active] < 2 * CAMERA.distance)]
     return depths
 
 
 def project(xyz):
-    return np.asarray(xyz) @ CAMERA.T
+    return T.project(xyz, CAMERA)
 
 
 def periodic_distance(angle, period):
@@ -113,13 +119,11 @@ def periodic_distance(angle, period):
 
 
 def surface_pixels(width=1601, cutter=cut_distance):
-    height = round(width * (EXTENT[3] - EXTENT[2]) / (EXTENT[1] - EXTENT[0]))
-    x, y = np.meshgrid(np.linspace(*EXTENT[:2], width), np.linspace(*EXTENT[2:], height))
-    origins = (x[..., None] * RIGHT + y[..., None] * UP + 8 * EYE).reshape(-1, 3)
-    depths = np.stack([trace(origins, kind, cutter) for kind in (LOWITZ, COLUMN)])
+    height, origins, directions = T.pixel_rays(width, EXTENT, CAMERA)
+    depths = np.stack([trace(origins, directions, kind, cutter) for kind in (LOWITZ, COLUMN)])
     nearest, kinds = depths.min(axis=0), depths.argmin(axis=0)
     hit = np.isfinite(nearest)
-    xyz, kinds = origins[hit] - nearest[hit, None] * EYE, kinds[hit]
+    xyz, kinds = origins[hit] + nearest[hit, None] * directions[hit], kinds[hit]
     rgb = np.empty((len(xyz), 3))
     light = np.array([-0.35, -0.45, 0.82])
     light /= np.linalg.norm(light)
@@ -160,7 +164,7 @@ def main(out=None):
     P.apply_style()
     ink = P.PAL['ink_soft']
     fig = plt.figure(figsize=(11.6, 8.3))
-    fig.text(0.055, 0.945, '两张环面，共享两圈', fontsize=17, color=ink)
+    fig.text(0.055, 0.945, '两张环面，交于 Parry 族的两圈', fontsize=17, color=ink)
     fig.text(0.055, 0.901, '把前侧打开，露出相交处；每条橙圈同时属于柱晶与 Lowitz。', fontsize=11, color=ink)
     ax = fig.add_axes([0.025, 0.235, 0.95, 0.635])
     image, _, _ = surface_pixels()
@@ -180,7 +184,7 @@ def main(out=None):
     ax.axis('off')
     handles = [Line2D([], [], color=P.PAL['ice_edge'], lw=8, alpha=0.35, label='浅面：Lowitz 环面'),
                Line2D([], [], color=P.PAL['arc_roll'], lw=8, alpha=0.45, label='深面：柱晶环面'),
-               Line2D([], [], color=P.PAL['face_5'], lw=2.5, label='橙线：两条共享圈')]
+               Line2D([], [], color=P.PAL['face_5'], lw=2.5, label='橙线：Parry 族的两条交圈')]
     fig.legend(handles=handles, loc='lower center', bbox_to_anchor=(0.5, 0.245),
                ncol=3, frameon=False, fontsize=10, labelcolor=ink, handlelength=1.6)
     fig.text(0.5, 0.205, '开窗只是揭去遮挡的面片；片晶圈被揭去的前半段仍属于原来的环面。',

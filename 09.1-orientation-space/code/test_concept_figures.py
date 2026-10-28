@@ -12,7 +12,7 @@ from scipy.stats import kstest
 import _orientation_fig as F
 import check_orientation_space as C
 import fig_axis_angle_ball as A
-import fig_rotation_seam as B
+import fig_axis_angle_ball as B
 import fig_plate_lowitz as L
 import fig_euler_sampling as E
 import fig_euler_density as D
@@ -57,10 +57,13 @@ def test_lowitz_surface_parameters_and_plate_circle():
             np.testing.assert_allclose(L.attitude(phi+360, t), R, atol=1e-14)
             np.testing.assert_allclose(L.attitude(phi, t+360), R, atol=1e-14)
             p = L.parameter_point(phi, t)
-            np.testing.assert_allclose(T.signed_distance(p), 0, atol=1e-14)
+            import fig_intersecting_tori as I
+            np.testing.assert_allclose(I.torus_distance(I.LOWITZ, p), 0, atol=1e-14)
         np.testing.assert_allclose(L.attitude(phi, 0)[:, 2], [0, 0, 1], atol=1e-14)
-        # 图中高亮圈的显示高度在管顶；不是把显示角误当物理摆角。
-        np.testing.assert_allclose(L.parameter_point(phi, 0)[2], T.MINOR)
+        # 与图 3 同一参数化：片晶在外赤道，两原始 Parry 圈分别在上下。
+        np.testing.assert_allclose(L.parameter_point(phi, 0)[2], 0)
+        for sign in (-1, 1):
+            np.testing.assert_allclose(L.parameter_point(phi, sign*90)[2], sign*I.CROSS_Z)
     _, points = T.surface_pixels(151)
     image, changed_points = T.surface_pixels(151, ring_color=F.BLUE, meridian_color=F.ORANGE)
     np.testing.assert_array_equal(points, changed_points)
@@ -150,12 +153,74 @@ def test_fiber_reference_winding_is_relative_to_smooth_local_section(radius):
     assert np.linalg.norm(shortest[0]-shortest[180]) > 2
 
 
-def test_clock_mark_uses_computed_relative_phase():
-    _, _, _, _, phase = G.reference_loop()
-    fig, ax = plt.subplots()
-    G.clock(ax, [0, 0], phase[90]-phase[0])
-    mark = np.asarray(ax.collections[0].get_offsets())[0]
-    np.testing.assert_allclose(mark, [-.19, 0], atol=1e-12)
+def test_reference_limits_are_distinct_while_body_sun_is_identical():
+    limits = []
+    for az in G.APPROACH_AZIMUTHS:
+        u, matrices = G.approach(az, [20., 2., .2, .02])
+        limit = G.limiting_reference(az)
+        limits.append(limit)
+        np.testing.assert_allclose(np.einsum('nij,nj->ni', matrices, u),
+                                   np.tile(G.SUN, (len(u), 1)), atol=1e-10)
+        errors = Rotation.from_matrix(matrices @ limit.T).magnitude()
+        np.testing.assert_allclose(np.degrees(errors), [20, 2, .2, .02], atol=1e-8)
+        np.testing.assert_allclose(limit.T @ G.SUN, -G.SUN, atol=1e-14)
+    relative = limits[1] @ limits[0].T
+    np.testing.assert_allclose(relative @ G.SUN, G.SUN, atol=1e-14)
+    np.testing.assert_allclose(np.degrees(Rotation.from_matrix(relative).magnitude()), 90)
+
+
+def test_concept_cameras_have_depth_scaling_and_true_sphere_limb():
+    from halo_notes.draw.sphere import Sphere
+    for camera in (F.CAMERA, A.BALL_CAMERA, G.CAMERA):
+        front = camera.right + camera.view_dir
+        back = camera.right - camera.view_dir
+        xy = camera.project_xy([front, back])
+        np.testing.assert_allclose(xy[:, 0], camera.distance/(camera.distance-np.array([1, -1])))
+        assert xy[0, 0] > xy[1, 0]
+        # 正射朝前、透视却在切线之外的一点。
+        z = .5/camera.distance
+        point = z*camera.view_dir + np.sqrt(1-z*z)*camera.right
+        assert point @ camera.view_dir > 0
+        assert not Sphere().facing([point], camera)[0]
+        fig, ax = plt.subplots()
+        F.globe(ax, camera)
+        z = 1/camera.distance
+        tangent = z*camera.view_dir+np.sqrt(1-z*z)*camera.right
+        radius = np.linalg.norm(camera.project_xy(tangent)[0])
+        np.testing.assert_allclose(ax.patches[0].radius, radius)
+        plt.close(fig)
+
+
+def test_rendered_panels_correspond_to_author_revision(monkeypatch):
+    from matplotlib.patches import ConnectionPatch
+    saved = []
+    monkeypatch.setattr(F, 'save', lambda fig, *args: saved.append(fig))
+    A.main()
+    fig = saved.pop()
+    assert len(fig.axes) == 6  # 一张球与五个姿态，不再分 1a/1b。
+    assert sum(isinstance(a, ConnectionPatch) for a in fig.artists) == 5
+    plt.close(fig)
+    E.main()
+    fig = saved.pop()
+    assert len(fig.axes) == 2  # 没有直方图/密度曲线面板。
+    assert all(sum(len(c.get_offsets()) for c in ax.collections) == 1440 for ax in fig.axes)
+    plt.close(fig)
+    calls = []
+    original = F.crystal
+    def record(ax, rotation, **kwargs):
+        calls.append(np.array(rotation))
+        return original(ax, rotation, **kwargs)
+    monkeypatch.setattr(F, 'crystal', record)
+    S.main()
+    fig = saved.pop()
+    assert len(fig.axes) == 10
+    np.testing.assert_allclose(calls[::2], S.scene_data()[0])
+    np.testing.assert_allclose(calls[1::2], np.tile(np.eye(3), (5, 1, 1)))
+    plt.close(fig)
+    calls.clear()
+    G.main()
+    fig = saved.pop()
+    np.testing.assert_allclose(calls, [G.limiting_reference(a) for a in G.APPROACH_AZIMUTHS])
     plt.close(fig)
 
 
@@ -178,7 +243,7 @@ def test_compare_manifest_binds_every_required_number_to_exact_images(tmp_path, 
     out = tmp_path/'compare.png'
     M.main(out)
     record = json.loads(out.with_suffix('.json').read_text())
-    assert [row['figure'] for row in record['figures']] == ['1a', '1b', '2a', '2b', '3', '4a', '4b', '5a', '5b']
+    assert [row['figure'] for row in record['figures']] == ['1', '2a', '2b', '3', '4a', '4b', '5a', '5b']
     assert record['compare_sha256'] == M.digest(out)
     assert record['optional_pending'] == ['4c']
     for row in record['figures']:
@@ -186,7 +251,7 @@ def test_compare_manifest_binds_every_required_number_to_exact_images(tmp_path, 
     assert not plt.get_fignums()
 
 
-NEW_FIGURES = ('axis_angle_ball', 'rotation_seam', 'plate_lowitz', 'euler_sampling',
+NEW_FIGURES = ('axis_angle_ball', 'plate_lowitz', 'euler_sampling',
                'euler_density', 'sun_rotation', 'angle_fibers')
 
 

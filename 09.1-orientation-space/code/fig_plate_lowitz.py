@@ -1,61 +1,79 @@
-# 图 2b：片晶的对径粘合圆与 Lowitz 环面上的同一圈 → ../img/plate_lowitz.png。
-import numpy as np
-from matplotlib.lines import Line2D
+# 图 2b：同一参数环面上的片晶赤道与 Parry 族两条原始圈 → ../img/plate_lowitz.png。
+from pathlib import Path
+import argparse
 
-from lumice_integral.symmetry.attitude import Ry
-from lumice_integral.symmetry.reflection_group import Rz
-import _orientation_fig as F
+import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
+import numpy as np
+
 import fig_column_torus as T
+import fig_intersecting_tori as I
 
 
 def attitude(phi, swing):
-    return Rz(float(phi)) @ Ry(float(swing))
+    """度制物理参数：Rz(phi) @ Ry(swing)，复用图 3 的唯一姿态实现。"""
+    angle = I.display_angle(I.LOWITZ, np.radians(swing))
+    return I.attitude(I.LOWITZ, np.radians(phi), angle)
 
 
 def parameter_point(phi, swing):
-    # 只平移显示角度：t=0 的片晶圈放在管顶，物理姿态仍为 Rz(φ)Ry(t)。
-    return T.torus(phi, np.asarray(swing) + 180)
+    """度制 (方位 φ, 物理摆角 t) → 显示点；不是把物理角当母圆角。
+
+    t=0 位于外赤道，t=±90 对应图 3 的上/下交圈，t=±180 位于内赤道。
+    与图 3 Lowitz 环面的坐标、相机完全相同；仅不揭面。
+    """
+    return I.surface(I.LOWITZ, np.radians(phi),
+                     I.display_angle(I.LOWITZ, np.radians(swing)))
 
 
 def main(out=None):
-    fig = F.canvas('片晶是 Lowitz 环面上的一圈',
-                   '把摆角锁在 t = 0°：c 轴朝上，只剩绕竖直方向转动的自由度。', size=(12.2, 6.9))
-    ax = fig.add_axes([0.025, 0.25, 0.33, 0.52])
-    F.globe(ax)
-    ends = F.CAMERA.project_xy([[0, 0, -1], [0, 0, 1]])
-    ax.plot(ends[:, 0], ends[:, 1], color=F.BLUE, lw=2.5, zorder=9)
-    ax.scatter(ends[:, 0], ends[:, 1], s=50, color=F.BLUE, edgecolor='white', zorder=10)
-    ax.text(0.12, 0.82, '+π', color=F.INK, fontsize=11)
-    ax.text(0.12, -0.92, '−π', color=F.INK, fontsize=11)
-    ax.text(-0.15, 0, '0', color=F.INK, va='center')
-    ax.set_title('轴角球里的片晶', fontsize=12, color=F.INK)
-    ax.annotate('', xy=ends[0], xytext=ends[1],
-                arrowprops=dict(arrowstyle='<->', connectionstyle='arc3,rad=0.8',
-                                color=F.EDGE, lw=1, linestyle='--'), zorder=10)
-    fig.text(0.19, 0.24, '直径两端粘合，首尾接成一个圆', ha='center', color=F.INK, fontsize=10)
-    bx = fig.add_axes([0.39, 0.23, 0.58, 0.59])
-    image, _ = T.surface_pixels(ring_color=F.BLUE, meridian_color=F.ORANGE)
-    bx.imshow(image, origin='lower', extent=(-3, 3, -2.1, 2.1), interpolation='lanczos')
-    for phi, t, text, target in ((48, 0, '片晶圈\nt = 0°', (3.1, 1.15)),
-                                (15, -80, '摆角 t\n绕长对角线摆动', (3.1, -0.8)),
-                                (-125, 0, '长对角线方位 φ', (-3.0, 1.6))):
-        xy = T.project(parameter_point(phi, t))[:2]
-        bx.annotate(text, xy, xytext=target, color=F.INK, fontsize=10.5,
-                    ha='right' if target[0] < 0 else 'left', va='center',
-                    arrowprops=dict(arrowstyle='-', color=F.EDGE, lw=0.8))
-    for ps, ts, color in ((np.linspace(-105, -85, 15), 0, F.BLUE),
-                           (15, np.linspace(-85, -55, 15), F.ORANGE)):
-        xy = T.project(parameter_point(ps, ts))
-        F.arrow(bx, xy[-5, :2], xy[-1, :2], color)
-    bx.set(xlim=(-3.7, 4.9), ylim=(-2.1, 2.3), aspect='equal')
-    bx.axis('off')
-    fig.legend(handles=[Line2D([], [], color=F.BLUE, lw=2, label='蓝线：片晶圆'),
-                        Line2D([], [], color=F.ORANGE, lw=2, label='橙线：固定方位下的摆动')],
-               loc='lower center', bbox_to_anchor=(0.52, 0.12), ncol=2, labelcolor=F.INK)
-    fig.text(0.5, 0.06, '左：带面号、c 轴朝上的片晶分支。右：全摆幅参数环面示意，不是轴角球中的嵌入。',
-             ha='center', color=F.INK, fontsize=9.5)
-    F.save(fig, 'plate_lowitz', out)
+    fig, ax = T.figure_axes('片晶是 Lowitz 环面上的一圈',
+                            '锁住摆角 t = 0°，得到片晶；摆到 ±90°，分别落在上下两条原始交圈。')
+    ink = T.TOKENS['ink']
+    rings = [(0, T.TOKENS['plate'])] + [
+        (sign * I.CROSS_ANGLE[I.LOWITZ], T.TOKENS['parry']) for sign in (-1, 1)]
+    image, _ = T.surface_pixels(rings=rings, meridian_color=T.TOKENS['motion'],
+                                meridian_phi=-55)
+    ax.imshow(image, origin='lower', extent=T.EXTENT, interpolation='lanczos')
+    # 完整实体遮住了下交圈；只将实际被挡的段画作明示的遮挡虚线。
+    # 不是把正射可见性或整圈叠画伪装成透视可见的前表面。
+    hidden = parameter_point(np.linspace(-180, 180, 1601), -90)
+    xy = T.project(hidden)[:, :2]
+    xy[T.line_visibility(hidden)] = np.nan
+    ax.plot(xy[:, 0], xy[:, 1], color=T.TOKENS['parry'], lw=1.5, ls=(0, (4, 3)))
+
+    for phi, swing, text, target in (
+        (10, 90, '上圈 · t = +90°\n经晶体对称对应 Parry', (3.85, 1.5)),
+        (-15, -90, '下圈 · t = −90°\nParry 原始姿态\n（被遮挡，以虚线示意）', (3.85, -1.4)),
+        (-125, 0, '片晶圈 · t = 0°\n沿赤道转动方位 φ', (-3.85, 1.35)),
+        (-55, 30, '摆角 t\n绕长对角线摆动', (-3.85, -1.3)),
+    ):
+        point = parameter_point(phi, swing)
+        ax.annotate(text, T.project(point)[:2], xytext=target, color=ink,
+                    fontsize=10.5, ha='right' if target[0] < 0 else 'left', va='center',
+                    linespacing=1.6,
+                    arrowprops=dict(arrowstyle='-', color=T.TOKENS['mesh'], lw=0.8))
+    T.motion_arrow(ax, parameter_point(np.linspace(-105, -85, 12), 0), T.TOKENS['plate'])
+    T.motion_arrow(ax, parameter_point(-55, np.linspace(25, 40, 12)), T.TOKENS['motion'])
+    handles = [Line2D([], [], color=T.TOKENS['plate'], lw=2, label='片晶圈'),
+               Line2D([], [], color=T.TOKENS['parry'], lw=2, label='Parry 族的两条交圈'),
+               Line2D([], [], color=T.TOKENS['motion'], lw=2, label='固定方位下的摆动')]
+    fig.legend(handles=handles, loc='lower center', bbox_to_anchor=(0.5, 0.205),
+               ncol=3, labelcolor=ink)
+    fig.text(0.5, 0.135, '上下两圈是不同的原始姿态点集；按 D₆ 晶体对称认同后同属 Parry 族。',
+             ha='center', color=ink, fontsize=10)
+    fig.text(0.5, 0.085, '片晶圈取 c 轴朝上的分支；橙色虚线是被实体遮挡的下圈，不是表面上的另一道线。',
+             ha='center', color=ink, fontsize=9.5)
+    fig.text(0.5, 0.035, '全摆幅参数环面示意 · 与图 3 同向；不是轴角球中的嵌入，网格间距没有物理刻度',
+             ha='center', color=ink, fontsize=9)
+    out = Path(out) if out is not None else Path(__file__).resolve().parents[1] / 'img/plate_lowitz.png'
+    out.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out, dpi=200, metadata={'Software': None})
+    plt.close(fig)
+    print(out)
 
 
 if __name__ == '__main__':
-    F.cli(main)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--output', type=Path)
+    main(parser.parse_args().output)
