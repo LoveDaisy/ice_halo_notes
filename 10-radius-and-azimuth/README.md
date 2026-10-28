@@ -42,9 +42,19 @@ uv run python 10-radius-and-azimuth/code/regen.py             # 按序执行默�
 
 ![图 3d](img/column_terrain.png)
 
+### 图 4 · 沿棱守恒与水平截面
+
+![图 4](img/bravais_prism.png)
+
 ### 图 5 · 两把尺子
 
 ![图 5](img/parhelion_rulers.png)
+
+### 图 6 · 上下切点的真实姿态
+
+![图 6](img/tangent_direction.png)
+
+图 4 的三段传播向量由有限六棱柱内 `3–5` 真光路产生，守恒的是 `k = n × 单位传播方向` 的竖直分量；水平截面直接投影同一条光路。图 6 的两个真实柱晶姿态分别给出上、下切点；太阳 20° 时下切点在地平线下，图中空心点仅标几何方向，不代表可见亮弧。`test_prism_figures.py` 从事件点、凸体半空间、两界面切向守恒及实际 Matplotlib 图元独立核验。
 
 ## 图 3c（作者第七轮认可，图版未改变）
 

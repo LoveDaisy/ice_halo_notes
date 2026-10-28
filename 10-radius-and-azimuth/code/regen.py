@@ -13,11 +13,14 @@ CH = Chapter(
         Step('fig_random_terrain.py', minutes=0.1, note='图 3b：随机取向的整球'),
         Step('fig_plate_terrain.py', minutes=0.2, note='图 3c：片晶纬线；保持作者认可图版'),
         Step('fig_column_terrain.py', minutes=0.1, note='图 3d：柱晶可取带'),
+        Step('fig_bravais_prism.py', minutes=0.1, note='图 4：沿棱守恒与水平截面'),
         Step('fig_parhelion_rulers.py', minutes=0.1, note='图 5：角距离与方位差'),
+        Step('fig_tangent_direction.py', minutes=0.1, note='图 6：真实柱晶姿态与几何切点'),
         Step('check_parhelion.py', note='核验（不产出文件）', default=False),
         Step('check_parhelion_lumice.py', lumice=True, note='Lumice 对照核验（不产出文件）', default=False),
     ),
-    helpers=('test_plate_terrain.py', '_terrain_layers.py', 'test_ch10_geometry.py'),
+    helpers=('test_plate_terrain.py', '_terrain_layers.py', 'test_ch10_geometry.py',
+             'test_prism_figures.py'),
 )
 
 if __name__ == "__main__":

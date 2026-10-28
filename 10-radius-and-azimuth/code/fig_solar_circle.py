@@ -80,7 +80,8 @@ def main(out=None):
     sky.text(0, -3.8, '太阳', color=ink, ha='center', fontsize=11)
     sky.plot([0, xy[1, 0]], [0, xy[1, 1]], color=COLORS['ink'], ls=(0, (3, 3)), lw=0.8)
     radius = np.linalg.norm(xy[1])
-    sky.text(2, 4, f'D = {radius:.2f}°\n始终不变', color=ink, fontsize=11, linespacing=1.6)
+    sky.text(2, 4, f'D = {radius:.2f}°\n始终不变', color=ink, fontsize=11, linespacing=1.6,
+             bbox=dict(facecolor=P.PAL['background'], edgecolor='none', pad=3))
     k = 65
     sky.annotate('', xy=curve[k+12], xytext=curve[k],
                  arrowprops=dict(arrowstyle='-|>', color=COLORS['point'], lw=1.6, mutation_scale=12))
