@@ -98,6 +98,7 @@ git 只留写作本身；其余只留本地，需要时用同样的脚本和同�
 
 - 新章画图/仿真代码一律 python；跨章复用的代码上提到 `halo_notes/`，章内 `code/` 只放章专属脚本
 - 一图一脚本，脚本名与图名对应
+- 新图颜色一律经 `figure_scheme()` 语义槽取（`from halo_notes.draw.style.figure import figure_scheme`），不写十六进制字面量、不经颜料名表达概念；版式约定（图面解剖、字号折算、记号、投影、判例）见 `docs/figure-style.md`；闸内新章的图要加进 `test_figure_style` 的注册表
 - 每章正文 md 带 frontmatter：`type: directors-cut`、`status: outline | draft | published`、发表后补 `published: "[[公开版文件名]]"` 与 `url:`；章内工作笔记只带 `type: note`，与正文同级放置（暂不设子目录，有需要再改）
 - 未写章的提纲直接写在该章 md 里（`status: outline`），不用单独的 guideline.txt
 - 进 git 的图片等二进制走 LFS（`.gitattributes` 已配）；进不进 git 按「数据约定」
@@ -109,6 +110,7 @@ git 只留写作本身；其余只留本地，需要时用同样的脚本和同�
 - `docs/roadmap.md` — 系列路线图（正向 / 反向 / 番外）与 `halo_notes/` 需求汇总
 - `docs/errata.md` — 已发表各章的勘误表（发现即登记，改不改由作者裁定）
 - `docs/framework.md` — 7–11 章共用的理论骨架（对象链、已核验定理、证据等级、未决）；`docs/checks/` 存放尚未起章的核验脚本（现为空，ch9 的 `check_pyramid.py` 已迁入 `09-pyramid/code/`），起章时迁入该章 `code/`
+- `docs/figure-style.md` — 插图风格规范（图面解剖、免责准入、字号折算、记号约定、投影、审美判例；只写代码管不住的部分）；色值对照表 `docs/figure-style-colors.md` 由 `halo_notes/draw/style/table.py` 生成，语义 token 权威在 `halo_notes/draw/style/`（取色入口 `figure_scheme()`）
 - `.gitattributes` — LFS 规则
 - `halo_notes/repo/layout.py` — git 划界规则唯一实现（`.gitignore` 受管块、`check-tree`、pre-push 闸共用）
 - `docs/repo-slim-runbook.md` — 重写历史 → 删库 → 同名重建的执行手册（只写不执行）

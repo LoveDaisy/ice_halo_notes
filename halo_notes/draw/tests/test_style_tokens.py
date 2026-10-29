@@ -71,6 +71,17 @@ def test_overrides_are_the_per_chapter_entry():
     assert figure_scheme().sun == DEFAULT_LIGHT["gold"]
 
 
+def test_figure_style_colors_table_fresh():
+    """docs/figure-style-colors.md 是 table.py 的生成物：手改或 token 变更后未重新生成都算漂移。"""
+    from pathlib import Path
+
+    from halo_notes.draw.style.table import generate
+
+    doc = Path(__file__).resolve().parents[3] / "docs" / "figure-style-colors.md"
+    assert doc.is_file(), "docs/figure-style-colors.md 缺失：跑 uv run python -m halo_notes.draw.style.table"
+    assert doc.read_text() == generate()
+
+
 def test_new_fields_have_defaults_and_existing_fields_untouched():
     """新字段全部带默认值；既有字段一个没动（只增不改）。"""
     assert DEFAULT_MAP.sun_color == "gold"
