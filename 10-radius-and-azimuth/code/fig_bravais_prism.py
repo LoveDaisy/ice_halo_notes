@@ -1,4 +1,4 @@
-# 图 4：真实 3-5 光路的竖直守恒与 Bravais 水平截面 → ../img/bravais_prism.png。
+# 图 4：同一竖直楔的正穿 / 斜穿、水平偏折与单界面分量 → ../img/bravais_prism.png。
 from __future__ import annotations
 
 import argparse
@@ -127,87 +127,119 @@ def cli(main):
     main(parser.parse_args().output)
 
 
-def make_figure():
-    scene = build_scene()
-    P.apply_style()
-    fig = plt.figure(figsize=(12.4, 7.7))
-    fig.text(0.045, 0.94, "斜着穿过，水平偏得更多", fontsize=18, color=INK)
-    fig.text(0.045, 0.89, "同一条 3 → 5 光路：沿竖直棱守恒，偏折发生在水平截面内", fontsize=11, color=INK)
-    fig.text(0.06, 0.825, "竖直棱镜中的真实光路", fontsize=12.5, color=INK)
-    fig.text(0.56, 0.825, "同一光路的水平投影", fontsize=12.5, color=INK)
+def build_comparison():
+    """同一有限晶体的两条真实光路；两例各自在给定高度上取最小偏向。"""
+    return build_scene(0.0), build_scene(SUN_HEIGHT)
 
-    ax = fig.add_axes([0.035, 0.345, 0.46, 0.46], label="prism-3d")
+
+def draw_prism(ax, scene):
     render_crystal(ax, scene.crystal, [scene.path], camera=CAMERA,
                    preset=PRISM_STYLE, face_numbers=False)
-    c_line = np.array([[0, 0, -1.6], [0, 0, 1.95]])
+    c_line = np.array([[0, 0, -1.6], [0, 0, 1.85]])
     cp = CAMERA.project_xy(c_line)
-    ax.plot(*cp.T, color=EDGE, lw=0.9, ls=(0, (3, 3)), zorder=2)
+    ax.plot(*cp.T, color=EDGE, lw=0.8, ls=(0, (3, 3)), zorder=2)
     arrow(ax, cp[-1] - [0, 0.3], cp[-1], color=EDGE)
-    ax.text(*(cp[-1] + [0.10, 0.04]), "c 轴（竖直）", color=INK, fontsize=10)
+    ax.text(*(cp[-1] + [0.12, 0.01]), "竖直棱", color=INK, fontsize=10)
     xy = CAMERA.project_xy(scene.path.points)
-    ax.text(*(xy[0] + [-0.06, 0.16]), "入射", color=INK, ha="right", fontsize=10)
-    ax.text(*(xy[-1] + [0.07, -0.02]), "出射", color=INK, fontsize=10)
-    # 在冰内真实传播段上作 k 的分解三角；向量的长度不是光程。
-    anchor = scene.path.points[1] * 0.65 + scene.path.points[2] * 0.35
-    k = scene.wavevectors[1] * 0.75
-    horizontal = k.copy()
-    horizontal[2] = 0
-    tri = CAMERA.project_xy([anchor, anchor + horizontal, anchor + k])
-    arrow(ax, tri[0], tri[1], zorder=10)
-    arrow(ax, tri[1], tri[2], zorder=10)
-    ax.text(*(tri[1] + [0.08, 0.05]), r"$k_{\perp}$", color=INK, fontsize=11)
-    ax.text(*(0.5 * (tri[1] + tri[2]) + [0.12, 0]), r"$k_z$", color=INK, fontsize=11)
-    finish(ax, (-2.2, 2.3), (-2.0, 2.3))
+    ax.text(*(xy[0] + [-0.04, 0.18]), "入射", color=INK, ha="right", fontsize=10)
+    ax.text(*(xy[-1] + [0.06, -0.03]), "出射", color=INK, fontsize=10)
+    finish(ax, (-2.25, 2.3), (-1.8, 2.05))
 
-    # 分量比较是 2D 示意，纵轴为真实 k_z，而非透视图上的屏幕长度。
-    comp = fig.add_axes([0.055, 0.15, 0.43, 0.145], label="wavevector-components")
-    kvec = scene.wavevectors
-    bases = np.array([0.0, 1.7, 3.4])
-    labels = ("空气 · 入射", "冰内", "空气 · 出射")
-    for base, k, label in zip(bases, kvec, labels):
-        tip = np.array([base + np.linalg.norm(k[:2]), k[2]])
-        line, = comp.plot([base, tip[0]], [0, tip[1]], color=RAY, lw=1.6)
-        line.set_gid("wavevector")
-        arrow(comp, (base, 0), tip, color=RAY)
-        arrow(comp, (base, 0), (tip[0], 0), color=COMPONENT, lw=1.1)
-        arrow(comp, (tip[0], 0), tip, color=COMPONENT, lw=1.1)
-        comp.text(base + 0.48, 0.17, label, ha="center", fontsize=9.5, color=INK)
-    comp.axhline(kvec[0, 2], color=EDGE, lw=0.8, ls=(0, (3, 3)))
-    comp.text(0.85, -1.02, r"$k_z=-\sin h$", ha="center", fontsize=10.5, color=INK)
-    comp.text(3.1, -1.02, "空气 → 冰 → 空气，一路相同", ha="center", fontsize=10, color=INK)
-    finish(comp, (-0.15, 4.9), (-1.12, 0.4))
-    fig.text(0.06, 0.315, "分量比较：k = n × 单位传播方向", fontsize=10.5, color=INK)
 
-    ax2 = fig.add_axes([0.54, 0.37, 0.43, 0.41], label="horizontal-section")
+def horizontal_deviation(scene):
+    directions = scene.directions[:, :2]
+    directions = directions / np.linalg.norm(directions, axis=1, keepdims=True)
+    return float(np.degrees(np.arctan2(
+        abs(np.linalg.det(directions[[0, -1]])), directions[0] @ directions[-1],
+    )))
+
+
+def draw_section(ax, scene):
     section = scene.crystal.face_vertices(scene.crystal.face(1))[:, :2] @ SECTION_BASIS.T
-    ax2.add_patch(Polygon(section, facecolor=ICE, edgecolor=EDGE, lw=1.3))
+    ax.add_patch(Polygon(section, facecolor=ICE, edgecolor=EDGE, lw=1.1))
     path_xy = scene.path.points[:, :2] @ SECTION_BASIS.T
-    line, = ax2.plot(*path_xy.T, color=RAY, lw=1.8, zorder=4)
+    line, = ax.plot(*path_xy.T, color=RAY, lw=1.8, zorder=4)
     line.set_gid("projected-ray")
     for p, q in zip(path_xy[:-1], path_xy[1:]):
-        arrow(ax2, 0.65 * p + 0.35 * q, 0.4 * p + 0.6 * q, color=RAY, zorder=5)
+        arrow(ax, 0.7 * p + 0.3 * q, 0.4 * p + 0.6 * q, color=RAY, zorder=5)
     for event in scene.path.events:
         point = path_xy[event.point_index]
-        normal = scene.crystal.normal(scene.crystal.face(event.face_number))[:2] @ SECTION_BASIS.T
-        endpoints = point + np.array([-0.35, 0.55])[:, None] * normal
-        ax2.plot(*endpoints.T, color=EDGE, lw=0.9, ls=(0, (3, 3)))
-        ax2.scatter(*point, color=RAY, s=18, zorder=6)
-        ax2.text(*(point + normal * 0.72), f"面 {event.face_number}",
-                 fontsize=10, color=INK, ha="center", va="bottom")
-    ax2.text(0, 0.38, "60° 楔", color=INK, ha="center", fontsize=12)
-    ax2.text(0, 0.14, "虚线为界面法线", color=INK, ha="center", fontsize=9)
-    finish(ax2, (-1.85, 1.85), (-1.3, 1.3))
-    n_eff, dphi = optics.bravais(SUN_HEIGHT)
-    fig.text(0.57, 0.30, r"$n'=\dfrac{\sqrt{n^2-\sin^2h}}{\cos h}>n$", fontsize=17, color=INK)
-    fig.text(0.57, 0.235, f"h = {SUN_HEIGHT:g}°：n = {optics.N:g} → n′ = {n_eff:.3f}",
-             fontsize=11, color=INK)
-    fig.text(0.57, 0.185, f"水平偏折 Δφ = {dphi:.2f}°；不是天空角距离 D", fontsize=10.5, color=INK)
-    fig.legend(handles=[Line2D([], [], color=RAY, lw=1.8, label="光的传播方向"),
-                        Line2D([], [], color=COMPONENT, lw=1.5, label="分解后的分量")],
-               loc="lower left", bbox_to_anchor=(0.045, 0.065), ncol=2, labelcolor=INK)
-    fig.text(0.045, 0.035, "天空光点看向出射传播的反方向：入、出空气中的 k_z 相同，所以光点与太阳同高。",
-             fontsize=10.5, color=INK)
-    return fig, scene
+        ax.scatter(*point, color=RAY, s=19, edgecolors=PAPER, linewidths=0.5, zorder=6)
+    # 将入射方向平移到出射点，弧线量的是实际水平偏折，不是两面夹角。
+    vertex = path_xy[2]
+    d_in = path_xy[1] - path_xy[0]
+    d_out = path_xy[3] - path_xy[2]
+    a0 = np.arctan2(d_in[1], d_in[0])
+    da = np.arctan2(np.linalg.det(np.array([d_in, d_out])), d_in @ d_out)
+    angles = a0 + np.linspace(0, da, 61)
+    radius = 0.72
+    arc = vertex + radius * np.column_stack([np.cos(angles), np.sin(angles)])
+    ax.plot(*np.vstack([vertex, vertex + 1.15 * d_in / np.linalg.norm(d_in)]).T,
+            color=EDGE, lw=0.9, ls=(0, (3, 3)))
+    line, = ax.plot(*arc.T, color=COMPONENT, lw=1.5, zorder=7)
+    line.set_gid("horizontal-deviation-arc")
+    ax.annotate("", xy=arc[-1], xytext=arc[-5],
+                arrowprops=dict(arrowstyle="->", color=COMPONENT, lw=1.5), zorder=7)
+    ax.text(0.0, 0.48, "同一个 60° 楔", color=INK, ha="center", fontsize=11)
+    ax.text(1.35, -0.70, f"Δφ = {horizontal_deviation(scene):.2f}°",
+            color=INK, fontsize=12, ha="center")
+    ax.text(1.64, -0.43, "入射方向延长", color=INK, fontsize=8.5, ha="center")
+    finish(ax, (-2.15, 2.5), (-1.03, 1.02))
+
+
+def draw_components(ax, scene):
+    """入射面两侧 k 的分量大小图；横向取模，不冒充同一空间内的光线路径。"""
+    kvec = scene.wavevectors[:2]
+    for base, k, label in zip((0.0, 1.55), kvec, ("空气", "冰内")):
+        start = np.array([base, 0.0])
+        corner = start + [np.linalg.norm(k[:2]), 0.0]
+        tip = corner + [0.0, k[2]]
+        line, = ax.plot(*np.vstack([start, tip]).T, color=RAY, lw=1.6)
+        line.set_gid("wavevector")
+        arrow(ax, start, tip, color=RAY)
+        arrow(ax, start, corner, color=COMPONENT, lw=1.2)
+        arrow(ax, corner, tip, color=COMPONENT, lw=1.2)
+        ax.text(*(0.5 * (start + corner) + [0, 0.13]), label, ha="center",
+                fontsize=10.5, color=INK)
+        ax.text(*(0.5 * (corner + tip) + [0.09, 0]), r"$k_z$", color=INK,
+                fontsize=11, va="center")
+    ax.plot([-0.1, 2.9], [kvec[0, 2]] * 2, color=EDGE, lw=0.8, ls=(0, (3, 3)))
+    ax.text(1.3, -0.93, "同一入射界面：竖直分量不变，水平分量增大", ha="center",
+            fontsize=10, color=INK)
+    finish(ax, (-0.15, 3.05), (-1.03, 0.38))
+
+
+def make_figure():
+    scenes = build_comparison()
+    P.apply_style()
+    fig = plt.figure(figsize=(12.4, 9.2))
+    fig.text(0.045, 0.95, "同一个楔，斜穿时水平偏折更大", fontsize=18, color=INK)
+    fig.text(0.045, 0.905, "正穿指光线垂直棱轴；两例都取各自的最小偏向光路。", fontsize=11, color=INK)
+    for index, (left, scene, title) in enumerate(zip(
+        (0.035, 0.525), scenes, ("正穿 · h = 0°", f"斜穿 · h = {SUN_HEIGHT:g}°"),
+    )):
+        fig.text(left + 0.02, 0.855, title, fontsize=13, color=INK)
+        ax = fig.add_axes([left, 0.525, 0.44, 0.31], label=f"prism-3d-{index}")
+        draw_prism(ax, scene)
+        fig.text(left + 0.02, 0.49, "从上往下看", fontsize=11, color=INK)
+        ax2 = fig.add_axes([left, 0.285, 0.44, 0.19], label=f"horizontal-section-{index}")
+        draw_section(ax2, scene)
+        k = scene.wavevectors
+        n_eff = np.linalg.norm(k[1, :2]) / np.linalg.norm(k[0, :2])
+        fig.text(left + 0.15, 0.26, f"水平截面的 n′ = {n_eff:.3f}", fontsize=12, color=INK)
+
+    fig.add_artist(Line2D([0.055, 0.945], [0.225, 0.225], transform=fig.transFigure,
+                         color=GUIDE, lw=0.7))
+    fig.text(0.055, 0.195, "斜穿时，为什么 n′ 变大？", fontsize=12, color=INK)
+    comp = fig.add_axes([0.055, 0.025, 0.40, 0.155], label="wavevector-components")
+    draw_components(comp, scenes[1])
+    fig.text(0.54, 0.16, "k = n × 单位传播方向", fontsize=11, color=INK)
+    fig.text(0.54, 0.105, r"$n'=\dfrac{|k_{\perp,\,\mathrm{ice}}|}{|k_{\perp,\,\mathrm{air}}|}"
+             r"=\dfrac{\sqrt{n^2-\sin^2h}}{\cos h}$", fontsize=16, color=INK)
+    fig.legend(handles=[Line2D([], [], color=RAY, lw=1.8, label="光线 / k"),
+                        Line2D([], [], color=COMPONENT, lw=1.5, label="角度 / 分量")],
+               loc="lower left", bbox_to_anchor=(0.525, 0.035), ncol=2, labelcolor=INK)
+    return fig, scenes
 
 
 def main(output=None):

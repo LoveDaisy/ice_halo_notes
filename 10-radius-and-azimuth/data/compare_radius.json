@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "compare_sha256": "8452842787f3621995316220b20e6bfdf12ab5b73f471f4a3f5394687c07f76c",
+  "compare_sha256": "b59a848b07cd7b634c5e71d425d6ecc67fac56951593c03725a06c6154995e63",
   "figures": [
     {
       "figure": "1",
@@ -10,7 +10,7 @@
     {
       "figure": "2",
       "image": "img/solar_circle.png",
-      "sha256": "c6335877b21344757377b0b42cde7890892060c8c907ce1f9c70d5c08422b6cf"
+      "sha256": "901d4145dbcb688282a77d0c9af2c8ea0b8be44989d8f44947666d6a3cdfbbb3"
     },
     {
       "figure": "3a",
@@ -25,36 +25,36 @@
     {
       "figure": "3c",
       "image": "img/plate_terrain.png",
-      "sha256": "9023c84b24b23aadcee8cfcbf7b93ba581c5234b79777fa2521e8ce1a73334de"
+      "sha256": "6e8c3163b626d7f40b2c90f281eea48874dac08e5f521febdae6293e70cb5f6b"
     },
     {
       "figure": "3d",
       "image": "img/column_terrain.png",
-      "sha256": "af25c5ae5f9fa3b75fcc792cd11edee3c668823a9e84e5c9d209507f91ad6380"
+      "sha256": "d595f4019db107154c3d8a07666b54025cca4fbf21f8d1c56f24fea90ff228da"
     },
     {
       "figure": "4",
       "image": "img/bravais_prism.png",
-      "sha256": "8667444299dc0d29122db87c659ee0e0b322d38b8b003005adaaa59a9e7c8184"
+      "sha256": "8832c22b1e6a3ced5cf35955651a6bf609edff3b6352a43bc915ef5d998d1bb2"
     },
     {
       "figure": "5",
       "image": "img/parhelion_rulers.png",
-      "sha256": "9df79243debf78ddd0ea6c8f21b4364d12c00460e247db6df7e794a177a96fe6"
+      "sha256": "4e4cace8d5f2719bdf1ca569e7e2d8f9e39d181635f24afb80e4bcf7dca049cf"
     },
     {
       "figure": "6",
       "image": "img/tangent_direction.png",
-      "sha256": "0499ba032ff331a72f59b6714076d6fb8198b3538aff13db61966d2e62824469"
+      "sha256": "d4fcd9d386342288453fedc85c5e9eb6158890f40cf4e0a7bd4367a7f22b5443"
     },
     {
       "figure": "7",
       "image": "img/column_sky.png",
-      "sha256": "2c78e8a6992d92ec702391891779a2a53d2e0b8556a1f891fd223c0535eb5376"
+      "sha256": "3656973151eb2c095dd8256486d8f024e014b4060f41b387df38921822bf77f2"
     }
   ],
-  "optional_pending": [
+  "optional_pending": [],
+  "optional_omitted": [
     "8"
-  ],
-  "optional_omitted": []
+  ]
 }

@@ -65,7 +65,8 @@ def test_terrain_pixels_and_global_minimum():
 
 def test_above_critical_latitude_empty_and_domain_visible():
     hc = np.degrees(np.arcsin(np.sqrt((4 - F.C.N**2) / 3)))
-    assert F.HEIGHTS[-2] < hc < F.HEIGHTS[-1]
+    assert F.HEIGHTS[-2] == pytest.approx(hc)
+    assert hc < F.HEIGHTS[-1]
     assert F.latitude_minimum(hc + 0.01) is None
     # 此取景确实包含完整光学域；不能靠背面遮挡隐藏另一块可行方向。
     el, az = np.meshgrid(np.arange(-90, 91, 1), np.arange(0, 360, 1), indexing="ij")

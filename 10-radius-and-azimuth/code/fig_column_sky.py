@@ -88,7 +88,7 @@ def draw(*, render=False, replot=False, output=None):
     ax.imshow(tone(y, white), cmap="gray", vmin=0, vmax=1,
               extent=(0, F.DISPLAY_RES[0], F.DISPLAY_RES[1], 0), interpolation="none")
     unit = cfg["render"][1]
-    for radius, label_pa in zip(RADII, (-43, -30, -22, -16, -12)):
+    for radius, label_pa in zip(RADII[:-1], (-43, -30, -22, -16)):
         uv = project_equal_area(ring_directions(radius, np.linspace(-110, 110, 881)), unit)
         ax.plot(*uv.T, color=PAL["slate"], lw=.8, ls=(0, (4, 4)), alpha=.85)
         pos = project_equal_area(ring_directions(radius, np.array([label_pa])), unit)[0]
@@ -98,17 +98,19 @@ def draw(*, render=False, replot=False, output=None):
     # 只缩小垂直视窗到上切弧；左右仍含全部上半图，绝不按能量阈值裁掉外侧弱光。
     ax.set_ylim(UPPER_VIEW_BOTTOM, 0)
     ax.set_title("太阳高度 20°  ·  只看上切弧", fontsize=16, pad=13)
-    outer = project_equal_area([report["upper_outermost_direction"]], unit)[0]
-    ax.plot(*outer, marker="o", ms=6, mfc="none", mec=PAL["ink_faint"], mew=.8)
-    label_x = 625 if outer[0] > 400 else 175
-    ax.annotate(f"最远采样 {report['upper_outermost_pixel_deg']:.2f}°", xy=outer,
-                xytext=(label_x, 365), ha="center", color=PAL["ink_faint"], fontsize=11,
-                arrowprops={"arrowstyle": "-", "color": PAL["ink_faint"], "lw": .7})
+    bound = report['optical_supremum_deg']
+    uv = project_equal_area(ring_directions(bound, np.linspace(-110, 110, 881)), unit)
+    boundary, = ax.plot(*uv.T, color=PAL['ink_faint'], lw=1.0, ls=(0, (8, 4)))
+    boundary.set_gid('grazing-supremum')
+    target = project_equal_area(ring_directions(bound, np.array([48.])), unit)[0]
+    ax.annotate(f'几何上确界 {bound:.2f}°', xy=target, xytext=(600, 350),
+                ha='center', color=PAL['ink_faint'], fontsize=11,
+                arrowprops={'arrowstyle': '-', 'color': PAL['ink_faint'], 'lw': .7})
     ax.annotate("相切处", xy=project_equal_area(ring_directions(bravais(0)[1], np.array([0])), unit)[0],
                 xytext=(445, 285), color=PAL["ink_faint"], fontsize=11,
                 arrowprops={"arrowstyle": "-", "color": PAL["ink_faint"], "lw": .7})
     fig.text(.5, .09, "虚线标角距，真实光只照亮其中的部分弧段；明亮的弧缘之外仍有弱光。\n"
-             "圆点标本次采样最远非零像素，不是曝光截断，也不是几何极限。",
+             "外侧长虚线是掠射上界：透射趋零，不是最后一处可见亮像。",
              ha="center", va="center", fontsize=12, linespacing=1.8)
     fig.savefig(out, dpi=180)
     plt.close(fig)

@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[2]
 _spec = importlib.util.spec_from_file_location('_ch9p1_solar_orbit', ROOT / '09.1-orientation-space/code/_sun_rotation.py')
 ORBIT = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(ORBIT)
-ANGLES = np.array([0., 60., 120., 180.])
+ANGLES = np.array([30., 60., 90., 120.])
 CAMERA = Camera(azimuth=-55, elevation=24, distance=6)
 COLORS = {'ink': P.PAL['ink_soft'], 'sun': P.PAL['face_5'],
           'point': P.PAL['arc_roll'], 'guide': P.PAL['reference']}
@@ -39,12 +39,13 @@ def sky_xy(points, sun):
     east = np.cross([0., 0., 1.], sun)
     east /= np.linalg.norm(east)
     up = np.cross(sun, east)
-    cosine = np.clip(np.asarray(points) @ sun, -1, 1)
-    distance = np.arccos(cosine)
-    xy = np.column_stack([np.asarray(points) @ east, np.asarray(points) @ up])
-    scale = np.divide(np.degrees(distance), np.sin(distance),
-                      out=np.full_like(distance, 180/np.pi), where=np.abs(distance) > 1e-12)
-    return xy * scale[:, None]
+    points = np.asarray(points, dtype=float)
+    cosine = np.clip(points @ sun, -1, 1)
+    xy = np.stack([points @ east, points @ up], axis=-1)
+    sine = np.linalg.norm(xy, axis=-1)
+    distance = np.degrees(np.arctan2(sine, cosine))
+    scale = np.divide(distance, sine, out=np.ones_like(distance), where=sine > 1e-12)
+    return xy * scale[..., None]
 
 
 def arrow(ax, vector, color):
@@ -53,48 +54,67 @@ def arrow(ax, vector, color):
                 arrowprops=dict(arrowstyle='-|>', color=color, lw=1.5, mutation_scale=12))
 
 
-def main(out=None):
+def angle_arc(sun, point, radius=1.35):
+    """两条观察方向张成的大圆小弧；不拿屏幕夹角冒充天球角距。"""
+    angle = np.arccos(np.clip(sun @ point, -1, 1))
+    tangent = point - (point @ sun) * sun
+    tangent /= np.linalg.norm(tangent)
+    t = np.linspace(0, angle, 81)
+    return radius * (np.cos(t)[:, None] * sun + np.sin(t)[:, None] * tangent)
+
+
+def make_figure():
+    from matplotlib.lines import Line2D
+    from matplotlib.path import Path as MplPath
+    from matplotlib.patches import FancyArrowPatch
+
     P.apply_style()
     ink = COLORS['ink']
-    fig = plt.figure(figsize=(12.0, 6.8))
-    fig.text(0.045, 0.935, '晶体绕太阳转，光点也沿同一个圆转', fontsize=17, color=ink)
-    fig.text(0.045, 0.88, '同一 3–5 光路 · 四帧是同一晶体原地旋转，不是四颗晶体的位置。', fontsize=11, color=ink)
-    rotations, sun, us, points = scene_data()
+    fig = plt.figure(figsize=(12.8, 4.8))
+    fig.text(0.045, 0.92, '绕太阳方向转，角距离不变', fontsize=18, color=ink)
+    fig.text(0.045, 0.845, '同一颗晶体原地旋转的四帧 · 3–5 光路', fontsize=11, color=ink)
+    data = scene_data()
+    rotations, sun, us, points = data
     for i, (rotation, point, angle) in enumerate(zip(rotations, points, ANGLES)):
-        ax = fig.add_axes([0.04+(i % 2)*0.235, 0.46-(i // 2)*0.33, 0.225, 0.29])
-        poly = HexPrism(a=0.6, h=1.5).transformed(rotation=rotation)
-        render_crystal(ax, poly, camera=CAMERA, preset=PRESETS['ice_filled'], face_numbers=[1, 3])
+        ax = fig.add_axes([0.025 + i * 0.245, 0.23, 0.24, 0.54], label=f'attitude-{i}')
+        poly = HexPrism(a=0.48, h=1.2).transformed(rotation=rotation)
+        preset = PRESETS['ice_filled'].replace(
+            geom=PRESETS['ice_filled'].geom.replace(face_number_height=0.23))
+        render_crystal(ax, poly, camera=CAMERA, preset=preset, face_numbers=[1, 3])
         arrow(ax, sun, COLORS['sun'])
         arrow(ax, point, COLORS['point'])
-        finish(ax, (-1.55, 1.95), (-1.45, 1.95))
-        ax.set_title(f'{chr(65+i)}    θ = {angle:g}°', color=ink, fontsize=11)
-    sky = fig.add_axes([0.57, 0.19, 0.38, 0.59])
-    _, _, _, trajectory = scene_data(np.linspace(0, 360, 721))
-    curve = sky_xy(trajectory, sun)
-    sky.plot(*curve.T, color=COLORS['point'], lw=1.6)
-    xy = sky_xy(points, sun)
-    sky.scatter(*xy.T, color=COLORS['point'], edgecolor='white', lw=1.5, s=50, zorder=5)
-    for i, q in enumerate(xy):
-        sky.text(*(q*1.16), chr(65+i), color=ink, fontsize=13, ha='center', va='center')
-    sky.scatter(0, 0, s=90, color=COLORS['sun'], edgecolor='white', lw=1.5, zorder=6)
-    sky.text(0, -3.8, '太阳', color=ink, ha='center', fontsize=11)
-    sky.plot([0, xy[1, 0]], [0, xy[1, 1]], color=COLORS['ink'], ls=(0, (3, 3)), lw=0.8)
-    radius = np.linalg.norm(xy[1])
-    sky.text(2, 4, f'D = {radius:.2f}°\n始终不变', color=ink, fontsize=11, linespacing=1.6,
-             bbox=dict(facecolor=P.PAL['background'], edgecolor='none', pad=3))
-    k = 65
-    sky.annotate('', xy=curve[k+12], xytext=curve[k],
-                 arrowprops=dict(arrowstyle='-|>', color=COLORS['point'], lw=1.6, mutation_scale=12))
-    sky.set_aspect('equal')
-    sky.set(xlim=(-32, 32), ylim=(-32, 32))
-    sky.axis('off')
-    sky.set_title('天空：以太阳为中心的等距投影', color=ink, fontsize=11, pad=18)
-    # 两种向量通过线段图例及文字区分，不依赖颜色。
-    from matplotlib.lines import Line2D
-    fig.legend(handles=[Line2D([0], [0], color=COLORS['sun'], lw=2, label='指向太阳 s（固定）'),
-                        Line2D([0], [0], color=COLORS['point'], lw=2, label='指向所见光点 x（随晶体转）')],
-               loc='lower center', bbox_to_anchor=(0.5, 0.055), ncol=2, fontsize=10)
-    fig.text(0.5, 0.025, '箭头表示观察方向，不是光线传播方向；每帧的 u = R⁻¹s 都相同。', ha='center', color=ink, fontsize=10)
+        arc = CAMERA.project_xy(angle_arc(sun, point))
+        patch = FancyArrowPatch(path=MplPath(arc), arrowstyle='<->',
+                                mutation_scale=9, color=ink, lw=1.1, zorder=18)
+        patch.set_gid('angular-distance')
+        ax.add_patch(patch)
+        mid = CAMERA.project_xy(angle_arc(sun, point, radius=1.55))[40]
+        ax.text(*mid, 'D', fontsize=11, color=ink, ha='center', va='center',
+                bbox=dict(facecolor=P.PAL['background'], edgecolor='none', pad=0.5), zorder=20)
+        # 同一个太阳轴上的小旋转箭头，不是独立的天空整圆。
+        e = np.cross(sun, CAMERA.view_dir)
+        e /= np.linalg.norm(e)
+        f = np.cross(sun, e)
+        t = np.linspace(-0.4, 4.2, 100)
+        spin = 1.65 * sun + 0.23 * (np.cos(t)[:, None] * e + np.sin(t)[:, None] * f)
+        spin_arrow = FancyArrowPatch(path=MplPath(CAMERA.project_xy(spin)), arrowstyle='->',
+                                     mutation_scale=10, color=COLORS['sun'], lw=1.3, zorder=19)
+        spin_arrow.set_gid('solar-axis-rotation')
+        ax.add_patch(spin_arrow)
+        finish(ax, (-1.15, 2.05), (-1.15, 1.75))
+        ax.set_title(f'θ = {angle:g}°', color=ink, fontsize=11, pad=9)
+    radius = np.degrees(np.arccos(sun @ points[0]))
+    fig.legend(handles=[Line2D([], [], color=COLORS['sun'], lw=2, label='指向太阳 s · 旋转轴'),
+                        Line2D([], [], color=COLORS['point'], lw=2, label='指向所见光点 x')],
+               loc='lower left', bbox_to_anchor=(0.04, 0.13), ncol=2, fontsize=11)
+    fig.text(0.79, 0.16, f'D = {radius:.2f}°', fontsize=14, color=ink, ha='center')
+    fig.text(0.045, 0.07, '两箭头都是观察方向；出射光向相反方向传播。每帧的 u = R⁻¹s 相同。',
+             fontsize=10.5, color=ink)
+    return fig, data
+
+
+def main(out=None):
+    fig, _ = make_figure()
     out = Path(out) if out is not None else Path(__file__).resolve().parents[1] / 'img/solar_circle.png'
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=200, metadata={'Software': None})

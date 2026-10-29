@@ -111,6 +111,39 @@ def test_column_rings_and_uncropped_upper_tail():
     assert saved["figure_sha256"] == sha256_of(F.IMG / "column_sky.png")
 
 
+@pytest.mark.local_data
+def test_supremum_annotation_preserves_actual_weak_light(monkeypatch, tmp_path):
+    from matplotlib.figure import Figure
+
+    energy, cfg, _ = S.obtain('column', C.ALTITUDE, replot=True)
+    report, _ = C.evidence()
+    captured = []
+
+    def capture(fig, *_args, **_kwargs):
+        ax = fig.axes[0]
+        captured.append(True)
+        expected = S.tone(energy, float(np.quantile(energy[energy > 0], .995)))
+        np.testing.assert_array_equal(ax.images[0].get_array(), expected)
+        boundary = next(line for line in ax.lines if line.get_gid() == 'grazing-supremum')
+        # 等面积显示投影的半径是sin(D/2)，与标注数值独立核对，不使用ring_directions。
+        unit = cfg['render'][1]
+        center = np.array(F.DISPLAY_RES)/2
+        radius = np.linalg.norm(boundary.get_xydata()-center, axis=1)
+        reference = project_equal_area([unit_from(C.ALTITUDE+report['optical_supremum_deg'], 0)], unit)[0]
+        np.testing.assert_allclose(radius, np.linalg.norm(reference-center), atol=1e-9)
+        text = '\n'.join(t.get_text() for t in [*ax.texts, *fig.texts])
+        assert '几何上确界' in text and '透射趋零' in text
+        assert '最远采样' not in text
+        assert ax.get_ylim() == (C.UPPER_VIEW_BOTTOM, 0)
+
+    monkeypatch.setattr(Figure, 'savefig', capture)
+    # draw末尾计算PNG哈希；截获保存时给独立临时输出一个最小文件，不动章图。
+    output = tmp_path/'capture.png'
+    output.write_bytes(b'test-only')
+    C.draw(replot=True, output=output)
+    assert captured == [True]
+
+
 def test_angle_circle_projection_uses_true_spherical_distance():
     cfg = F.build("column", 20)
     sun = unit_from(20, 0).reshape(3)

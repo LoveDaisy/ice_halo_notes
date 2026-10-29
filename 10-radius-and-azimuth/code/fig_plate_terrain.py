@@ -21,7 +21,7 @@ _spec = importlib.util.spec_from_file_location(
 )
 P = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(P)
-HEIGHTS = (0.0, 20.0, 40.0, 60.0, 65.0)
+HEIGHTS = (0.0, 20.0, 40.0, C.critical_height(), 65.0)
 VIEW_AZ, VIEW_EL = 310.0, 12.0
 CAMERA = Camera(azimuth=VIEW_AZ, elevation=VIEW_EL,
                 projection="perspective", distance=8.0)
@@ -103,6 +103,15 @@ def terrain(size=801, camera=CAMERA):
     return x, y, u, d
 
 
+def critical_contact():
+    """正纬度闭包的唯一掠入/掠出点；不是 phi 的有限透射定义域点。"""
+    normal = C.CRYSTAL.normal(C.CRYSTAL.face(C.PATH[0]))
+    tangent = np.cross(normal, [0.0, 0.0, 1.0])
+    tangent /= np.linalg.norm(tangent)
+    h = np.radians(C.critical_height())
+    return np.cos(h) * tangent + np.array([0.0, 0.0, np.sin(h)])
+
+
 def latitude_minimum(h):
     az = np.arange(0, 360, C.THETA_STEP)
     d, _ = C.dp(C.unit_from(h, az))
@@ -169,12 +178,21 @@ def main(style="original", out=None):
     ax = fig.add_axes([0.045, 0.20, 0.92, 0.68])
     cmap, norm = draw_base(ax, style)
     az = np.linspace(0, 360, 1441)
-    targets = {-0.0: -0.21, 20.0: 0.14, 40.0: 0.49, 60.0: 0.84, 65.0: 1.12}
+    targets = dict(zip(HEIGHTS, (-0.21, 0.14, 0.49, 0.84, 1.17)))
     for h in HEIGHTS:
-        row = latitude_minimum(h)
-        visible_curve(ax, C.unit_from(h, az), color=accent if row else ink,
-                      lw=1.5 if row else 1.1, ls="-" if row else (0, (4, 3)), zorder=5)
-        if row is None:
+        critical = h == C.critical_height()
+        row = None if critical else latitude_minimum(h)
+        line, = visible_curve(ax, C.unit_from(h, az), color=accent if row or critical else ink,
+                              lw=1.5 if row or critical else 1.1,
+                              ls=(0, (5, 2)) if critical else '-' if row else (0, (2, 3)), zorder=5)
+        line.set_gid(f'latitude-{h:g}')
+        if critical:
+            xy = project(critical_contact())[:2]
+            point = ax.scatter(*xy, s=65, facecolors=COLORS['surface'], edgecolors=ink,
+                               linewidth=1.5, zorder=8)
+            point.set_gid('critical-closure-contact')
+            text = f'h = h_c ≈ {h:.2f}°\n闭包相切，透射趋零'
+        elif row is None:
             xy = project(C.unit_from(h, VIEW_AZ))[:2]
             text = "h = 65°\n整圈已在定义域之外"
         else:
@@ -197,7 +215,7 @@ def main(style="original", out=None):
     ax.set_ylim(-1.08, 1.28)
     ax.axis("off")
     fig.text(0.055, 0.935, "片晶：太阳越高，纬线上的最低点也越高", fontsize=16, color=ink)
-    fig.text(0.055, 0.884, "同一条 3–5 光路 · 橙线是片晶可取的纬度圆，圆点是各纬线能到达的最近处。",
+    fig.text(0.055, 0.884, "同一条 3–5 光路 · 实心点是纬线最低点；空心点只标临界闭包，不代表有光。",
              fontsize=10.5, color=ink)
     cax = fig.add_axes([0.22, 0.115, 0.32, 0.018])
     cb = fig.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap), cax=cax,

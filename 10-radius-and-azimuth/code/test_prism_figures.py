@@ -96,8 +96,8 @@ def test_column_real_attitudes_and_independent_sky_directions():
         assert distance == pytest.approx(expected_radius, abs=1e-6)
         assert azimuth == pytest.approx(0, abs=1e-7)
         assert elevation == pytest.approx(tangent.SUN_HEIGHT + sign * expected_radius, abs=1e-6)
-    # 此取景的下切点确实在地平线下，不应把它画为可见亮弧。
-    assert data.lower.light_point[2] < 0 < data.upper.light_point[2]
+    # 太阳25°，上下切点都在地平线上；不能延续旧20°取景的空心下切点。
+    assert 0 < data.lower.light_point[2] < data.upper.light_point[2]
     np.testing.assert_allclose(data.circle @ data.sun, np.cos(np.radians(expected_radius)), atol=TOL)
 
 
@@ -119,47 +119,54 @@ def assert_drawn_internal_ray(ax, scene, camera):
 
 
 def test_figure4_artists_are_the_verified_path(caplog):
-    fig, scene = bravais.make_figure()
+    fig, scenes = bravais.make_figure()
     try:
         fig.canvas.draw()
         axes = {ax.get_label(): ax for ax in fig.axes}
-        actual = by_gid(axes["horizontal-section"], "projected-ray").get_xydata()
-        expected = scene.path.points[:, :2] @ bravais.SECTION_BASIS.T
-        np.testing.assert_allclose(actual, expected, atol=TOL)
-        assert_drawn_internal_ray(axes["prism-3d"], scene, bravais.CAMERA)
-        vectors = [line.get_xydata() for line in axes["wavevector-components"].lines
-                   if line.get_gid() == "wavevector"]
-        assert len(vectors) == 3
-        for vector, k in zip(vectors, scene.wavevectors):
+        for index, scene in enumerate(scenes):
+            actual = by_gid(axes[f'horizontal-section-{index}'], 'projected-ray').get_xydata()
+            expected = scene.path.points[:, :2] @ bravais.SECTION_BASIS.T
+            np.testing.assert_allclose(actual, expected, atol=TOL)
+            assert_drawn_internal_ray(axes[f'prism-3d-{index}'], scene, bravais.CAMERA)
+        vectors = [line.get_xydata() for line in axes['wavevector-components'].lines
+                   if line.get_gid() == 'wavevector']
+        assert len(vectors) == 2
+        for vector, k in zip(vectors, scenes[1].wavevectors[:2]):
             np.testing.assert_allclose(vector[1] - vector[0], [np.linalg.norm(k[:2]), k[2]], atol=TOL)
         assert "does not have a glyph" not in caplog.text
     finally:
         plt.close(fig)
 
 
-def test_figure6_artists_are_actual_sky_points_not_arcs(caplog):
+def test_figure6_artists_are_actual_equal_distance_points(caplog):
     fig, data = tangent.make_figure()
     try:
         fig.canvas.draw()
         axes = {ax.get_label(): ax for ax in fig.axes}
-        sky = axes["sky-directions"]
-        assert_drawn_internal_ray(axes["upper-prism"], data.upper, tangent.CAMERA)
-        assert_drawn_internal_ray(axes["lower-prism"], data.lower, tangent.CAMERA)
-        for gid, scene in (("upper-tangent", data.upper), ("lower-tangent", data.lower)):
+        sky = axes['sky-directions']
+        for tag, scene in zip('ABC', data.examples):
+            assert_drawn_internal_ray(axes[f'prism-{tag}'], scene, tangent.CAMERA)
+
+        def inverse_projection(xy):
+            xy = np.atleast_2d(xy)
+            radius = np.linalg.norm(xy, axis=1)
+            east = np.array([0., 1., 0.])
+            up = np.cross(data.sun, east)
+            azimuth_direction = xy[:, :1]*east + xy[:, 1:]*up
+            return (np.cos(np.radians(radius))[:, None]*data.sun
+                    + (np.sin(np.radians(radius))/radius)[:, None]*azimuth_direction)
+
+        for gid, scene in [('example-A', data.upper), ('lower-tangent', data.lower)]:
             point = by_gid(sky, gid)
-            assert point.get_linestyle() == "None"
+            assert point.get_linestyle() == 'None'
             assert len(point.get_xydata()) == 1
-            az, el = np.radians(point.get_xydata()[0])
-            x = [np.cos(el) * np.cos(az), np.cos(el) * np.sin(az), np.sin(el)]
-            np.testing.assert_allclose(x, scene.light_point, atol=TOL)
-        lower = by_gid(sky, "lower-tangent")
-        assert lower.get_markerfacecolor() == tangent.PAPER
-        # 屏幕圆线的每个点反算回单位球；不拿纸面欧氏距离当角距离。
-        az, el = np.radians(by_gid(sky, "angular-distance-circle").get_xydata()).T
-        vectors = np.column_stack([np.cos(el) * np.cos(az), np.cos(el) * np.sin(az), np.sin(el)])
-        np.testing.assert_allclose(vectors, data.circle, atol=TOL)
+            np.testing.assert_allclose(inverse_projection(point.get_xydata())[0],
+                                       scene.light_point, atol=TOL)
+        circle_xy = by_gid(sky, 'angular-distance-circle').get_xydata()
+        vectors = inverse_projection(circle_xy)
+        np.testing.assert_allclose(np.linalg.norm(circle_xy, axis=1), data.radius, atol=TOL)
         np.testing.assert_allclose(vectors @ data.sun, np.cos(np.radians(data.radius)), atol=TOL)
-        assert "does not have a glyph" not in caplog.text
+        assert 'does not have a glyph' not in caplog.text
     finally:
         plt.close(fig)
 

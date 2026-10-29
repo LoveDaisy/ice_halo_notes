@@ -92,18 +92,16 @@ def test_rulers_against_phi_minimum_and_critical():
     assert T.latitude_minimum(hc+.01) is None
 
 
-def test_rulers_plot_stops_at_critical(monkeypatch, tmp_path):
-    lines = []
-
-    def capture(fig, *_args, **_kwargs):
-        assert len(fig.axes) == 1  # 一把角度轴，不能用双轴制造分叉。
-        lines.extend(fig.axes[0].lines[:2])
-
-    monkeypatch.setattr(Figure, 'savefig', capture)
-    R.main(tmp_path / 'ignored.png')
-    assert len(lines) == 2
-    for line in lines:
-        h, y = line.get_data()
-        assert np.isnan(y[h >= R.C.critical_height()]).all()
-        assert np.isfinite(y[h < R.C.critical_height()]).all()
-        assert np.nanmin(y) > 21
+def test_rulers_geometry_rejects_critical_and_supercritical():
+    for height in (R.C.critical_height(), R.C.critical_height()+.01, 65.):
+        with pytest.raises(ValueError, match='critical'):
+            R.ruler_geometry(height)
+    # 新图不再画两曲线，但底部数字对照仍须来自有效域的同一接口。
+    fig, data = R.make_figure()
+    try:
+        assert {ax.get_label() for ax in fig.axes} == {'celestial-sphere', 'horizontal-view'}
+        for text in fig.texts:
+            assert 'nan' not in text.get_text()
+        assert data.height < R.C.critical_height()
+    finally:
+        T.plt.close(fig)
