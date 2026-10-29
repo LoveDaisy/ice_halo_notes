@@ -81,7 +81,8 @@ def render(
     proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
     wall = time.monotonic() - t0
     log_path = out_dir / "lumice.log"
-    log_path.write_text(f"$ {' '.join(cmd)}\n--- stdout ---\n{proc.stdout}\n--- stderr ---\n{proc.stderr}\n")
+    log = f"$ {' '.join(cmd)}\n--- stdout ---\n{proc.stdout}\n--- stderr ---\n{proc.stderr}"
+    log_path.write_text(log.rstrip() + "\n")
     if proc.returncode != 0:
         tail = "\n".join(log_path.read_text().splitlines()[-30:])
         raise LumiceError(f"Lumice 退出码 {proc.returncode}（命令 {' '.join(cmd)}）；log 尾部：\n{tail}")

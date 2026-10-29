@@ -29,4 +29,3 @@ Stats: sim_rays=20000000, crystals=1, orientations=20000000, backend=cpu, fell_b
 2026-10-29 01:20:33.079 [I] ConsumeData: first batch consumed (896 ray segments)
 2026-10-29 01:20:37.281 [I] Consume profile: 156250 batches, avg 0.1us (proj 0.0us 0% + accum 0.1us 100%)
 2026-10-29 01:20:37.281 [I] Consume profile: 156250 batches, avg 0.1us (proj 0.0us 0% + accum 0.1us 100%)
-
