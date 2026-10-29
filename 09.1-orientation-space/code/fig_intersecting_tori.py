@@ -5,11 +5,11 @@ import numpy as np
 from matplotlib.colors import to_rgb
 
 import fig_column_torus as T
-from halo_notes.draw.style.candidate import scheme
+from halo_notes.draw.style.figure import figure_scheme
 import check_orientation_space as C
 
 P = T.P
-S = scheme()
+S = figure_scheme()
 # 两个母圆的旋转曲面，仅实现集合关联，不是 SO(3) 的欧氏嵌入。
 LOWITZ, COLUMN = 0, 1
 MAJOR = np.array([T.MAJOR, 1.7])

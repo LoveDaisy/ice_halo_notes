@@ -1,37 +1,47 @@
 """图表语义 token（mapping 新字段 + ``figure_scheme`` resolver）的机械对照。
 
-逐槽等值断言在 candidate.py 删除前直接对照暂存模块（S1+T3 默认），删除后由钉死
-hex 的断言接棒，防 resolver 与 mapping 两处漂移。
+默认方案钉死 #48 定稿（曲面 S1、地形 T3、太阳金，2026-10-30 作者签核）的 hex 清单：
+resolver 或 mapping 单边漂移都会在这里响。
 """
 
 from halo_notes.draw.style import DEFAULT_LIGHT, DEFAULT_MAP
 from halo_notes.draw.style.figure import Surface, figure_scheme
 
+# #48 定稿（升格自暂存模块 candidate 的 S1 + T3）：semantic-table.md 的代码侧单源
+PINNED = {
+    "family": {"random": "#8C96A3", "column": "#4E78BE", "parry": "#2E4B7E",
+               "plate": "#E95536", "lowitz": "#F2917C"},
+    "sky_glow": {"random": "#D2D6DC", "column": "#3C7DD9", "plate": "#E95536"},
+    "sky": {"ink": "#CCCCCC", "ring": "#848897", "guide": "#555555", "night": "#000000"},
+    "sun": "#E8A020", "point": "#3C7DD9", "ray_in": "#FC5D53", "ray_out": "#3C7DD9",
+    "pair": {"a": "#2F3A4A", "b": "#8778B3"}, "pair_dash": (0, (4.0, 2.6)),
+    "ink": "#455775", "guide": "#C9CFD8", "paper": "#FFFFFF",
+    "surfaces": {"column": ("#C9DAEF", 0.80, "#6F88AE", 0.0042, "#3E5A86"),
+                 "lowitz": ("#F8E4DE", 0.84, "#C79A8E", 0.0042, "#9A6556"),
+                 "neutral": ("#E3EEF8", 0.84, "#7D8DA3", 0.0040, "#56677D")},
+    "terrain_ramp": ("#F3F4F6", "#A3ABB7", "#2F3A4A"),
+    "crystal": ("#D5EFFD", 0.8, "#767B8B"),
+    "sphere": ("#D5EFFD", 0.24, "#767B8B"),
+}
 
-def test_resolver_matches_candidate_default():
-    """resolver 各槽与 #48 定稿方案（candidate 默认 S1 + T3）逐槽相等。"""
-    from halo_notes.draw.style.candidate import scheme as candidate_scheme
 
-    c = candidate_scheme()
+def test_default_scheme_pins_signed_off_hex():
+    """resolver 默认槽逐个钉在 #48 签核 hex 上（改名 / 换值都算漂移）。"""
     f = figure_scheme()
-    assert dict(f.family) == dict(c.family)
-    assert dict(f.sky_glow) == dict(c.sky_glow)
-    assert dict(f.sky) == dict(c.sky)
-    assert f.sun == c.sun and f.point == c.point
-    assert f.ray_in == c.ray_in and f.ray_out == c.ray_out
-    assert dict(f.pair) == dict(c.pair) and f.pair_dash == c.pair_dash
-    assert f.ink == c.ink and f.guide == c.guide and f.paper == c.paper
-    assert f.terrain_ramp == c.terrain_ramp
-    assert (f.crystal_fill, f.crystal_fill_alpha, f.crystal_edge) == (
-        c.crystal_fill, c.crystal_fill_alpha, c.crystal_edge)
-    assert (f.sphere_fill, f.sphere_fill_alpha, f.sphere_edge) == (
-        c.sphere_fill, c.sphere_fill_alpha, c.sphere_edge)
-    assert dict(f.surfaces).keys() == dict(c.surfaces).keys()
-    for key, a in f.surfaces.items():
-        b = c.surfaces[key]
-        assert isinstance(a, Surface)
-        assert (a.base, a.ambient, a.mesh, a.mesh_width, a.outline) == (
-            b.base, b.ambient, b.mesh, b.mesh_width, b.outline)
+    assert dict(f.family) == PINNED["family"]
+    assert dict(f.sky_glow) == PINNED["sky_glow"]
+    assert dict(f.sky) == PINNED["sky"]
+    assert f.sun == PINNED["sun"] and f.point == PINNED["point"]
+    assert f.ray_in == PINNED["ray_in"] and f.ray_out == PINNED["ray_out"]
+    assert dict(f.pair) == PINNED["pair"] and f.pair_dash == PINNED["pair_dash"]
+    assert f.ink == PINNED["ink"] and f.guide == PINNED["guide"] and f.paper == PINNED["paper"]
+    assert f.terrain_ramp == PINNED["terrain_ramp"]
+    assert (f.crystal_fill, f.crystal_fill_alpha, f.crystal_edge) == PINNED["crystal"]
+    assert (f.sphere_fill, f.sphere_fill_alpha, f.sphere_edge) == PINNED["sphere"]
+    assert dict(f.surfaces).keys() == PINNED["surfaces"].keys()
+    for key, s in f.surfaces.items():
+        assert isinstance(s, Surface)
+        assert (s.base, s.ambient, s.mesh, s.mesh_width, s.outline) == PINNED["surfaces"][key]
 
 
 def test_mapping_color_fields_are_palette_names():

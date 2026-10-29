@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap, Normalize
 from halo_notes.draw.projection import Camera
-from halo_notes.draw.style.candidate import scheme
+from halo_notes.draw.style.figure import figure_scheme
 
 import check_parhelion as C
 
@@ -27,7 +27,7 @@ VIEW_AZ, VIEW_EL = 310.0, 12.0
 CAMERA = Camera(azimuth=VIEW_AZ, elevation=VIEW_EL,
                 projection="perspective", distance=8.0)
 LEVELS = (22, 25, 30, 40, 50)
-S = scheme()
+S = figure_scheme()
 COLORS = {
     "ink": S.ink,
     "grid": S.guide,
@@ -41,7 +41,7 @@ COLORS = {
 
 def distance_cmap():
     """地形色阶：单色相、明度单调，不叠加球面灯光；D 的数值与定义域不随外观变化。"""
-    return LinearSegmentedColormap.from_list(f"distance_{S.terrain}", S.terrain_ramp)
+    return LinearSegmentedColormap.from_list("distance_terrain", S.terrain_ramp)
 
 
 def project(u, camera=CAMERA):

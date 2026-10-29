@@ -9,7 +9,8 @@ from scipy.spatial.transform import Rotation
 from halo_notes.draw.geometry import HexPrism
 from halo_notes.draw.projection import Camera
 from halo_notes.draw.scene import finish, render_crystal
-from halo_notes.draw.style.candidate import crystal_preset, scheme
+from halo_notes.draw.style.figure import figure_scheme
+from halo_notes.draw.style.presets import crystal_preset
 
 import check_parhelion as C
 from fig_plate_terrain import P, latitude_minimum, plt
@@ -20,7 +21,7 @@ ORBIT = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(ORBIT)
 ANGLES = np.array([30., 60., 90., 120.])
 CAMERA = Camera(azimuth=-55, elevation=24, distance=6)
-SCHEME = scheme()
+SCHEME = figure_scheme()
 COLORS = {'ink': SCHEME.ink, 'sun': SCHEME.sun, 'point': SCHEME.point, 'guide': SCHEME.guide}
 
 

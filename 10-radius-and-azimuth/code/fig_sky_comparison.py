@@ -15,13 +15,13 @@ import numpy as np
 
 import _sky_fig as F
 from check_parhelion import bravais, spherical_distance
-from halo_notes.draw.style.candidate import scheme
+from halo_notes.draw.style.figure import figure_scheme
 from halo_notes.draw.style.mapping import CJK_SANS
 from halo_notes.sim.fetch import sha256_of
 from halo_notes.sim.projection import project_equal_area
 from halo_notes.sim.run import config_sha256
 
-S = scheme()
+S = figure_scheme()
 COLORS = dict(S.sky_glow)
 LABELS = {"random": "随机取向 · 22° 晕", "column": "柱晶取向 · 切弧", "plate": "片晶取向 · 幻日"}
 STRENGTH = {"random": 0.55, "column": 1.0, "plate": 1.0}

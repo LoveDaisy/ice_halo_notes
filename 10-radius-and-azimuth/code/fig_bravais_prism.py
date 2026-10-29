@@ -18,7 +18,7 @@ from halo_notes.draw.projection import Camera
 from halo_notes.draw.raypath import RayPath, search_raypath
 from halo_notes.draw.scene import Z_EXTERNAL, Z_INTERNAL, draw_segment, finish, render_crystal
 from halo_notes.draw.style import PRESETS
-from halo_notes.draw.style.candidate import scheme
+from halo_notes.draw.style.figure import figure_scheme
 from halo_notes.draw.style.mapping import FillStyle, LineStyle
 
 import check_parhelion as optics
@@ -32,7 +32,7 @@ P = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(P)
 
 # 颜色全部取自 #48 候选方案的语义槽；图 4 与图 6 共享这些入口。
-S = scheme()
+S = figure_scheme()
 INK = S.ink
 RAY = S.ray_in            # 入射与冰内段：珊瑚红
 RAY_OUT = S.ray_out       # 出射段：蓝（系列光线约定）
