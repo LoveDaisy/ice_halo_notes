@@ -109,7 +109,8 @@ def test_perspective_sphere_silhouette_and_depth_scaling():
     x = R.CAMERA.right * 0.2
     near = R.CAMERA.project_xy(x + 0.5 * R.CAMERA.view_dir)[0]
     far = R.CAMERA.project_xy(x - 0.5 * R.CAMERA.view_dir)[0]
-    assert np.linalg.norm(near) > np.linalg.norm(far)
+    ratio = np.linalg.norm(near) / np.linalg.norm(far)
+    assert ratio == pytest.approx((R.CAMERA.distance + 0.5) / (R.CAMERA.distance - 0.5))
     data = R.ruler_geometry()
     # 斜视角不是原来正对两点的角平分线；两个目标具有不同深度。
     assert abs(np.diff(data.directions @ R.CAMERA.view_dir)[0]) > 0.1
