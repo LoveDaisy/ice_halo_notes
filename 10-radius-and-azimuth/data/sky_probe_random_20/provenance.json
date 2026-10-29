@@ -1,0 +1,26 @@
+{
+  "lumice_version": "v4.6.1",
+  "lumice_bin": "/Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/.lumice/v4.6.1/Lumice",
+  "lumice_bin_sha256": "84a1f4cd4416d1c4096adfe4b8c64191c95465a274377d9558a0d8cb7007ddce",
+  "config_sha256": "67f5dfde59f1836bb3422c7c37c17047916c6aad4ce75904a934ccc068dff31b",
+  "wall_clock_s": 0.181,
+  "platform": "Darwin 23.6.0 arm64",
+  "workers": 4,
+  "backend": null,
+  "gpu_route": false,
+  "format": "npy",
+  "cli_args": [
+    "-f",
+    "/Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_probe_random_20/config.json",
+    "-o",
+    "/Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_probe_random_20",
+    "--format",
+    "npy",
+    "--workers",
+    "4"
+  ],
+  "images": [
+    "img_01.npy"
+  ],
+  "ray_num": 500000
+}

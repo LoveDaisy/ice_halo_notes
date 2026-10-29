@@ -1,0 +1,17 @@
+{
+  "anchor_l99_sky": 20978052.0,
+  "axis_solid_angle": 1.9038590835407376e-05,
+  "channels": "XYZ",
+  "dtype": "float32",
+  "emitted_energy": 20000000.0,
+  "ev_mode": "relative",
+  "height": 720,
+  "intensity_factor": 1.0,
+  "lumice_api_version": 443,
+  "normalization": "raw",
+  "renderer_id": 1,
+  "seed": null,
+  "sim_ray_num": 20000000,
+  "total_pixels": 1036800,
+  "width": 1440
+}

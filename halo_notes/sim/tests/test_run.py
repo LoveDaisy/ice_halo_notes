@@ -63,6 +63,19 @@ def test_render_writes_config_log_provenance(tmp_path):
     assert res.wall_clock_s >= 0 and res.provenance == prov
 
 
+@pytest.mark.parametrize('stderr', ['', 'diagnostic\n\n'])
+def test_log_has_one_terminal_newline_without_losing_payload(tmp_path, stderr):
+    binary = _script(tmp_path, FAKE_OK.replace('exit 0', f"printf '{stderr}' >&2\nexit 0"))
+    out = tmp_path / 'out'
+    run.render(_cfg(), out, bin=binary)
+    log = (out / 'lumice.log').read_text()
+    assert log.endswith('\n') and not log.endswith('\n\n')
+    assert '--- stdout ---\n' in log and 'Saved:' in log
+    assert '--- stderr ---' in log
+    if stderr:
+        assert log.endswith('diagnostic\n')
+
+
 def test_rerun_into_same_dir_clears_stale_images(tmp_path):
     binary = _script(tmp_path, FAKE_OK)
     out = tmp_path / "out"

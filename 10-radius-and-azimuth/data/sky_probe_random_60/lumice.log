@@ -1,0 +1,13 @@
+$ /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/.lumice/v4.6.1/Lumice -f /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_probe_random_60/config.json -o /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_probe_random_60 --format npy --workers 4
+--- stdout ---
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_probe_random_60/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_probe_random_60/img_01.json
+Stats: sim_rays=500000, crystals=1, orientations=500000, backend=cpu, fell_back=false
+
+--- stderr ---
+2026-10-29 01:11:17.125 [I] Lumice 4.6.1
+2026-10-29 01:11:17.126 [I] ServerImpl: gpu_route=false worker_count=4 analysis_pool_worker_count=0 render_thread_budget=2 (preferred_backend=0)
+2026-10-29 01:11:17.157 [I] CommitConfig: restart took 31.4ms (Stop 0.0ms + rebuild 31.3ms + Start 0.0ms)
+2026-10-29 01:11:17.157 [I] GenerateScene: first batch enqueued at 0.1ms after start
+2026-10-29 01:11:17.158 [I] ConsumeData: first batch consumed (896 ray segments)
+2026-10-29 01:11:17.314 [I] Consume profile: 3907 batches, avg 0.4us (proj 0.0us 0% + accum 0.4us 100%)

@@ -129,6 +129,11 @@ def feasible_near(h, center, half=1.5, step=5e-4):
     return (bool(ok.any()), float(th[ok].mean()) if ok.any() else center)
 
 
+def critical_height(n=N):
+    """60° 楔的 Bravais n' = 2 掠射临界高度（度）。"""
+    return float(np.degrees(np.arcsin(np.sqrt((4 - n * n) / 3))))
+
+
 def check_critical():
     """[2] 临界高度：纬度圆整条出光学定义域（phi 全 None）的最小 h；二分 vs Bravais n' = 2 闭式 sin²h = (4 − n²)/3。"""
     print("\n[2] 临界高度：纬度圆整条出 3-5 的光学定义域")
@@ -143,7 +148,7 @@ def check_critical():
         else:
             hi = mid
     hc_num = (lo + hi) / 2
-    hc_closed = float(np.degrees(np.arcsin(np.sqrt((4 - N * N) / 3))))
+    hc_closed = critical_height()
     print(f"  二分（phi 定义域）：h_c = {hc_num:.5f}°    Bravais n' = 2：h_c = {hc_closed:.5f}°    差 {hc_num - hc_closed:+.1e}°")
     print(f"  临界处光线在圆上的方位 θ ≈ {center % 360:.3f}°（掠射极限：入射 / 出射都贴着面）")
     assert abs(hc_num - hc_closed) < TOL_HC

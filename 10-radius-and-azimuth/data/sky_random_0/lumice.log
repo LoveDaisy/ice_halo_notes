@@ -1,0 +1,36 @@
+$ /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/.lumice/v4.6.1/Lumice -f /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_random_0/config.json -o /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_random_0 --format npy --workers 4
+--- stdout ---
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_random_0/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_random_0/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_random_0/img_02.npy (800x800)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_random_0/img_02.json
+Stats: sim_rays=4481024, crystals=1, orientations=4481024, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_random_0/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_random_0/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_random_0/img_02.npy (800x800)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_random_0/img_02.json
+Stats: sim_rays=9097984, crystals=1, orientations=9097984, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_random_0/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_random_0/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_random_0/img_02.npy (800x800)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_random_0/img_02.json
+Stats: sim_rays=13550336, crystals=1, orientations=13550336, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_random_0/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_random_0/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_random_0/img_02.npy (800x800)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_random_0/img_02.json
+Stats: sim_rays=18182016, crystals=1, orientations=18182016, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_random_0/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_random_0/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_random_0/img_02.npy (800x800)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_random_0/img_02.json
+Stats: sim_rays=20000000, crystals=1, orientations=20000000, backend=cpu, fell_back=false
+
+--- stderr ---
+2026-10-29 01:20:23.324 [I] Lumice 4.6.1
+2026-10-29 01:20:23.325 [I] ServerImpl: gpu_route=false worker_count=4 analysis_pool_worker_count=0 render_thread_budget=2 (preferred_backend=0)
+2026-10-29 01:20:23.371 [I] GenerateScene: first batch enqueued at 0.0ms after start
+2026-10-29 01:20:23.371 [I] CommitConfig: restart took 44.7ms (Stop 0.0ms + rebuild 44.5ms + Start 0.1ms)
+2026-10-29 01:20:23.372 [I] ConsumeData: first batch consumed (896 ray segments)
+2026-10-29 01:20:28.192 [I] Consume profile: 156250 batches, avg 0.4us (proj 0.0us 0% + accum 0.4us 100%)
+2026-10-29 01:20:28.192 [I] Consume profile: 156250 batches, avg 0.3us (proj 0.0us 0% + accum 0.3us 100%)
