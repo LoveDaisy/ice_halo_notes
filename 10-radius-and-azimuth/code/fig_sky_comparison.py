@@ -41,14 +41,20 @@ def obtain(family, altitude, *, render=False, replot=False):
     folder = F.DATA / F.name(family, altitude)
     cfg = F.build(family, altitude)
     valid = False
-    if (folder / "img_02.npy").is_file():
-        _, saved, provenance = F.load_scene(folder, 2)
-        valid = (config_sha256(saved) == config_sha256(cfg)
-                 and provenance["lumice_version"] == F.LUMICE_VERSION)
-        # 离线重画不要求安装二进制；若本机有 release 缓存，再核对其哈希。
-        binary = F.cached_binary()
-        if binary.is_file():
-            valid = valid and provenance["lumice_bin_sha256"] == sha256_of(binary)
+    if not render and (folder / "img_02.npy").is_file():
+        try:
+            _, saved, provenance = F.load_scene(folder, 2)
+        except (ValueError, KeyError, OSError):
+            # 旧 config/provenance/sidecar/数组失效按缓存未命中处理，交由下方重渲；
+            # 只有 --replot 才把缺数据当错误，避免迭代配置后无法重生。
+            saved = provenance = None
+        if saved is not None:
+            valid = (config_sha256(saved) == config_sha256(cfg)
+                     and provenance["lumice_version"] == F.LUMICE_VERSION)
+            # 离线重画不要求安装二进制；若本机有 release 缓存，再核对其哈希。
+            binary = F.cached_binary()
+            if binary.is_file():
+                valid = valid and provenance["lumice_bin_sha256"] == sha256_of(binary)
     if render or not valid:
         if replot:
             raise FileNotFoundError(f"缺少同配置的原始数据：{folder}；去掉 --replot 重渲")

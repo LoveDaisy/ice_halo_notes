@@ -182,6 +182,73 @@ def test_replot_does_not_render_or_require_binary(monkeypatch):
     assert energy.sum() > 0
 
 
+def _stale_cache(monkeypatch, tmp_path):
+    """config/provenance 不一致但 img_02 在场的失效缓存，指向临时 DATA。"""
+    monkeypatch.setattr(F, "DATA", tmp_path)
+    folder = tmp_path / F.name("column", 20)
+    folder.mkdir()
+    cfg = F.build("column", 20)
+    cfg["scene"]["ray_num"] = 123
+    (folder / "config.json").write_text(json.dumps(cfg))
+    (folder / "provenance.json").write_text(json.dumps(
+        {"config_sha256": "deadbeef", "lumice_version": "v0", "lumice_bin_sha256": "y"}))
+    (folder / "img_02.json").write_text(json.dumps(
+        {"channels": "XYZ", "normalization": "raw", "sim_ray_num": 123, "emitted_energy": 1.0}))
+    np.save(folder / "img_02.npy",
+            np.full((*reversed(F.DISPLAY_RES), 3), 1e-9, dtype=np.float32))
+    return folder
+
+
+def _write_valid_cache(folder):
+    """模拟 run_scene 的真实行为：渲染后写回与当前 build 一致的完整缓存。"""
+    cfg = F.build("column", 20)
+    (folder / "config.json").write_text(json.dumps(cfg))
+    (folder / "provenance.json").write_text(json.dumps(
+        {"config_sha256": F.config_sha256(cfg), "lumice_version": F.LUMICE_VERSION,
+         "lumice_bin_sha256": "unused"}))
+    (folder / "img_02.json").write_text(json.dumps(
+        {"channels": "XYZ", "normalization": "raw",
+         "sim_ray_num": cfg["scene"]["ray_num"], "emitted_energy": 1.0}))
+    np.save(folder / "img_02.npy",
+            np.full((*reversed(F.DISPLAY_RES), 3), 1e-6, dtype=np.float32))
+
+
+def test_stale_cache_default_mode_rerenders(monkeypatch, tmp_path):
+    """评审 Major 回归：失效缓存不得在重渲前阻断默认模式。"""
+    folder = _stale_cache(monkeypatch, tmp_path)
+    calls = []
+
+    def fake_run(*a, **k):
+        calls.append(a)
+        _write_valid_cache(folder)  # 与真实 run_scene 一样落盘全新一致产物。
+    monkeypatch.setattr(F, "run_scene", fake_run)
+    energy, cfg, prov = S.obtain("column", 20)
+    assert calls and cfg["scene"]["ray_num"] != 123
+    assert energy.sum() > 0 and prov["lumice_version"] == F.LUMICE_VERSION
+
+
+def test_render_bypasses_stale_cache_without_reading(monkeypatch, tmp_path):
+    folder = _stale_cache(monkeypatch, tmp_path)
+    assert (folder / "img_02.npy").is_file()
+    stale = (folder / "config.json").read_text()
+    calls = []
+
+    def fake_run(*a, **k):
+        calls.append(a)
+        _write_valid_cache(folder)
+    monkeypatch.setattr(F, "run_scene", fake_run)
+    S.obtain("column", 20, render=True)
+    assert calls
+    assert (folder / "config.json").read_text() != stale
+
+
+def test_replot_rejects_stale_cache_with_clear_error(monkeypatch, tmp_path):
+    folder = _stale_cache(monkeypatch, tmp_path)
+    monkeypatch.setattr(F, "run_scene", lambda *a, **k: pytest.fail("replot must not render"))
+    with pytest.raises(FileNotFoundError, match="去掉 --replot"):
+        S.obtain("column", 20, replot=True)
+
+
 @pytest.mark.local_data
 @pytest.mark.parametrize("script,stem,default_meta", [
     ("fig_sky_comparison.py", "sky_comparison", "sky_comparison.json"),
