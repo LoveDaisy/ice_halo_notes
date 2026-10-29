@@ -29,23 +29,26 @@ def expected_fractions():
 
 
 def main(out=None):
-    fig = F.canvas('坐标上等间距，不等于姿态上均匀',
-                   '两边各取 1,440 个方向；相同视角、相同点大小，背面的点淡画。', size=(11.8, 6.8))
+    fig = F.canvas(size=(11.8, 5.9))
     for i, points in enumerate(samples()):
-        ax = fig.add_axes([0.055 + i*0.49, 0.16, 0.4, 0.62])
+        ax = fig.add_axes([0.03 + i*0.5, 0.02, 0.44, 0.88])
         F.globe(ax)
         xy = F.CAMERA.project_xy(points)
         visible = Sphere().facing(points, F.CAMERA)
-        ax.scatter(xy[~visible, 0], xy[~visible, 1], s=5, color=F.BLUE, alpha=0.10, zorder=3)
-        ax.scatter(xy[visible, 0], xy[visible, 1], s=5, color=F.BLUE, alpha=0.8, zorder=7)
-        ax.set_title(('欧拉角等步长', 'Haar 均匀取向')[i], color=F.INK, fontsize=12)
+        # 点是「画在球面上」的小圆片：随球面倾斜同样缩小（面积 ∝ 法向与视线夹角的余弦），
+        # 否则球缘的投影压缩会让均匀分布看起来在边缘更密。
+        view = F.CAMERA.view_vector(points)
+        tilt = np.clip(np.sum(points * view, axis=1), 0, 1)
+        ax.scatter(xy[~visible, 0], xy[~visible, 1], s=2, color=F.NEUTRAL, alpha=0.08,
+                   lw=0, zorder=3)
+        ax.scatter(xy[visible, 0], xy[visible, 1], s=9*tilt[visible], color=F.NEUTRAL,
+                   alpha=0.85, lw=0, zorder=7)
+        ax.set_title(('欧拉角等步长', 'Haar 均匀取向')[i], color=F.INK, fontsize=14, pad=2)
         for sign, label in ((1, 'β = 0°'), (-1, 'β = 180°')):
             p = F.CAMERA.project_xy([0, 0, sign])[0]
-            ax.annotate(label, p, xytext=(.55, 1.18*sign), ha='center',
-                        fontsize=10, color=F.INK,
-                        arrowprops=dict(arrowstyle='-', color=F.EDGE, lw=.7))
-    fig.text(0.5, 0.07, '这里只显示 c 轴在球面上的方向，不是整个三维姿态空间；绕 c 轴的自转角未显示。',
-             ha='center', color=F.INK, fontsize=10)
+            ax.annotate(label, p, xytext=(.62, 1.12*sign), ha='left', va='center',
+                        fontsize=12, color=F.INK,
+                        arrowprops=dict(arrowstyle='-', color=F.EDGE, lw=.7, shrinkB=2))
     F.save(fig, 'euler_sampling', out)
 
 

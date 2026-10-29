@@ -124,7 +124,9 @@ def test_figure4_artists_are_the_verified_path(caplog):
         fig.canvas.draw()
         axes = {ax.get_label(): ax for ax in fig.axes}
         for index, scene in enumerate(scenes):
-            actual = by_gid(axes[f'horizontal-section-{index}'], 'projected-ray').get_xydata()
+            section = axes[f'horizontal-section-{index}']
+            actual = np.vstack([by_gid(section, 'projected-ray').get_xydata(),
+                                by_gid(section, 'projected-ray-exit').get_xydata()[1:]])
             expected = scene.path.points[:, :2] @ bravais.SECTION_BASIS.T
             np.testing.assert_allclose(actual, expected, atol=TOL)
             assert_drawn_internal_ray(axes[f'prism-3d-{index}'], scene, bravais.CAMERA)

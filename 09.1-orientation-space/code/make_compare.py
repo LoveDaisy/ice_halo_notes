@@ -18,7 +18,7 @@ FIGURES = (
     ('4a', 'euler_sampling', '等步长与均匀取向'),
     ('4b', 'euler_density', '两极相对密度发散'),
     ('5a', 'sun_rotation', '绕太阳转，u 不变'),
-    ('5b', 'angle_fibers', '局部辅助候选 · 参考起点的坏点'),
+    ('5b', 'angle_fibers', '参考起点的坏点'),
 )
 
 
@@ -41,7 +41,7 @@ def main(out=None):
         rows.append(dict(figure=number, image=f'img/{name}.png', sha256=digest(image)))
     fig.subplots_adjust(left=.025, right=.975, bottom=.055, top=.91, wspace=.08, hspace=.18)
     fig.text(.03, .965, '9.1 姿态空间的形状 · 全篇必需图待审预览', color=F.INK, fontsize=21)
-    fig.text(.03, .93, '第七批 · 2b 只突出片晶；5b 增加沿路姿态。其余六图不变；4c 经作者裁定省略。全篇待终审。', color=F.INK, fontsize=12)
+    fig.text(.03, .93, '#48 修图：统一族色 / 太阳金 / 二元对照墨紫，去图内标题与脚注；待作者逐图终审。4c 经作者裁定省略。', color=F.INK, fontsize=12)
     fig.text(.5, .023, '缩略图用于对照整体；逐图裁定请打开 README 中对应的原尺寸图片。', ha='center', color=F.INK, fontsize=11)
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=200, metadata={'Software': None})

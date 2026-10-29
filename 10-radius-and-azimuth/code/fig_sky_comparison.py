@@ -15,13 +15,14 @@ import numpy as np
 
 import _sky_fig as F
 from check_parhelion import bravais, spherical_distance
-from halo_notes.draw.style import DEFAULT_LIGHT as PAL
+from halo_notes.draw.style.candidate import scheme
 from halo_notes.draw.style.mapping import CJK_SANS
 from halo_notes.sim.fetch import sha256_of
 from halo_notes.sim.projection import project_equal_area
 from halo_notes.sim.run import config_sha256
 
-COLORS = {"random": PAL["ink_faint"], "column": PAL["accent_cool"], "plate": PAL["face_3"]}
+S = scheme()
+COLORS = dict(S.sky_glow)
 LABELS = {"random": "随机取向 · 22° 晕", "column": "柱晶取向 · 切弧", "plate": "片晶取向 · 幻日"}
 STRENGTH = {"random": 0.55, "column": 1.0, "plate": 1.0}
 SOFTENING = 12.0
@@ -29,8 +30,8 @@ SOFTENING = 12.0
 
 def style():
     plt.rcParams.update({"font.family": ["Helvetica Neue", *CJK_SANS], "font.size": 12,
-                         "text.color": PAL["ink_soft"], "figure.facecolor": PAL["background"],
-                         "savefig.facecolor": PAL["background"]})
+                         "text.color": S.ink, "figure.facecolor": S.paper,
+                         "savefig.facecolor": S.paper})
 
 
 def tone(energy, white):
@@ -71,17 +72,17 @@ def panel_geometry(ax, altitude, cfg, *, horizon=True):
     unit = cfg["render"][1]
     w, h = unit["resolution"]
     center = np.array([w / 2, h / 2])
-    ax.plot(*center, "o", ms=4.5, mfc=PAL["background"], mec=PAL["background"])
-    ax.text(center[0], center[1] + 19, "太阳", ha="center", va="top", fontsize=10, color=PAL["ink_faint"])
+    ax.plot(*center, "o", ms=6, mfc=S.sun, mec=S.paper, mew=0.8)
+    ax.text(center[0], center[1] + 19, "太阳", ha="center", va="top", fontsize=12, color=S.sky["ink"])
     if horizon:
         az = np.radians(np.linspace(-90, 90, 721))
         dirs = np.column_stack((np.cos(az), np.sin(az), np.zeros_like(az)))
         uv = project_equal_area(dirs, unit)
-        ax.plot(*uv.T, color=PAL["cloud"], lw=0.5, alpha=.45)
+        ax.plot(*uv.T, color=S.sky["guide"], lw=0.5, alpha=.45)
         inside = (uv[:, 0] > 20) & (uv[:, 0] < w - 20) & (uv[:, 1] > 20) & (uv[:, 1] < h - 25)
         if inside.any():
             pos = uv[np.flatnonzero(inside)[0]]
-            ax.text(*pos, "地平线", color=PAL["ink_faint"], fontsize=9, va="bottom")
+            ax.text(*pos, "地平线", color=S.sky["ink"], fontsize=12, va="bottom")
     ax.set(xlim=(0, w), ylim=(h, 0))
     ax.axis("off")
 
@@ -98,8 +99,8 @@ def draw(*, render=False, replot=False, output=None):
     # 四幅同样削顶/曝光，不做逐幅归一化，不把显示结果用于能量取数。
     whites["plate"] = min(float(np.quantile(scenes["plate", alt][0][scenes["plate", alt][0] > 0], .995))
                           for alt in F.HEIGHTS)
-    fig, axes = plt.subplots(2, 2, figsize=(11.0, 12.0))
-    fig.subplots_adjust(left=.025, right=.975, top=.925, bottom=.13, wspace=.035, hspace=.18)
+    fig, axes = plt.subplots(2, 2, figsize=(11.0, 11.4))
+    fig.subplots_adjust(left=.02, right=.98, top=.9, bottom=.04, wspace=.035, hspace=.16)
     metadata = {"source": "Lumice raw XYZ Y / emitted_energy; no spatial edits",
                 "heights": list(F.HEIGHTS), "white_per_family": whites,
                 "strength_per_family": STRENGTH, "softening": SOFTENING,
@@ -117,20 +118,19 @@ def draw(*, render=False, replot=False, output=None):
         panel_geometry(ax, altitude, cfg)
         dphi = bravais(altitude)[1]
         d = float(spherical_distance(altitude, dphi))
-        ax.set_title(f"太阳高度 {altitude}°", color=PAL["ink_soft"], pad=9, fontsize=15)
+        ax.set_title(f"太阳高度 {altitude}°", color=S.ink, pad=9, fontsize=15)
         ax.text(.5, -.025, f"幻日内缘 {d:.2f}°  ·  切弧 / 晕内缘 21.84°",
-                transform=ax.transAxes, ha="center", va="top", fontsize=11)
+                transform=ax.transAxes, ha="center", va="top", fontsize=12)
     # 形状直接标注只放一幅，图例在全部面板前共享。
     ax = axes.flat[1]
-    ax.annotate("上切弧", xy=(400, 235), xytext=(400, 105), color=PAL["ink_faint"],
-                ha="center", fontsize=10, arrowprops={"arrowstyle": "-", "color": PAL["ink_faint"], "lw": .6})
-    ax.text(600, 395, "幻日", color=PAL["ink_faint"], fontsize=10)
-    ax.text(255, 525, "22° 晕", color=PAL["ink_faint"], fontsize=10)
+    ax.annotate("上切弧", xy=(400, 235), xytext=(400, 105), color=S.sky["ink"],
+                ha="center", fontsize=12, arrowprops={"arrowstyle": "-", "color": S.sky["ink"], "lw": .6})
+    # 幻日标在右侧光弧下方的暗处，不压在弧上。
+    ax.text(640, 410, "幻日", color=S.sky["ink"], fontsize=12, ha="center", va="top")
+    ax.text(255, 525, "22° 晕", color=S.sky["ink"], fontsize=12)
     handles = [Line2D([], [], color=COLORS[f], lw=3, label=LABELS[f]) for f in F.FAMILIES]
-    fig.legend(handles=handles, loc="upper center", ncol=3, frameon=False, bbox_to_anchor=(.5, .985))
-    fig.text(.5, .035, "单色光用伪彩区分取向族；同族四幅共用曝光，不比较族间亮度。\n"
-             "同一晶体形状，只改取向；太阳居中、同一等面积投影，地平线以下也保留。",
-             ha="center", fontsize=10, linespacing=1.6)
+    fig.legend(handles=handles, loc="upper center", ncol=3, frameon=False, bbox_to_anchor=(.5, .995),
+               fontsize=13, handlelength=2.4, columnspacing=2.6)
     out = Path(output) if output is not None else F.IMG / "sky_comparison.png"
     out.parent.mkdir(parents=True, exist_ok=True)
     meta_path = out.with_suffix(".json") if output is not None else F.DATA / "sky_comparison.json"

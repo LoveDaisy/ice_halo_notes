@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 
 import matplotlib.pyplot as plt
-from matplotlib.lines import Line2D
+from matplotlib import patheffects
 from matplotlib.patches import Polygon
 import numpy as np
 
@@ -13,9 +13,13 @@ from halo_notes.draw.projection import Camera
 from halo_notes.draw.scene import finish, render_crystal
 
 from fig_bravais_prism import (
-    COMPONENT, EDGE, GUIDE, ICE, INK, P, PAPER, PRISM_STYLE, RAY,
-    PrismScene, arrow, cli, minimum_sun_direction, optics, save, traced_scene,
+    COMPONENT, EDGE, GUIDE, ICE, INK, P, PAPER, PRISM_STYLE, S,
+    PrismScene, arrow, cli, draw_ray2d, draw_ray3d, minimum_sun_direction, optics, save,
+    traced_scene,
 )
+
+COLUMN = S.family["column"]   # 切弧属柱晶族：聚焦轨迹与光点都用柱晶蓝
+SUN = S.sun
 
 from fig_solar_circle import sky_xy as sky_projection
 
@@ -95,20 +99,20 @@ def build_scene(height=SUN_HEIGHT):
 
 
 def draw_attitude(ax, scene):
-    render_crystal(ax, scene.crystal, [scene.path], camera=CAMERA,
-                   preset=PRISM_STYLE, face_numbers=False)
+    render_crystal(ax, scene.crystal, camera=CAMERA, preset=PRISM_STYLE, face_numbers=False)
+    draw_ray3d(ax, scene, CAMERA)
     c_axis = scene.rotation[:, 2]
     ends = CAMERA.project_xy(np.array([-1.8, 1.8])[:, None] * c_axis)
     ax.plot(*ends.T, color=EDGE, lw=0.9, ls=(0, (3, 3)), zorder=8)
     arrow(ax, ends[0], ends[-1], color=EDGE, lw=0.9, zorder=8)
     label_at = ends[np.argmax(ends[:, 0])]
-    ax.text(*(label_at + [0.12, 0.06]), "c 轴", fontsize=9.5, color=INK)
+    ax.text(*(label_at + [0.12, 0.06]), "c 轴", fontsize=12, color=INK)
     # 横截面始终垂直于 c，斜穿光路不必共面；不用虚构竖直光路平面托住它。
     body_vertices = (scene.crystal.vertices @ scene.rotation)[:6].copy()
     body_vertices[:, 2] = 0.0
     section = body_vertices @ scene.rotation.T
     cross_section = CAMERA.project_xy(np.vstack([section, section[0]]))
-    line, = ax.plot(*cross_section.T, color=COMPONENT, lw=1.0, alpha=0.8, zorder=7)
+    line, = ax.plot(*cross_section.T, color=COMPONENT, lw=0.9, alpha=0.55, zorder=7)
     line.set_gid("transverse-section")
     finish(ax, (-2.4, 2.6), (-1.65, 1.65))
 
@@ -118,82 +122,71 @@ def draw_section(ax, scene):
     body_vertices = scene.crystal.vertices @ scene.rotation
     section = body_vertices[:6, :2]
     ax.add_patch(Polygon(section, facecolor=ICE, edgecolor=EDGE, lw=1.0))
-    line, = ax.plot(*body_points[:, :2].T, color=RAY, lw=1.6, zorder=4)
-    line.set_gid("transverse-ray")
-    for p, q in zip(body_points[:-1, :2], body_points[1:, :2]):
-        arrow(ax, 0.65 * p + 0.35 * q, 0.35 * p + 0.65 * q, color=RAY, lw=1.2)
+    draw_ray2d(ax, body_points[:, :2], "transverse-ray")
     finish(ax, (-1.7, 1.7), (-1.6, 1.6))
 
 
 def make_figure():
     data = build_scene()
     P.apply_style()
-    fig = plt.figure(figsize=(12.8, 9.2))
-    fig.text(0.045, 0.947, "正着穿贴晕，斜着穿走向更大的圈", fontsize=18, color=INK)
-    fig.text(0.045, 0.901, "太阳高度 h = 25° 固定；c 轴始终水平。β 是入射光与横截面的夹角。",
-             fontsize=11.5, color=INK)
-    fig.text(0.08, 0.85, "真实三维光路", fontsize=11, color=INK)
-    fig.text(0.35, 0.85, "垂直 c 轴看", fontsize=11, color=INK)
-    fig.text(0.595, 0.85, "以太阳为中心 · 径向刻度 = 角距 D", fontsize=11, color=INK)
+    fig = plt.figure(figsize=(12.8, 8.0))
+    halo = [patheffects.withStroke(linewidth=3, foreground=PAPER)]
+    fig.text(0.08, 0.965, "三维光路", fontsize=13, color=INK, va="top")
+    fig.text(0.35, 0.965, "垂直 c 轴看", fontsize=13, color=INK, va="top")
+    fig.text(0.57, 0.965, f"以太阳为中心的天空（h = {SUN_HEIGHT:g}°）· 半径 = 角距 D",
+             fontsize=13, color=INK, va="top")
 
     for index, (scene, beta, radius, tag) in enumerate(zip(data.examples, data.obliquities,
                                                          data.radii, "ABC")):
-        y = 0.625 - index * 0.225
-        ax = fig.add_axes([0.025, y, 0.28, 0.205], label=f"prism-{tag}")
+        y = 0.68 - index * 0.315
+        ax = fig.add_axes([0.025, y, 0.28, 0.255], label=f"prism-{tag}")
         draw_attitude(ax, scene)
-        section = fig.add_axes([0.325, y + 0.01, 0.17, 0.185], label=f"section-{tag}")
+        section = fig.add_axes([0.325, y + 0.015, 0.17, 0.23], label=f"section-{tag}")
         draw_section(section, scene)
         kind = "正穿" if beta == 0 else "斜穿"
         n_eff = optics.bravais(beta)[0]
-        fig.text(0.05, y - 0.004, f"{tag}  {kind}  β = {beta:g}°", fontsize=11.5, color=INK)
-        fig.text(0.325, y - 0.004, f"n′ = {n_eff:.3f}   D = {radius:.2f}°", fontsize=10.5, color=INK)
+        fig.text(0.05, y - 0.01, f"{tag}  {kind}  β = {beta:g}°", fontsize=13, color=INK)
+        fig.text(0.325, y - 0.01, f"n′ = {n_eff:.3f}   D = {radius:.2f}°", fontsize=12, color=INK)
 
-    sky = fig.add_axes([0.55, 0.225, 0.425, 0.585], label="sky-directions")
+    sky = fig.add_axes([0.53, 0.03, 0.46, 0.88], label="sky-directions")
     for index, radius in enumerate(data.radii):
         xy = sky_projection(distance_circle(data.sun, radius), data.sun)
         ring, = sky.plot(*xy.T, color=EDGE if index == 0 else GUIDE, lw=1.0,
                          ls=(0, (4, 3)), zorder=0)
         ring.set_gid("angular-distance-circle" if index == 0 else f"distance-circle-{index}")
-        angle = np.radians(32)
-        sky.text(radius * np.cos(angle) + 0.9, radius * np.sin(angle) - 0.2,
-                 f"{radius:.2f}°", color=INK, fontsize=9.5,
-                 bbox=dict(facecolor=PAPER, edgecolor="none", pad=1.5))
+        # 圈的读数放在右下象限：那里没有切弧与地平线，标签不压线。
+        angle = np.radians(-10 - 10 * index)
+        sky.text((radius + 0.6) * np.cos(angle), (radius + 0.6) * np.sin(angle),
+                 f"{radius:.2f}°", color=INK, fontsize=12, ha="left", va="top",
+                 path_effects=halo)
     for branch, points in zip(("upper", "lower"), data.folds):
-        line, = sky.plot(*sky_projection(points, data.sun).T, color=COMPONENT, lw=1.8)
+        line, = sky.plot(*sky_projection(points, data.sun).T, color=COLUMN, lw=2.0)
         line.set_gid(f"{branch}-fold")
     horizon = optics.unit_from(0, np.linspace(-65, 65, 301))
     line, = sky.plot(*sky_projection(horizon, data.sun).T, color=EDGE, lw=0.8,
                     ls=(0, (2, 3)), zorder=0)
     line.set_gid("horizon")
-    sky.text(29, -23, "地平线", color=INK, fontsize=9.5)
-    sky.scatter(0, 0, marker="*", s=150, color=RAY, edgecolor=PAPER, linewidth=0.7, zorder=5)
-    sky.text(2.5, -1.2, "太阳", color=INK, fontsize=10.5)
+    sky.text(-41, -21.5, "地平线", color=INK, fontsize=12, va="bottom")
+    sky.scatter(0, 0, s=90, color=SUN, edgecolor=PAPER, linewidth=1, zorder=5)
+    sky.text(2.2, 0, "太阳", color=INK, fontsize=13, va="center")
     for tag, scene in zip("ABC", data.examples):
         xy = sky_projection(scene.light_point, data.sun)
-        point, = sky.plot(*xy, marker="o", markersize=7, linestyle="none", color=COMPONENT,
+        point, = sky.plot(*xy, marker="o", markersize=8, linestyle="none", color=COLUMN,
                           markeredgecolor=PAPER, markeredgewidth=1.2, zorder=6)
         point.set_gid(f"example-{tag}")
-        offset = {"A": (2.3, 2.5), "B": (-4.4, 2.8), "C": (-4.8, 1.5)}[tag]
-        sky.text(*(xy + offset), tag, fontsize=12, color=INK, weight="bold")
+        offset = {"A": (1.6, 2.2), "B": (-1.2, 2.6), "C": (-4.2, 1.4)}[tag]
+        sky.text(*(xy + offset), tag, fontsize=14, color=INK, path_effects=halo)
     lower_xy = sky_projection(data.lower.light_point, data.sun)
-    point, = sky.plot(*lower_xy, marker="o", markersize=6, linestyle="none", color=COMPONENT,
+    point, = sky.plot(*lower_xy, marker="o", markersize=7, linestyle="none", color=COLUMN,
                       markeredgecolor=PAPER, markeredgewidth=1.1, zorder=6)
     point.set_gid("lower-tangent")
     lower_height = np.degrees(np.arcsin(data.lower.light_point[2]))
-    sky.annotate(f"下切点\n高度 {lower_height:.2f}°", xy=lower_xy, xytext=(8, -15), fontsize=9.5, color=INK,
-                 arrowprops=dict(arrowstyle="-", color=EDGE, lw=0.7))
-    sky.text(-7, 40, "上切弧", fontsize=11, color=INK)
-    sky.text(-7, -39, "下切弧", fontsize=11, color=INK)
+    # 切点正上方、22° 圈以内没有别的线：标签放在那里，不用引线。
+    sky.text(lower_xy[0], lower_xy[1] + 2.0, f"下切点\n高度 {lower_height:.2f}°", fontsize=12,
+             color=INK, ha="center", va="bottom", linespacing=1.4, path_effects=halo)
+    sky.text(-7, 40, "上切弧", fontsize=13, color=INK)
+    sky.text(-7, -39, "下切弧", fontsize=13, color=INK)
     finish(sky, (-44, 44), (-44, 44))
-
-    fig.legend(handles=[Line2D([], [], color=RAY, lw=1.8, label="光的传播方向"),
-                        Line2D([], [], color=COMPONENT, lw=1.8, label="最小偏折的聚焦轨迹"),
-                        Line2D([], [], color=EDGE, lw=1, ls=(0, (4, 3)), label="等角距圈")],
-               loc="lower left", bbox_to_anchor=(0.045, 0.09), ncol=3, labelcolor=INK)
-    fig.text(0.045, 0.066, "每个水平轴方向各取最小偏折，连成切弧的聚焦轨迹；正穿给出最小半径，两种姿态分别落在上下切点。",
-             fontsize=10.5, color=INK)
-    fig.text(0.045, 0.033, "天空采用方位等距投影，圆是真正的等角距圈。蓝线只画 |β| ≤ 55° 的一段，不表示强度或可见截止。",
-             fontsize=10, color=INK)
     return fig, data
 
 

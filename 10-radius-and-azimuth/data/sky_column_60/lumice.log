@@ -1,36 +1,36 @@
-$ /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/.lumice/v4.6.1/Lumice -f /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_column_60/config.json -o /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_column_60 --format npy --workers 4
+$ /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/.lumice/v4.6.1/Lumice -f /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/10-radius-and-azimuth/data/sky_column_60/config.json -o /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/10-radius-and-azimuth/data/sky_column_60 --format npy --workers 4
 --- stdout ---
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_column_60/img_01.npy (1440x720)
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_column_60/img_01.json
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_column_60/img_02.npy (800x800)
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_column_60/img_02.json
-Stats: sim_rays=4924160, crystals=1, orientations=4924160, backend=cpu, fell_back=false
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_column_60/img_01.npy (1440x720)
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_column_60/img_01.json
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_column_60/img_02.npy (800x800)
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_column_60/img_02.json
-Stats: sim_rays=9876992, crystals=1, orientations=9876992, backend=cpu, fell_back=false
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_column_60/img_01.npy (1440x720)
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_column_60/img_01.json
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_column_60/img_02.npy (800x800)
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_column_60/img_02.json
-Stats: sim_rays=14816128, crystals=1, orientations=14816128, backend=cpu, fell_back=false
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_column_60/img_01.npy (1440x720)
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_column_60/img_01.json
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_column_60/img_02.npy (800x800)
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_column_60/img_02.json
-Stats: sim_rays=19772416, crystals=1, orientations=19772416, backend=cpu, fell_back=false
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_column_60/img_01.npy (1440x720)
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_column_60/img_01.json
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_column_60/img_02.npy (800x800)
-Saved: /Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_column_60/img_02.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/10-radius-and-azimuth/data/sky_column_60/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/10-radius-and-azimuth/data/sky_column_60/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/10-radius-and-azimuth/data/sky_column_60/img_02.npy (800x800)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/10-radius-and-azimuth/data/sky_column_60/img_02.json
+Stats: sim_rays=4939008, crystals=1, orientations=4939008, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/10-radius-and-azimuth/data/sky_column_60/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/10-radius-and-azimuth/data/sky_column_60/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/10-radius-and-azimuth/data/sky_column_60/img_02.npy (800x800)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/10-radius-and-azimuth/data/sky_column_60/img_02.json
+Stats: sim_rays=9781248, crystals=1, orientations=9781248, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/10-radius-and-azimuth/data/sky_column_60/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/10-radius-and-azimuth/data/sky_column_60/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/10-radius-and-azimuth/data/sky_column_60/img_02.npy (800x800)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/10-radius-and-azimuth/data/sky_column_60/img_02.json
+Stats: sim_rays=14394752, crystals=1, orientations=14394752, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/10-radius-and-azimuth/data/sky_column_60/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/10-radius-and-azimuth/data/sky_column_60/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/10-radius-and-azimuth/data/sky_column_60/img_02.npy (800x800)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/10-radius-and-azimuth/data/sky_column_60/img_02.json
+Stats: sim_rays=19108224, crystals=1, orientations=19108224, backend=cpu, fell_back=false
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/10-radius-and-azimuth/data/sky_column_60/img_01.npy (1440x720)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/10-radius-and-azimuth/data/sky_column_60/img_01.json
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/10-radius-and-azimuth/data/sky_column_60/img_02.npy (800x800)
+Saved: /Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/10-radius-and-azimuth/data/sky_column_60/img_02.json
 Stats: sim_rays=20000000, crystals=1, orientations=20000000, backend=cpu, fell_back=false
 
 --- stderr ---
-2026-10-29 01:21:10.666 [I] Lumice 4.6.1
-2026-10-29 01:21:10.667 [I] ServerImpl: gpu_route=false worker_count=4 analysis_pool_worker_count=0 render_thread_budget=2 (preferred_backend=0)
-2026-10-29 01:21:10.709 [I] CommitConfig: restart took 41.5ms (Stop 0.0ms + rebuild 41.4ms + Start 0.0ms)
-2026-10-29 01:21:10.709 [I] GenerateScene: first batch enqueued at 0.0ms after start
-2026-10-29 01:21:10.709 [I] ConsumeData: first batch consumed (896 ray segments)
-2026-10-29 01:21:15.089 [I] Consume profile: 156250 batches, avg 0.3us (proj 0.0us 0% + accum 0.3us 100%)
-2026-10-29 01:21:15.089 [I] Consume profile: 156250 batches, avg 0.3us (proj 0.0us 0% + accum 0.3us 100%)
+2026-10-30 01:01:45.435 [I] Lumice 4.6.1
+2026-10-30 01:01:45.435 [I] ServerImpl: gpu_route=false worker_count=4 analysis_pool_worker_count=0 render_thread_budget=2 (preferred_backend=0)
+2026-10-30 01:01:45.479 [I] CommitConfig: restart took 42.9ms (Stop 0.0ms + rebuild 42.9ms + Start 0.0ms)
+2026-10-30 01:01:45.479 [I] GenerateScene: first batch enqueued at 0.0ms after start
+2026-10-30 01:01:45.479 [I] ConsumeData: first batch consumed (896 ray segments)
+2026-10-30 01:01:50.085 [I] Consume profile: 156250 batches, avg 0.4us (proj 0.0us 0% + accum 0.4us 100%)
+2026-10-30 01:01:50.085 [I] Consume profile: 156250 batches, avg 0.4us (proj 0.0us 0% + accum 0.4us 100%)

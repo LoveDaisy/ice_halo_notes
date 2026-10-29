@@ -13,24 +13,28 @@ from halo_notes.draw.projection import Camera
 from halo_notes.draw.scene import finish, render_crystal
 from halo_notes.draw.sphere import Sphere, graticule
 from halo_notes.draw.style import PRESETS
+from halo_notes.draw.style.candidate import crystal_preset, scheme
 from fig_column_torus import P
 
-INK = P.PAL['ink_soft']
-BLUE = P.PAL['arc_roll']
-ORANGE = P.PAL['face_5']
-EDGE = P.PAL['ice_edge']
+S = scheme()
+INK = S.ink
+# 篇内语义色：太阳（ŝ 与晶体系里的 u）金色；非族的中性强调（轴角直径、采样点、密度曲线）墨色；
+# 路线 A / B 等二元对照用墨实线 / 紫虚线。族色（柱晶蓝、片晶红、Parry 深蓝）只给族。
+SUN = S.sun
+NEUTRAL = S.pair['a']
+PAIR = S.pair
+PAIR_DASH = S.pair_dash
+EDGE = S.sphere_edge
+GUIDE = S.guide
 CAMERA = Camera(azimuth=-55, elevation=24, distance=6)
-# 晶体外观交给系列 PRESETS；球面/二维标记只从既有 palette 取语义色。
-SURFACE = P.PAL['ice']
-PAPER = 'white'
+SURFACE = S.surfaces['neutral'].base
+PAPER = S.paper
+CRYSTAL = crystal_preset()
 
 
-def canvas(title, subtitle, size=(11.8, 6.6)):
+def canvas(size=(11.8, 6.6)):
     P.apply_style()
-    fig = plt.figure(figsize=size)
-    fig.text(0.045, 0.935, title, fontsize=17, color=INK)
-    fig.text(0.045, 0.88, subtitle, fontsize=10.5, color=INK)
-    return fig
+    return plt.figure(figsize=size)
 
 
 def globe(ax, camera=CAMERA):
@@ -44,16 +48,15 @@ def globe(ax, camera=CAMERA):
     finish(ax, (-1.5, 1.5), (-1.4, 1.4))
 
 
-def arrow(ax, start, end, color=BLUE, lw=1.6, **kwargs):
+def arrow(ax, start, end, color=NEUTRAL, lw=1.6, **kwargs):
     return ax.annotate('', xy=end, xytext=start,
                        arrowprops=dict(arrowstyle='-|>', color=color, lw=lw,
                                        mutation_scale=13, shrinkA=0, shrinkB=0), **kwargs)
 
 
-def crystal(ax, rotation, camera=CAMERA, height=1.5):
+def crystal(ax, rotation, camera=CAMERA, height=1.5, face_numbers=(1, 3)):
     poly = HexPrism(a=0.65, h=height).transformed(rotation=rotation)
-    render_crystal(ax, poly, camera=camera, preset=PRESETS['ice_filled'],
-                   face_numbers=[1, 3])
+    render_crystal(ax, poly, camera=camera, preset=CRYSTAL, face_numbers=face_numbers)
     finish(ax, (-1.4, 1.4), (-1.4, 1.4))
     return poly
 

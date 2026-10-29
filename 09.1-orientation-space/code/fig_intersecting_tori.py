@@ -1,18 +1,15 @@
-# 图 3 扩展候选：开窗的两张参数环面与两条原始交圈 → ../img/intersecting_tori.png。
+# 图 3 / 图 2b 共用的两张参数环面几何：母圆、物理姿态映射、透视射线求交与着色（不单独出图）。
 from __future__ import annotations
 
-import argparse
-from pathlib import Path
-
 import numpy as np
-import matplotlib.pyplot as plt
 from matplotlib.colors import to_rgb
-from matplotlib.lines import Line2D
 
 import fig_column_torus as T
-import fig_parry_neighborhood as N
+from halo_notes.draw.style.candidate import scheme
+import check_orientation_space as C
 
 P = T.P
+S = scheme()
 # 两个母圆的旋转曲面，仅实现集合关联，不是 SO(3) 的欧氏嵌入。
 LOWITZ, COLUMN = 0, 1
 MAJOR = np.array([T.MAJOR, 1.7])
@@ -28,18 +25,6 @@ EXTENT = T.EXTENT
 # 开窗只移除面片，不加封口面；两条交圈的任何点都不落入切口。
 WINDOW_R, WINDOW_Z = 2.25, 0.84
 COLUMN_INNER = 1.42
-LEADERS = (
-    (LOWITZ, AZ + np.radians(55), CROSS_ANGLE[LOWITZ], (3.5, 1.35),
-     '另一原始圈\n经晶体对称对应 Parry', 'left'),
-    (LOWITZ, AZ, -CROSS_ANGLE[LOWITZ], (3.5, -1.55),
-     'Parry 原始圈\nt = −90°', 'left'),
-    (LOWITZ, AZ - np.radians(105), 0, (-3.75, 1.3),
-     '片晶圈 · t = 0°\n在 Lowitz 上，\n不与橙圈相交', 'right'),
-    (COLUMN, AZ - np.radians(45), 0, (-3.55, -1.15),
-     '柱晶环面的一部分\n上下已弯回去', 'right'),
-)
-
-
 def surface(kind, phi, angle):
     """显示环面的弧度参数；angle 是母圆角，非物理摆角。"""
     p, a = np.broadcast_arrays(phi, angle)
@@ -66,10 +51,15 @@ def display_angle(kind, physical):
                           np.cos(np.asarray(physical) / 2))
 
 
+def lowitz_attitude(phi, t):
+    """度制 Lowitz 姿态：方位 φ 下绕长对角线摆 t，Rz(φ) Ry(t)。"""
+    return C.Rz(float(phi)) @ C.Ry(float(t))
+
+
 def attitude(kind, phi, angle):
     p, b = np.degrees([phi, physical_angle(kind, angle)])
     if kind == LOWITZ:
-        return N.lowitz_attitude(p, b)
+        return lowitz_attitude(p, b)
     theta = 90.0 - b
     # 两交圈逐点配对；柱晶的方位坐标在下圈相差 180°，不能直接当同一个 ψ。
     return T.attitude(p + theta, theta)
@@ -132,11 +122,10 @@ def surface_pixels(width=1601, cutter=cut_distance):
         points = xyz[selected]
         phi, angle = parameters(kind, points)
         normal = np.column_stack([np.cos(angle) * np.cos(phi), np.cos(angle) * np.sin(phi), np.sin(angle)])
-        # 同一冰蓝材质，柱晶用较深明度；实体身份还由引线/图例明确标识。
-        base = np.array(to_rgb(P.PAL['ice']))
-        if kind == COLUMN:
-            base = 0.60 * base + 0.40 * np.array(to_rgb(P.PAL['arc_roll']))
-        brightness = 0.82 + 0.18 * np.maximum(normal @ light, 0)
+        # 两张环面的表面处理由候选方案给出；实体身份还由引线/图例明确标识。
+        finish = S.surfaces['lowitz' if kind == LOWITZ else 'column']
+        base = np.array(to_rgb(finish.base))
+        brightness = finish.ambient + (1 - finish.ambient) * np.maximum(normal @ light, 0)
         color = base * brightness[:, None]
 
         def ink(dist, half_width, value):
@@ -147,62 +136,21 @@ def surface_pixels(width=1601, cutter=cut_distance):
         radial = np.hypot(points[:, 0], points[:, 1])
         mesh = np.minimum(periodic_distance(phi, np.pi / 6) * radial,
                           periodic_distance(angle, np.pi / 6) * MINOR)
-        ink(mesh, 0.004, P.PAL['ice_edge'])
+        ink(mesh, finish.mesh_width, finish.mesh)
         # 强调线在真实命中面上着色，绝不透过遮挡把背面线叠在前面。
         for sign in (-1, 1):
             ink(periodic_distance(angle - sign * CROSS_ANGLE[kind], 2 * np.pi) * MINOR,
-                0.019, P.PAL['face_5'])
+                0.019, S.family['parry'])
         if kind == LOWITZ:
-            ink(periodic_distance(angle, 2 * np.pi) * MINOR, 0.018, P.PAL['arc_roll'])
+            ink(periodic_distance(angle, 2 * np.pi) * MINOR, 0.018, S.family['plate'])
         rgb[selected] = color
     image = np.ones((len(origins), 3))
     image[hit] = rgb
-    return image.reshape(height, width, 3), xyz, kinds
-
-
-def main(out=None):
-    P.apply_style()
-    ink = P.PAL['ink_soft']
-    fig = plt.figure(figsize=(11.6, 8.3))
-    fig.text(0.055, 0.945, '两张环面，交于 Parry 族的两圈', fontsize=17, color=ink)
-    fig.text(0.055, 0.901, '把前侧打开，露出相交处；每条橙圈同时属于柱晶与 Lowitz。', fontsize=11, color=ink)
-    ax = fig.add_axes([0.025, 0.235, 0.95, 0.635])
-    image, _, _ = surface_pixels()
-    ax.imshow(image, origin='lower', extent=EXTENT, interpolation='lanczos')
-    ax.set_aspect('equal')
-
-    def leader(point, target, text, ha='left'):
-        ax.annotate(text, xy=project(point)[:2], xytext=target, ha=ha, va='center',
-                    fontsize=10.5, color=ink, linespacing=1.7,
-                    arrowprops=dict(arrowstyle='-', color=P.PAL['ice_edge'], lw=0.9,
-                                    connectionstyle='angle,angleA=0,angleB=90,rad=4'))
-
-    for kind, phi, angle, target, text, align in LEADERS:
-        leader(surface(kind, phi, angle), target, text, align)
-    ax.set_xlim(-5.5, 5.2)
-    ax.set_ylim(-2.5, 2.5)
-    ax.axis('off')
-    handles = [Line2D([], [], color=P.PAL['ice_edge'], lw=8, alpha=0.35, label='浅面：Lowitz 环面'),
-               Line2D([], [], color=P.PAL['arc_roll'], lw=8, alpha=0.45, label='深面：柱晶环面'),
-               Line2D([], [], color=P.PAL['face_5'], lw=2.5, label='橙线：Parry 族的两条交圈')]
-    fig.legend(handles=handles, loc='lower center', bbox_to_anchor=(0.5, 0.245),
-               ncol=3, frameon=False, fontsize=10, labelcolor=ink, handlelength=1.6)
-    fig.text(0.5, 0.205, '开窗只是揭去遮挡的面片；片晶圈被揭去的前半段仍属于原来的环面。',
-             ha='center', fontsize=9.5, color=ink)
-    fig.text(0.5, 0.145, '完整 Lowitz：t = ±90° 各交一圈；roll 锁 0 的半环只保留 t = −90°。',
-             ha='center', fontsize=10, color=ink)
-    fig.text(0.5, 0.1, '两条原始交圈不同，但按 D₆ 晶体对称认同后属于同一 Parry 族。',
-             ha='center', fontsize=10, color=ink)
-    fig.text(0.5, 0.045, '集合关系示意 · 非整个 SO(3) 在三维欧氏空间的嵌入；高度、半径、网格间距均无物理刻度',
-             ha='center', fontsize=9, color=ink)
-    out = Path(out) if out is not None else Path(__file__).resolve().parents[1] / 'img/intersecting_tori.png'
-    out.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(out, dpi=200, metadata={'Software': None})
-    plt.close(fig)
-    print(out)
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--output', type=Path)
-    main(parser.parse_args().output)
+    image = image.reshape(height, width, 3)
+    kind_map = np.full(len(origins), -1)
+    kind_map[hit] = kinds
+    edges = T.outline_mask(nearest.reshape(height, width))
+    for kind in (LOWITZ, COLUMN):
+        selected = edges & (kind_map.reshape(height, width) == kind)
+        image[selected] = to_rgb(S.surfaces['lowitz' if kind == LOWITZ else 'column'].outline)
+    return image, xyz, kinds

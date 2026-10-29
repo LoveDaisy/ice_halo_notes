@@ -1,6 +1,9 @@
 """候选图 3c：实际着色场与最低点对 Bravais 闭式独立核验。"""
 import numpy as np
 import pytest
+from matplotlib.colors import LinearSegmentedColormap
+
+from halo_notes.draw.style.candidate import TERRAIN_RAMPS
 
 import fig_plate_terrain as F
 
@@ -159,13 +162,10 @@ def test_silhouette_rays_are_tangent_and_match_raster_boundary():
                                [-radius, radius], atol=1e-12)
 
 
-@pytest.mark.parametrize("style", F.RAMPS)
-def test_distance_ramps_monotonically_darken(style):
-    rgb = F.distance_cmap(style)(np.linspace(0, 1, 256))[:, :3]
+@pytest.mark.parametrize("ramp", TERRAIN_RAMPS)
+def test_distance_ramps_monotonically_darken(ramp):
+    rgb = LinearSegmentedColormap.from_list(ramp, TERRAIN_RAMPS[ramp])(np.linspace(0, 1, 256))[:, :3]
     linear = np.where(rgb <= 0.04045, rgb / 12.92, ((rgb + 0.055) / 1.055)**2.4)
     luminance = linear @ np.array([0.2126, 0.7152, 0.0722])
     assert np.all(np.diff(luminance) < 0)
     assert luminance[0] - luminance[-1] > 0.5
-    if style != "original":
-        with pytest.raises(ValueError, match="输出路径"):
-            F.main(style)

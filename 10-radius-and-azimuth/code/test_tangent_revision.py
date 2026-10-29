@@ -120,9 +120,10 @@ def test_actual_artists_share_physical_path_and_fold(scene, caplog):
             internal_ray = F.CAMERA.project_xy(physical.path.points[1:3])
             assert any(line.get_xydata().shape == internal_ray.shape
                        and np.allclose(line.get_xydata(), internal_ray, atol=1e-12) for line in ax.lines)
-            section = next(line for line in axes[f"section-{tag}"].lines
-                           if line.get_gid() == "transverse-ray")
-            np.testing.assert_allclose(section.get_xydata(),
+            # 截面光路按系列约定分两色（入射 + 冰内红、出射蓝），两段首尾相接即完整光路。
+            lines = {line.get_gid(): line.get_xydata() for line in axes[f"section-{tag}"].lines}
+            drawn = np.vstack([lines["transverse-ray"], lines["transverse-ray-exit"][1:]])
+            np.testing.assert_allclose(drawn,
                                        (physical.path.points @ physical.rotation)[:, :2], atol=1e-12)
         for name, points, branch in zip(("upper", "lower"), data.folds, (-1, 1)):
             # 画出的整条线来自逐点光学映射，而不是三点样条或手填轮廓。

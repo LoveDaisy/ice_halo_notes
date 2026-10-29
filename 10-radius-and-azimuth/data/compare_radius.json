@@ -1,56 +1,56 @@
 {
   "schema": 1,
-  "compare_sha256": "afc39153dd8d2a7585f21cc62fd16fe151b84374552229e5438ae67cff35045e",
+  "compare_sha256": "d31570e9c0b351a2b74df0bf96f359bf785292aa8182ff8e764a97bf8deab888",
   "figures": [
     {
       "figure": "1",
       "image": "img/sky_comparison.png",
-      "sha256": "fc1eee3370b8bf90f5620da18c6ffbdd78b566a953955dbe0181d5fb88b7d916"
+      "sha256": "ebf30a31515a453c9887318b7238c0314b55731fc9e3db73827735fe0e59c97b"
     },
     {
       "figure": "2",
       "image": "img/solar_circle.png",
-      "sha256": "901d4145dbcb688282a77d0c9af2c8ea0b8be44989d8f44947666d6a3cdfbbb3"
+      "sha256": "35768af6640846df85b47f216bc071dc5e14ef14e35bd32abc2fdb66522987ae"
     },
     {
       "figure": "3a",
       "image": "img/terrain_domain.png",
-      "sha256": "3215961dfdbf0f5f0c6714dde42fd4ad2e88ce04d14a86b1f4034f7726484050"
+      "sha256": "93fd17e782a8dcd8da90b23a02259c14ad471b579a81cba598cdfad9200b81a2"
     },
     {
       "figure": "3b",
       "image": "img/random_terrain.png",
-      "sha256": "9bd761d13c2ad287226c016864c5e20671760ed15a3cdaac0595096df2b46fc3"
+      "sha256": "1fc85a110f8400400fd5fe26df61a3e052ca5afa4f84c9f1af5f643649ea2b53"
     },
     {
       "figure": "3c",
       "image": "img/plate_terrain.png",
-      "sha256": "6e8c3163b626d7f40b2c90f281eea48874dac08e5f521febdae6293e70cb5f6b"
+      "sha256": "873b73d02ce173c57630f3dcbb1325dcccbdf2b44a2789e5a4c45944513f9f29"
     },
     {
       "figure": "3d",
       "image": "img/column_terrain.png",
-      "sha256": "d595f4019db107154c3d8a07666b54025cca4fbf21f8d1c56f24fea90ff228da"
+      "sha256": "2c610787e30875ae3a9896edb306d2210d50a8e6db9e92542ebe546fb6d5f964"
     },
     {
       "figure": "4",
       "image": "img/bravais_prism.png",
-      "sha256": "8832c22b1e6a3ced5cf35955651a6bf609edff3b6352a43bc915ef5d998d1bb2"
+      "sha256": "8a9dbbc3fcdb664782a48e1786930e36041a4bb0a7f3c2a19f7c1ecbe1aa44c2"
     },
     {
       "figure": "5",
       "image": "img/parhelion_rulers.png",
-      "sha256": "c7aac31c4acaa037f7371d1296110080a848cf0a1d0b693ef3872f896823adfe"
+      "sha256": "bac27e6c32d0e9d4c40655ea822a1f0b35c3d19c02ede8776a2df5ab2cbb95e7"
     },
     {
       "figure": "6",
       "image": "img/tangent_direction.png",
-      "sha256": "d4fcd9d386342288453fedc85c5e9eb6158890f40cf4e0a7bd4367a7f22b5443"
+      "sha256": "08b0698fe468427195072f09d9b94b79c91bd8f2f935c29e0bc25d3413382743"
     },
     {
       "figure": "7",
       "image": "img/column_sky.png",
-      "sha256": "3656973151eb2c095dd8256486d8f024e014b4060f41b387df38921822bf77f2"
+      "sha256": "20653725c91e33b91215b893ce13472a039ebcb4b4c175db5ad58e62c9885d3e"
     }
   ],
   "optional_pending": [],

@@ -48,8 +48,22 @@ def test_two_drawn_cases_are_real_same_wedge_paths(comparison, index, height):
     # LI 的方向传递不调用用于绘图的有限晶体追迹器。
     np.testing.assert_allclose(-directions[-1], F.optics.light_point(-directions[0])[0], atol=2e-9)
     axes = {ax.get_label(): ax for ax in fig.axes}
-    actual = line_by_gid(axes[f"horizontal-section-{index}"], "projected-ray").get_xydata()
+    # 俯视光路按系列约定分两色画（入射 + 冰内红、出射蓝），两段首尾相接即完整光路。
+    section = axes[f"horizontal-section-{index}"]
+    actual = np.vstack([line_by_gid(section, "projected-ray").get_xydata(),
+                        line_by_gid(section, "projected-ray-exit").get_xydata()[1:]])
     np.testing.assert_allclose(actual, path.points[:, :2] @ F.SECTION_BASIS.T, atol=2e-9)
+    # 标出的两条楔面边确实落在入射面 3 与出射面 5 上，延长线夹角 60°。
+    edges = [line.get_xydata() for line in section.lines if line.get_gid() == "wedge-face"]
+    assert len(edges) == 2
+    for edge, number in zip(edges, (3, 5)):
+        normal = crystal.normal(crystal.face(number))
+        offset = crystal.face_vertices(crystal.face(number))[0] @ normal
+        world = edge @ F.SECTION_BASIS  # 纸面基正交，逆即转置
+        np.testing.assert_allclose(world @ normal[:2], offset, atol=1e-9)
+    d = [e[1] - e[0] for e in edges]
+    cos = abs(d[0] @ d[1]) / np.prod(np.linalg.norm(d, axis=1))
+    assert np.degrees(np.arccos(cos)) == pytest.approx(60)
     expected = F.CAMERA.project_xy(path.points[1:3])
     assert any(line.get_xydata().shape == expected.shape and np.allclose(line.get_xydata(), expected)
                for line in axes[f"prism-3d-{index}"].lines)

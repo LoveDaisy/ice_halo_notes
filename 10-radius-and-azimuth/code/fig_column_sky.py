@@ -6,11 +6,13 @@ import json
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+from matplotlib import patheffects
+from matplotlib.colors import LinearSegmentedColormap, to_rgb
 import numpy as np
 
 import _sky_fig as F
 from check_parhelion import bravais, critical_height, spherical_distance
-from fig_sky_comparison import PAL, obtain, panel_geometry, style, tone
+from fig_sky_comparison import S, obtain, panel_geometry, style, tone
 from halo_notes.sim.fetch import sha256_of
 from halo_notes.sim.projection import project_equal_area
 from halo_notes.sim.raypath_probe import sun_direction
@@ -83,35 +85,38 @@ def draw(*, render=False, replot=False, output=None):
     if report["beyond_optical_bound_pixels"]:
         raise RuntimeError(f"出现超过光学外界+有限日面+像素误差的真实能量；停止图7，检查 {meta_path}")
     white = float(np.quantile(y[y > 0], .995))
-    fig, ax = plt.subplots(figsize=(12, 7.1))
-    fig.subplots_adjust(left=.035, right=.965, bottom=.19, top=.9)
-    ax.imshow(tone(y, white), cmap="gray", vmin=0, vmax=1,
+    fig = plt.figure(figsize=(12, 7.6))
+    ax = fig.add_axes([0, 0, 1, 1])
+    # 与图 1 同一条柱晶切弧：同一显示变换，色阶取「夜空 → 柱晶辉光色 → 淡蓝白」，亮度单调，
+    # 色相与图 1 的柱晶族一致；高端提亮只为让弧缘外的连续弱光看得见，不改变任何像素的排序。
+    glow = np.array(to_rgb(S.sky_glow["column"]))
+    ramp = LinearSegmentedColormap.from_list("column_glow", [
+        to_rgb(S.sky["night"]), tuple(glow), tuple(0.25 * glow + 0.75 * np.array(to_rgb(S.paper)))])
+    ax.imshow(tone(y, white), cmap=ramp, vmin=0, vmax=1,
               extent=(0, F.DISPLAY_RES[0], F.DISPLAY_RES[1], 0), interpolation="none")
+    ink = S.sky["ink"]
+    halo = [patheffects.withStroke(linewidth=3, foreground=S.sky["night"])]
     unit = cfg["render"][1]
     for radius, label_pa in zip(RADII[:-1], (-43, -30, -22, -16)):
         uv = project_equal_area(ring_directions(radius, np.linspace(-110, 110, 881)), unit)
-        ax.plot(*uv.T, color=PAL["slate"], lw=.8, ls=(0, (4, 4)), alpha=.85)
+        ax.plot(*uv.T, color=S.sky["ring"], lw=.8, ls=(0, (4, 4)), alpha=.85)
         pos = project_equal_area(ring_directions(radius, np.array([label_pa])), unit)[0]
-        ax.text(*pos, f"{radius}°", ha="right", va="bottom", fontsize=11,
-                color=PAL["ink_faint"], bbox={"facecolor": PAL["ink"], "edgecolor": "none", "pad": 1})
+        ax.text(*pos, f"{radius}°", ha="right", va="bottom", fontsize=12, color=ink,
+                path_effects=halo)
     panel_geometry(ax, ALTITUDE, cfg, horizon=False)
     # 只缩小垂直视窗到上切弧；左右仍含全部上半图，绝不按能量阈值裁掉外侧弱光。
     ax.set_ylim(UPPER_VIEW_BOTTOM, 0)
-    ax.set_title("太阳高度 20°  ·  只看上切弧", fontsize=16, pad=13)
     bound = report['optical_supremum_deg']
     uv = project_equal_area(ring_directions(bound, np.linspace(-110, 110, 881)), unit)
-    boundary, = ax.plot(*uv.T, color=PAL['ink_faint'], lw=1.0, ls=(0, (8, 4)))
+    boundary, = ax.plot(*uv.T, color=ink, lw=1.0, ls=(0, (8, 4)))
     boundary.set_gid('grazing-supremum')
     target = project_equal_area(ring_directions(bound, np.array([48.])), unit)[0]
-    ax.annotate(f'几何上确界 {bound:.2f}°', xy=target, xytext=(600, 350),
-                ha='center', color=PAL['ink_faint'], fontsize=11,
-                arrowprops={'arrowstyle': '-', 'color': PAL['ink_faint'], 'lw': .7})
+    ax.annotate(f'几何上确界 {bound:.2f}°', xy=target, xytext=(686, 130),
+                ha='left', va='bottom', color=ink, fontsize=12, path_effects=halo,
+                arrowprops={'arrowstyle': '-', 'color': ink, 'lw': .7})
     ax.annotate("相切处", xy=project_equal_area(ring_directions(bravais(0)[1], np.array([0])), unit)[0],
-                xytext=(445, 285), color=PAL["ink_faint"], fontsize=11,
-                arrowprops={"arrowstyle": "-", "color": PAL["ink_faint"], "lw": .7})
-    fig.text(.5, .09, "虚线标角距，真实光只照亮其中的部分弧段；明亮的弧缘之外仍有弱光。\n"
-             "外侧长虚线是掠射上界：透射趋零，不是最后一处可见亮像。",
-             ha="center", va="center", fontsize=12, linespacing=1.8)
+                xytext=(445, 285), color=ink, fontsize=12, path_effects=halo,
+                arrowprops={"arrowstyle": "-", "color": ink, "lw": .7})
     fig.savefig(out, dpi=180)
     plt.close(fig)
     report.update({"figure_sha256": sha256_of(out), "display_white": white,
