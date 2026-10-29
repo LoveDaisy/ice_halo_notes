@@ -22,6 +22,7 @@ COLORS = {'distance': P.PAL['arc_roll'], 'azimuth': P.PAL['face_5'],
           'paper': P.PAL['background']}
 CAMERA = Camera(azimuth=-32, elevation=22, distance=5, projection='perspective')
 SUN_HEIGHT = 40.0
+ANGLE_RADIUS = 0.36
 
 
 @dataclass(frozen=True)
@@ -85,12 +86,15 @@ def plot3(ax, points, *, gid=None, **kwargs):
     return line
 
 
-def angle_arrows(ax, points, color):
+def angle_arrows(ax, points, color, *, gid=None):
     """弧本身来自几何；短箭头仅沿弧两端的切向，不另拟圆弧。"""
-    for start, end in ((points[9], points[0]), (points[-10], points[-1])):
-        ax.annotate('', xy=end, xytext=start,
-                    arrowprops=dict(arrowstyle='-|>', color=color, lw=1.4,
-                                    mutation_scale=11, shrinkA=0, shrinkB=0))
+    for i, (start, end) in enumerate(((points[9], points[0]), (points[-10], points[-1]))):
+        tip = ax.annotate('', xy=end, xytext=start,
+                          arrowprops=dict(arrowstyle='-|>', color=color, lw=1.4,
+                                          mutation_scale=11, shrinkA=0, shrinkB=0),
+                          zorder=7)
+        if gid:
+            tip.set_gid(f'{gid}-{i}')
 
 
 def sphere_outline():
@@ -145,10 +149,22 @@ def sky_panel(ax, data):
                     ha='right' if i == 0 else 'left', va='top', color=ink, fontsize=10.5)
 
     plot3(ax, data.great_circle, gid='sky-great-circle',
-          color=COLORS['distance'], lw=2.2, zorder=5)
-    angle_arrows(ax, CAMERA.project_xy(data.great_circle), COLORS['distance'])
-    dmid = CAMERA.project_xy(data.great_circle[len(data.great_circle)//2])[0]
-    ax.annotate(f'D = {data.distance:.2f}°', xy=dmid, xytext=(-0.32, 0.60),
+          color=COLORS['distance'], lw=0.9, alpha=0.55, zorder=4)
+    for i, direction in enumerate(data.directions):
+        plot3(ax, np.array([np.zeros(3), direction]), gid=f'central-radius-{i}',
+              color=COLORS['distance'], lw=1.4, zorder=5)
+    # 同一大圆在两半径张成的平面内缩小，弧两端仍各落在一条半径上。
+    central_arc = ANGLE_RADIUS * data.great_circle
+    plot3(ax, central_arc, gid='central-angle-arc',
+          color=COLORS['distance'], lw=2.2, zorder=6)
+    angle_arrows(ax, CAMERA.project_xy(central_arc), COLORS['distance'],
+                 gid='central-angle-tip')
+    origin = CAMERA.project_xy(np.zeros(3))[0]
+    ax.scatter(*origin, s=25, color=ink, zorder=8)
+    ax.annotate('O', xy=origin, xytext=(-9, -8), textcoords='offset points',
+                ha='right', va='top', color=ink, fontsize=12)
+    dmid = CAMERA.project_xy(central_arc[len(central_arc)//2])[0]
+    ax.annotate(f'D = {data.distance:.2f}°', xy=dmid, xytext=(-0.12, 0.25),
                 color=ink, fontsize=12, ha='right',
                 arrowprops=dict(arrowstyle='-', color=COLORS['distance'], lw=0.8))
     plot3(ax, data.horizontal_arc, gid='equatorial-azimuth-arc',
@@ -180,7 +196,7 @@ def make_figure(height=SUN_HEIGHT):
              fontsize=11.5, color=ink)
     ax = fig.add_axes([0.025, 0.17, 0.95, 0.67], label='celestial-sphere')
     sky_panel(ax, data)
-    fig.legend(handles=[Line2D([], [], color=COLORS['distance'], lw=2, label='最短大圆弧 · 角距 D'),
+    fig.legend(handles=[Line2D([], [], color=COLORS['distance'], lw=2, label='球心夹角 · 角距 D'),
                         Line2D([], [], color=COLORS['azimuth'], lw=2, ls=(0, (5, 2)),
                                label='赤道弧 · 方位差 Δφ')],
                loc='lower center', bbox_to_anchor=(0.5, 0.095), ncol=2,

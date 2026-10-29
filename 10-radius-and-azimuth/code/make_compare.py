@@ -42,7 +42,7 @@ def main(out=None):
         rows.append(dict(figure=number, image=f'img/{name}.png', sha256=digest(image)))
     fig.subplots_adjust(left=.025, right=.975, bottom=.04, top=.92, wspace=.08, hspace=.20)
     fig.text(.03, .975, 'ch10 圈圈圆圆圈圈 · 十图预览', color=P.PAL['ink_soft'], fontsize=21)
-    fig.text(.03, .946, '第十批 · 仅图 5 改为单幅透视球面图，待复审；其余九图保持已认可版本。图 8 已裁定省略。', color=P.PAL['ink_soft'], fontsize=12)
+    fig.text(.03, .946, '第十一批 · 仅图 5 增加球心半径与角距双箭头，待复审；其余九图保持已认可版本。图 8 已裁定省略。', color=P.PAL['ink_soft'], fontsize=12)
     fig.text(.5, .017, '缩略图用于整体比较；逐图裁定请打开 README 中的原尺寸图。', ha='center', color=P.PAL['ink_soft'], fontsize=11)
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=180, metadata={'Software': None})

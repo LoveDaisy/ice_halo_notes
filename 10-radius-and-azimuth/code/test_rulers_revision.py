@@ -1,4 +1,5 @@
 """图 5：真实天球大圆和水平投影角的独立几何证据。"""
+from matplotlib.patches import ArrowStyle
 import numpy as np
 import pytest
 
@@ -66,7 +67,8 @@ def test_drawn_spherical_rulers_and_meridians_use_scene_points():
         lines = {line.get_gid(): line for ax in fig.axes for line in ax.lines if line.get_gid()}
         assert set(axes) == {'celestial-sphere'}
         assert set(lines) == {'sky-great-circle', 'equatorial-azimuth-arc',
-                              'meridian-0', 'meridian-1'}
+                              'meridian-0', 'meridian-1', 'central-radius-0',
+                              'central-radius-1', 'central-angle-arc'}
         assert np.allclose(lines['sky-great-circle'].get_xydata(),
                            R.CAMERA.project_xy(data.great_circle))
         assert np.allclose(lines['equatorial-azimuth-arc'].get_xydata(),
@@ -98,6 +100,52 @@ def test_actual_generated_rulers_have_correct_spherical_lengths():
                                 np.sum(points[:-1] * points[1:], axis=1))
             assert np.degrees(angles.sum()) == pytest.approx(expected, abs=0.005)
             assert np.allclose(points @ np.cross(points[0], points[-1]), 0., atol=2e-14)
+    finally:
+        R.plt.close(fig)
+
+
+@pytest.mark.parametrize('height', [0.0, 20.0, 40.0, 60.0])
+def test_drawn_central_angle_lies_between_radii_in_their_plane(height):
+    # 从实际二维图元沿相机射线反投到两目标张成的平面，独立核定半径和夹角。
+    fig, data = R.make_figure(height)
+    try:
+        ax = fig.axes[0]
+        lines = {line.get_gid(): line for line in ax.lines if line.get_gid()}
+        camera = R.CAMERA
+        normal = np.cross(*data.directions)
+
+        def to_plane(xy):
+            xy = np.asarray(xy).reshape(-1, 2)
+            image = xy[:, :1] * camera.right + xy[:, 1:] * camera.cam_up
+            rays = image - camera.position
+            travel = -(camera.position @ normal) / (rays @ normal)
+            return camera.position + travel[:, None] * rays
+
+        radii = np.stack([to_plane(lines[f'central-radius-{i}'].get_xydata())
+                          for i in (0, 1)])
+        assert np.allclose(radii[:, 0], 0.0, atol=1e-14)
+        assert np.allclose(radii[:, 1], data.directions)
+        arc = to_plane(lines['central-angle-arc'].get_xydata())
+        lengths = np.linalg.norm(arc, axis=1)
+        assert 0 < lengths[0] < 1
+        assert np.allclose(lengths, lengths[0], atol=1e-14)
+        assert np.allclose(arc[[0, -1]], lengths[0] * radii[:, 1])
+        unit = arc / lengths[:, None]
+        angles = np.arctan2(np.linalg.norm(np.cross(unit[:-1], unit[1:]), axis=1),
+                            np.sum(unit[:-1] * unit[1:], axis=1))
+        expected = np.arctan2(np.linalg.norm(normal), np.prod(data.directions, axis=0).sum())
+        assert np.sum(angles) == pytest.approx(expected, abs=1e-12)
+        if height == 40:
+            assert np.degrees(np.sum(angles)) == pytest.approx(27.63, abs=0.005)
+            assert np.degrees(np.sum(angles)) != pytest.approx(36.32, abs=0.005)
+        tips = {a.get_gid(): a for a in ax.texts if a.get_gid()}
+        assert set(tips) == {'central-angle-tip-0', 'central-angle-tip-1'}
+        for i, index in enumerate((0, -1)):
+            tip = tips[f'central-angle-tip-{i}']
+            assert np.allclose(to_plane(tip.xy)[0], arc[index])
+            assert np.allclose(to_plane(tip.xyann)[0], arc[9 if i == 0 else -10])
+            assert isinstance(tip.arrow_patch.get_arrowstyle(), ArrowStyle.CurveFilledB)
+        assert lines['sky-great-circle'].get_linewidth() < lines['central-angle-arc'].get_linewidth()
     finally:
         R.plt.close(fig)
 
