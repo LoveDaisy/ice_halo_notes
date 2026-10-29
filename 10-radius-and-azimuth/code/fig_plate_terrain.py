@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import importlib.util
 from functools import lru_cache
 from pathlib import Path
 
@@ -11,17 +10,12 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap, Normalize
+from halo_notes.draw import chart as P
 from halo_notes.draw.projection import Camera
 from halo_notes.draw.style.figure import figure_scheme
 
 import check_parhelion as C
 
-ROOT = Path(__file__).resolve().parents[2]
-_spec = importlib.util.spec_from_file_location(
-    "_ch8_plot", ROOT / "08-wedge-times-fold/code/_ch8_plot.py"
-)
-P = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(P)
 HEIGHTS = (0.0, 20.0, 40.0, C.critical_height(), 65.0)
 VIEW_AZ, VIEW_EL = 310.0, 12.0
 CAMERA = Camera(azimuth=VIEW_AZ, elevation=VIEW_EL,
@@ -168,14 +162,15 @@ def draw_base(ax):
 
 
 # 数学下标与中文混排：整串放进 mathtext，中文段包在 \mathrm{} 里由 Hiragino 渲染。
+# 曾全局 rcParams.update（同进程后续图的 mathtext 被污染，learnings「全局 rc 污染」）；
+# 现在经 math_rc() 只在「构造 + 绘制」期间生效，draw 时刻有效 rc 集合不变 → 像素不变。
 MATH_RC = {"mathtext.fontset": "custom", "mathtext.rm": "Hiragino Sans GB",
            "mathtext.it": "Helvetica Neue:italic", "mathtext.bf": "Helvetica Neue:bold",
            "mathtext.sf": "Helvetica Neue"}
 
 
-def apply_style():
-    P.apply_style()
-    plt.rcParams.update(MATH_RC)
+def math_rc():
+    return matplotlib.rc_context(MATH_RC)
 
 
 def limb_point(latitude, side=1):
@@ -188,7 +183,12 @@ def limb_point(latitude, side=1):
 
 
 def main(out=None):
-    apply_style()
+    with math_rc():
+        _render(out)
+
+
+def _render(out=None):
+    P.apply_style()
     ink = COLORS["ink"]
     accent = COLORS["latitude"]
     fig = plt.figure(figsize=(9.6, 6.6))

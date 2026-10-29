@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import importlib.util
 from pathlib import Path
 
 import matplotlib
@@ -11,17 +10,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import to_rgb
 from matplotlib.lines import Line2D
+from halo_notes.draw import chart as P
 from halo_notes.draw.projection import Camera
 
 from halo_notes.draw.style.figure import figure_scheme
 from lumice_integral.symmetry.attitude import column_attitude
-
-ROOT = Path(__file__).resolve().parents[2]
-_spec = importlib.util.spec_from_file_location(
-    "_ch8_plot", ROOT / "08-wedge-times-fold/code/_ch8_plot.py"
-)
-P = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(P)
 
 MAJOR, MINOR = 2.5, 1.0
 PARRY_THETA = 180.0

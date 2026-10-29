@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import dataclass
-import importlib.util
 from pathlib import Path
 
 import matplotlib
@@ -13,6 +12,7 @@ from matplotlib.lines import Line2D
 from matplotlib.patches import Polygon
 import numpy as np
 
+from halo_notes.draw import chart as P
 from halo_notes.draw.geometry import HexPrism, Polyhedron
 from halo_notes.draw.projection import Camera
 from halo_notes.draw.raypath import RayPath, search_raypath
@@ -24,14 +24,7 @@ from halo_notes.draw.style.mapping import FillStyle, LineStyle
 import check_parhelion as optics
 from fig_plate_terrain import latitude_minimum
 
-ROOT = Path(__file__).resolve().parents[2]
-_spec = importlib.util.spec_from_file_location(
-    "_ch10_prism_ch8_style", ROOT / "08-wedge-times-fold/code/_ch8_plot.py"
-)
-P = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(P)
-
-# 颜色全部取自 #48 候选方案的语义槽；图 4 与图 6 共享这些入口。
+# 颜色全部取自图表语义槽；图 4 与图 6 共享这些入口。
 S = figure_scheme()
 INK = S.ink
 RAY = S.ray_in            # 入射与冰内段：珊瑚红

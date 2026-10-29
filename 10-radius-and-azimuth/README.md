@@ -100,4 +100,4 @@ uv run python -m halo_notes.repo.layout check-tree
 
 ## 外观入口
 
-字体与曲线图 rcParams 沿用 ch8 `_ch8_plot.py`；颜色的唯一入口是 `halo_notes/draw/style/figure.py` 的 `figure_scheme()`（语义权威在 `halo_notes/draw/style/mapping.py`，#49 自 #48 定稿升格），章内脚本只读其语义槽（`family` / `sky_glow` / `sun` / `point` / `ray_in` / `ray_out` / `pair` / `sky` / `terrain_ramp` …），不写十六进制色值、不经颜料名取概念色。文字、直接标签、线型和点型共同区分含义，不只靠颜色。语义 → 色值 → 出现位置的对照表在 #48 任务目录 `semantic-table.md`，生成的色值表在 `docs/figure-style-colors.md`。
+字体与曲线图 rcParams 用系列共享的 `halo_notes/draw/chart.py`（`apply_style()` / `PAL` / `deg`）；颜色的唯一入口是 `halo_notes/draw/style/figure.py` 的 `figure_scheme()`（语义权威在 `halo_notes/draw/style/mapping.py`，#49 自 #48 定稿升格），章内脚本只读其语义槽（`family` / `sky_glow` / `sun` / `point` / `ray_in` / `ray_out` / `pair` / `sky` / `terrain_ramp` …），不写十六进制色值、不经颜料名取概念色。文字、直接标签、线型和点型共同区分含义，不只靠颜色。语义 → 色值 → 出现位置的对照表在 #48 任务目录 `semantic-table.md`，生成的色值表在 `docs/figure-style-colors.md`。

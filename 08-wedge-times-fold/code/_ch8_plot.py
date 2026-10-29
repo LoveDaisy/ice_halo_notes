@@ -1,25 +1,16 @@
-# ch8 两张曲线图（图 6 方位剖面、图 7 截面敏感性）共用的外观，只在此实现一份：
-# 中文标签、格子称呼与正文一致（正文不出现 A60-10 这类类编号）、颜色从系列配色板取、CJK 字体回退序列、去掉上/右边框。
+# ch8 两张曲线图（图 6 方位剖面、图 7 截面敏感性）的章内私有外观件：
+# 格子称呼与正文一致（正文不出现 A60-10 这类类编号）、方位剖面的公共坐标轴、参考线标注、截面多边形。
+# 系列共享部分（字体、曲线图 rcParams、apply_style、度数格式化、配色板别名）已上提
+# halo_notes/draw/chart.py（task-figure-style-codify），这里按名引入以保住 `import _ch8_plot as P` 的调用面。
 # 仿真参数（太阳高度、h/a、光线数……）不进图面，留在各脚本顶部注释与 provenance。
 from __future__ import annotations
 
 from typing import Sequence
 
-import matplotlib
+import numpy as np
+from matplotlib.ticker import FuncFormatter
 
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
-import numpy as np  # noqa: E402
-from matplotlib.ticker import FuncFormatter  # noqa: E402
-
-from halo_notes.draw.style import DEFAULT_LIGHT  # noqa: E402
-from halo_notes.draw.style.mapping import CJK_SANS  # noqa: E402
-
-PAL = DEFAULT_LIGHT
-
-# 曲线图字体：拉丁字体在前、中文字体兜底——matplotlib 逐字形回退，数字 / ° / 减号取 Helvetica Neue（Hiragino 的 ° 是全角宽度、
-# 且缺 U+2212），汉字取 Hiragino。CJK_SANS 是整段中文标注用的序列，这里只借它的中文字体名。
-CHART_FONTS = ("Helvetica Neue", *CJK_SANS)
+from halo_notes.draw.chart import PAL, apply_style, deg  # noqa: F401  (re-export 给 P.* 调用方)
 
 # 格子 / 曲线的正文称呼（图例、面板标题都用这个，不用类编号）
 CELL_LABEL = {
@@ -39,33 +30,6 @@ AZ_LABEL = "方位角（从太阳算起）"
 ENERGY_LABEL = "幻日环条带内的能量（对数）"
 GUIDE_COLOR = PAL["ink_faint"]
 TEXT_COLOR = PAL["ink_soft"]
-
-RC = {
-    "font.family": list(CHART_FONTS),
-    "font.size": 11,
-    "axes.titlesize": 12.5,
-    "axes.labelsize": 11,
-    "axes.spines.top": False,
-    "axes.spines.right": False,
-    "axes.edgecolor": PAL["ink_soft"],
-    "axes.labelcolor": PAL["ink_soft"],
-    "xtick.color": PAL["ink_soft"],
-    "ytick.color": PAL["ink_soft"],
-    "xtick.direction": "out",
-    "ytick.direction": "out",
-    "legend.frameon": False,
-    "legend.fontsize": 10,
-    "figure.facecolor": PAL["background"],
-    "savefig.facecolor": PAL["background"],
-}
-
-
-def apply_style() -> None:
-    plt.rcParams.update(RC)
-
-
-def deg(x: float, digits: int = 0) -> str:
-    return f"{x:.{digits}f}°"
 
 
 def _plain(v: float) -> str:

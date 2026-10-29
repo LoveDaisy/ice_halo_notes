@@ -53,7 +53,7 @@ def band_layers(ax, height, *, size=801, small=False):
 
 
 def make_column_figure():
-    T.apply_style()
+    T.P.apply_style()
     ink = T.COLORS['ink']
     fig = T.plt.figure(figsize=(9.6, 6.4))
     ax = fig.add_axes([0.0, 0.13, 0.68, 0.85], label='column-terrain')
@@ -97,17 +97,19 @@ def make_column_figure():
 
 
 def main(kind, out=None):
-    if kind == 'column':
-        fig = make_column_figure()
+    # mathtext 的中文段依赖 fig_plate_terrain 的 MATH_RC；罩住「构造 + savefig 绘制」全程。
+    with T.math_rc():
+        if kind == 'column':
+            fig = make_column_figure()
+            save(fig, kind, out)
+            return
+        fig = make_sphere_figure(kind)
         save(fig, kind, out)
-        return
-    fig = make_sphere_figure(kind)
-    save(fig, kind, out)
 
 
 def make_sphere_figure(kind):
     """3a 只画地形本身；3b 在同一底图上用随机族色把整球（含留白处）圈为可取，并标出全局最低点。"""
-    T.apply_style()
+    T.P.apply_style()
     ink = T.COLORS['ink']
     fig = T.plt.figure(figsize=(8.0, 6.6))
     ax = fig.add_axes([0.0, 0.12, 1.0, 0.86], label=f'{kind}-terrain')
