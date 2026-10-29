@@ -67,13 +67,18 @@ def test_drawn_spherical_rulers_and_meridians_use_scene_points():
         lines = {line.get_gid(): line for ax in fig.axes for line in ax.lines if line.get_gid()}
         assert set(axes) == {'celestial-sphere'}
         assert set(lines) == {'sky-great-circle', 'equatorial-azimuth-arc',
-                              'meridian-0', 'meridian-1', 'central-radius-0',
-                              'central-radius-1', 'central-angle-arc'}
+                              'equatorial-angle-arc', 'equatorial-radius-0',
+                              'equatorial-radius-1', 'meridian-0', 'meridian-1',
+                              'central-radius-0', 'central-radius-1', 'central-angle-arc'}
         assert np.allclose(lines['sky-great-circle'].get_xydata(),
                            R.CAMERA.project_xy(data.great_circle))
         assert np.allclose(lines['equatorial-azimuth-arc'].get_xydata(),
                            R.CAMERA.project_xy(data.horizontal_arc))
+        assert np.allclose(lines['equatorial-angle-arc'].get_xydata(),
+                           R.CAMERA.project_xy(0.56 * data.horizontal_arc))
         for i in (0, 1):
+            assert np.allclose(lines[f'equatorial-radius-{i}'].get_xydata(),
+                               R.CAMERA.project_xy([np.zeros(3), data.projections[i]]))
             assert np.allclose(lines[f'meridian-{i}'].get_xydata(),
                                R.CAMERA.project_xy(data.meridians[i]))
         texts = [t.get_text() for t in fig.texts + axes['celestial-sphere'].texts]
@@ -139,13 +144,56 @@ def test_drawn_central_angle_lies_between_radii_in_their_plane(height):
             assert np.degrees(np.sum(angles)) == pytest.approx(27.63, abs=0.005)
             assert np.degrees(np.sum(angles)) != pytest.approx(36.32, abs=0.005)
         tips = {a.get_gid(): a for a in ax.texts if a.get_gid()}
-        assert set(tips) == {'central-angle-tip-0', 'central-angle-tip-1'}
+        assert set(tips) == {'central-angle-tip-0', 'central-angle-tip-1',
+                             'equatorial-angle-tip-0', 'equatorial-angle-tip-1'}
         for i, index in enumerate((0, -1)):
             tip = tips[f'central-angle-tip-{i}']
             assert np.allclose(to_plane(tip.xy)[0], arc[index])
             assert np.allclose(to_plane(tip.xyann)[0], arc[9 if i == 0 else -10])
             assert isinstance(tip.arrow_patch.get_arrowstyle(), ArrowStyle.CurveFilledB)
         assert lines['sky-great-circle'].get_linewidth() < lines['central-angle-arc'].get_linewidth()
+    finally:
+        R.plt.close(fig)
+
+
+@pytest.mark.parametrize('height', [0.0, 20.0, 40.0, 60.0])
+def test_equatorial_angle_has_two_radii_and_centered_double_arrow(height):
+    fig, data = R.make_figure(height)
+    try:
+        ax = fig.axes[0]
+        camera = R.CAMERA
+        lines = {line.get_gid(): line for line in ax.lines if line.get_gid()}
+
+        def to_equator(xy):
+            xy = np.asarray(xy).reshape(-1, 2)
+            image = xy[:, :1] * camera.right + xy[:, 1:] * camera.cam_up
+            rays = image - camera.position
+            travel = -camera.position[2] / rays[:, 2]
+            return camera.position + travel[:, None] * rays
+
+        radii = np.stack([to_equator(lines[f'equatorial-radius-{i}'].get_xydata())
+                          for i in (0, 1)])
+        np.testing.assert_allclose(radii[:, 0], 0.0, atol=1e-14)
+        np.testing.assert_allclose(radii[:, 1], data.projections, atol=1e-14)
+        arc = to_equator(lines['equatorial-angle-arc'].get_xydata())
+        lengths = np.linalg.norm(arc, axis=1)
+        assert 0 < lengths[0] < 1
+        np.testing.assert_allclose(lengths, lengths[0], atol=1e-14)
+        np.testing.assert_allclose(arc[[0, -1]], lengths[0] * radii[:, 1], atol=1e-14)
+        unit = arc / lengths[:, None]
+        angles = np.arctan2(np.linalg.norm(np.cross(unit[:-1], unit[1:]), axis=1),
+                            np.sum(unit[:-1] * unit[1:], axis=1))
+        np.testing.assert_allclose(np.degrees(angles.sum()), data.azimuth, atol=1e-10)
+        if height == 40:
+            assert np.degrees(angles.sum()) == pytest.approx(36.32, abs=0.005)
+            assert np.degrees(angles.sum()) != pytest.approx(data.distance)
+        tips = {a.get_gid(): a for a in ax.texts if a.get_gid()}
+        for i, index in enumerate((0, -1)):
+            tip = tips[f'equatorial-angle-tip-{i}']
+            np.testing.assert_allclose(to_equator(tip.xy)[0], arc[index], atol=1e-14)
+            np.testing.assert_allclose(to_equator(tip.xyann)[0],
+                                       arc[9 if i == 0 else -10], atol=1e-14)
+            assert isinstance(tip.arrow_patch.get_arrowstyle(), ArrowStyle.CurveFilledB)
     finally:
         R.plt.close(fig)
 

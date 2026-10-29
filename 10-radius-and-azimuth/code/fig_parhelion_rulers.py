@@ -134,6 +134,8 @@ def sky_panel(ax, data):
     for i, (direction, foot, meridian) in enumerate(zip(
             data.directions, data.projections, data.meridians)):
         plot3(ax, meridian, gid=f'meridian-{i}', color=COLORS['edge'], lw=1.25, zorder=3)
+        plot3(ax, [np.zeros(3), foot], gid=f'equatorial-radius-{i}',
+              color=COLORS['azimuth'], lw=1.45, ls=(0, (5, 2)), zorder=5)
         xy = CAMERA.project_xy(direction)[0]
         fp = CAMERA.project_xy(foot)[0]
         ax.scatter(*xy, marker='*' if i == 0 else 'o', s=155 if i == 0 else 55,
@@ -168,9 +170,13 @@ def sky_panel(ax, data):
                 color=ink, fontsize=12, ha='right',
                 arrowprops=dict(arrowstyle='-', color=COLORS['distance'], lw=0.8))
     plot3(ax, data.horizontal_arc, gid='equatorial-azimuth-arc',
-          color=COLORS['azimuth'], lw=2.2, ls=(0, (5, 2)), zorder=5)
-    angle_arrows(ax, CAMERA.project_xy(data.horizontal_arc), COLORS['azimuth'])
-    amid = CAMERA.project_xy(data.horizontal_arc[len(data.horizontal_arc)//2])[0]
+          color=COLORS['azimuth'], lw=0.9, ls=(0, (5, 2)), alpha=0.65, zorder=4)
+    azimuth_arc = 0.56 * data.horizontal_arc
+    plot3(ax, azimuth_arc, gid='equatorial-angle-arc',
+          color=COLORS['azimuth'], lw=2.2, ls=(0, (5, 2)), zorder=6)
+    angle_arrows(ax, CAMERA.project_xy(azimuth_arc), COLORS['azimuth'],
+                 gid='equatorial-angle-tip')
+    amid = CAMERA.project_xy(azimuth_arc[len(azimuth_arc)//2])[0]
     ax.annotate(f'Δφ = {data.azimuth:.2f}°', xy=amid, xytext=(0.45, -0.78),
                 color=ink, fontsize=12, ha='center',
                 arrowprops=dict(arrowstyle='-', color=COLORS['azimuth'], lw=0.8))
@@ -198,7 +204,7 @@ def make_figure(height=SUN_HEIGHT):
     sky_panel(ax, data)
     fig.legend(handles=[Line2D([], [], color=COLORS['distance'], lw=2, label='球心夹角 · 角距 D'),
                         Line2D([], [], color=COLORS['azimuth'], lw=2, ls=(0, (5, 2)),
-                               label='赤道弧 · 方位差 Δφ')],
+                               label='球心夹角 · 方位差 Δφ')],
                loc='lower center', bbox_to_anchor=(0.5, 0.095), ncol=2,
                labelcolor=ink, handlelength=3)
     fig.text(0.5, 0.055, '角度按球心量，不按纸面弧长量；同高纬线不是量 D 的那条大圆。',
