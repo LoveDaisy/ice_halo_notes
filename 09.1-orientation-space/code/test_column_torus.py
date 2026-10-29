@@ -100,13 +100,12 @@ def test_single_torus_trace_matches_independent_quartic_nearest_root():
     assert not F.line_visibility(points + 0.1*directions[hit]).any()
 
 
-@pytest.mark.parametrize("style", ["chalk", "mineral"])
-def test_surface_variants_keep_geometry_and_require_explicit_output(style):
+@pytest.mark.parametrize("finish", ["lowitz", "neutral"])
+def test_surface_finishes_keep_geometry(finish):
+    # 曲面着色只换颜色（候选方案的 surfaces 槽），命中像素与语义圈位置不变。
     original, points = F.surface_pixels(width=201)
-    variant, other = F.surface_pixels(width=201, style=style)
+    variant, other = F.surface_pixels(width=201, finish=finish)
     np.testing.assert_array_equal(points, other)
     np.testing.assert_array_equal(np.all(original == 1, axis=-1), np.all(variant == 1, axis=-1))
     assert np.mean(np.abs(original - variant)) > 0.01
     assert np.isfinite(variant).all() and 0 <= variant.min() <= variant.max() <= 1
-    with pytest.raises(ValueError, match="输出路径"):
-        F.main(style)

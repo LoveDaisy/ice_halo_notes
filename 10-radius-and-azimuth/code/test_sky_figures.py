@@ -132,7 +132,8 @@ def test_supremum_annotation_preserves_actual_weak_light(monkeypatch, tmp_path):
         reference = project_equal_area([unit_from(C.ALTITUDE+report['optical_supremum_deg'], 0)], unit)[0]
         np.testing.assert_allclose(radius, np.linalg.norm(reference-center), atol=1e-9)
         text = '\n'.join(t.get_text() for t in [*ax.texts, *fig.texts])
-        assert '几何上确界' in text and '透射趋零' in text
+        # 「透射趋零、不是最后可见像素」的限定已按 #48 移入正文图 7 图注；图面只留量值标注。
+        assert '几何上确界' in text
         assert '最远采样' not in text
         assert ax.get_ylim() == (C.UPPER_VIEW_BOTTOM, 0)
 

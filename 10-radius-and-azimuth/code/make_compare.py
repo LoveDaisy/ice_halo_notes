@@ -6,7 +6,7 @@ from pathlib import Path
 
 from PIL import Image
 
-from fig_plate_terrain import P, plt
+from fig_plate_terrain import P, S, plt
 
 CHAPTER = Path(__file__).resolve().parents[1]
 FIGURES = (
@@ -38,12 +38,12 @@ def main(out=None):
         with Image.open(image) as im:
             ax.imshow(im.convert('RGB'))
         ax.axis('off')
-        ax.set_title(f'图 {number}  ·  {caption}', loc='left', color=P.PAL['ink_soft'], fontsize=12, pad=12)
+        ax.set_title(f'图 {number}  ·  {caption}', loc='left', color=S.ink, fontsize=12, pad=12)
         rows.append(dict(figure=number, image=f'img/{name}.png', sha256=digest(image)))
     fig.subplots_adjust(left=.025, right=.975, bottom=.04, top=.92, wspace=.08, hspace=.20)
-    fig.text(.03, .975, 'ch10 圈圈圆圆圈圈 · 十图预览', color=P.PAL['ink_soft'], fontsize=21)
-    fig.text(.03, .946, '图 5 的两组球心半径与夹角已定稿；十图均获作者审看，图 8 已裁定省略。', color=P.PAL['ink_soft'], fontsize=12)
-    fig.text(.5, .017, '缩略图用于整体比较；逐图裁定请打开 README 中的原尺寸图。', ha='center', color=P.PAL['ink_soft'], fontsize=11)
+    fig.text(.03, .975, 'ch10 圈圈圆圆圈圈 · 十图预览', color=S.ink, fontsize=21)
+    fig.text(.03, .946, '#48 修图：统一族色 / 太阳金 / 二元对照墨紫，去图内标题与脚注；待作者逐图终审。图 8 已裁定省略。', color=S.ink, fontsize=12)
+    fig.text(.5, .017, '缩略图用于整体比较；逐图裁定请打开 README 中的原尺寸图。', ha='center', color=S.ink, fontsize=11)
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=180, metadata={'Software': None})
     plt.close(fig)

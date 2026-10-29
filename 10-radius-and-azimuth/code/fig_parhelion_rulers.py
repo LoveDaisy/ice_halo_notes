@@ -5,7 +5,7 @@ import argparse
 from dataclasses import dataclass
 from pathlib import Path
 
-from matplotlib.lines import Line2D
+from matplotlib import patheffects
 from matplotlib.patches import Polygon
 import numpy as np
 
@@ -14,12 +14,14 @@ from halo_notes.draw.scene import _plot_runs
 from halo_notes.draw.sphere import Sphere
 
 import check_parhelion as C
-from fig_plate_terrain import P, plt
+from fig_plate_terrain import P, S, plt
 
-COLORS = {'distance': P.PAL['arc_roll'], 'azimuth': P.PAL['face_5'],
-          'ink': P.PAL['ink_soft'], 'guide': P.PAL['reference'],
-          'edge': P.PAL['ice_edge'], 'sphere': P.PAL['ice'],
-          'paper': P.PAL['background']}
+# D 与 Δφ 是非族的二元对照：墨实线 vs 紫虚线；太阳金、幻日取片晶红（幻日由片晶产生）。
+COLORS = {'distance': S.pair['a'], 'azimuth': S.pair['b'], 'sun': S.sun,
+          'parhelion': S.family['plate'], 'ink': S.ink, 'guide': S.guide,
+          'edge': S.sphere_edge, 'sphere': S.sphere_fill, 'paper': S.paper}
+DASH = S.pair_dash
+HALO = [patheffects.withStroke(linewidth=3, foreground=S.paper)]
 CAMERA = Camera(azimuth=-32, elevation=22, distance=5, projection='perspective')
 SUN_HEIGHT = 40.0
 ANGLE_RADIUS = 0.36
@@ -115,6 +117,12 @@ def surface_guide(ax, points, *, dotted=False):
                visible, hidden, 1, -1)
 
 
+def latitude_end(latitude):
+    """该纬线在纸面上最靠左的点。"""
+    u = C.unit_from(latitude, np.linspace(0, 360, 1441))
+    return u[np.argmin(CAMERA.project_xy(u)[:, 0])]
+
+
 def sky_panel(ax, data):
     ink = COLORS['ink']
     rim = CAMERA.project_xy(sphere_outline())
@@ -129,26 +137,28 @@ def sky_panel(ax, data):
     north = CAMERA.project_xy([0, 0, 1])[0]
     ax.scatter(*north, s=22, color=ink, zorder=8)
     ax.annotate('天顶', xy=north, xytext=(-9, 10), textcoords='offset points',
-                ha='right', va='bottom', color=ink, fontsize=11)
+                ha='right', va='bottom', color=ink, fontsize=13)
 
     for i, (direction, foot, meridian) in enumerate(zip(
             data.directions, data.projections, data.meridians)):
         plot3(ax, meridian, gid=f'meridian-{i}', color=COLORS['edge'], lw=1.25, zorder=3)
         plot3(ax, [np.zeros(3), foot], gid=f'equatorial-radius-{i}',
-              color=COLORS['azimuth'], lw=1.45, ls=(0, (5, 2)), zorder=5)
+              color=COLORS['azimuth'], lw=1.45, ls=DASH, zorder=5)
         xy = CAMERA.project_xy(direction)[0]
         fp = CAMERA.project_xy(foot)[0]
-        ax.scatter(*xy, marker='*' if i == 0 else 'o', s=155 if i == 0 else 55,
-                   facecolor=COLORS['distance'], edgecolor=COLORS['paper'],
-                   linewidth=1, zorder=8)
-        ax.scatter(*fp, s=40, facecolor=COLORS['paper'],
-                   edgecolor=COLORS['azimuth'], linewidth=1.5, zorder=8)
+        ax.scatter(*xy, s=95 if i == 0 else 70,
+                   facecolor=COLORS['sun' if i == 0 else 'parhelion'], edgecolor=COLORS['paper'],
+                   linewidth=1.2, zorder=8)
+        ax.scatter(*fp, s=44, facecolor=COLORS['paper'],
+                   edgecolor=COLORS['azimuth'], linewidth=1.6, zorder=8)
         ax.annotate('太阳' if i == 0 else '幻日', xy=xy,
-                    xytext=(-12, -5) if i == 0 else (12, 0), textcoords='offset points',
-                    ha='right' if i == 0 else 'left', va='center', color=ink, fontsize=12)
+                    xytext=(-10, 9) if i == 0 else (11, 3), textcoords='offset points',
+                    ha='right' if i == 0 else 'left', va='bottom', color=ink, fontsize=14,
+                    path_effects=HALO, zorder=9)
         ax.annotate('太阳的方位' if i == 0 else '幻日的方位', xy=fp,
-                    xytext=(-12, -16) if i == 0 else (15, -4), textcoords='offset points',
-                    ha='right' if i == 0 else 'left', va='top', color=ink, fontsize=10.5)
+                    xytext=(-10, -10) if i == 0 else (8, -12), textcoords='offset points',
+                    ha='right' if i == 0 else 'left', va='top', color=ink, fontsize=13,
+                    path_effects=HALO, zorder=9)
 
     plot3(ax, data.great_circle, gid='sky-great-circle',
           color=COLORS['distance'], lw=0.9, alpha=0.55, zorder=4)
@@ -164,51 +174,35 @@ def sky_panel(ax, data):
     origin = CAMERA.project_xy(np.zeros(3))[0]
     ax.scatter(*origin, s=25, color=ink, zorder=8)
     ax.annotate('O', xy=origin, xytext=(-9, -8), textcoords='offset points',
-                ha='right', va='top', color=ink, fontsize=12)
+                ha='right', va='top', color=ink, fontsize=13)
     dmid = CAMERA.project_xy(central_arc[len(central_arc)//2])[0]
-    ax.annotate(f'D = {data.distance:.2f}°', xy=dmid, xytext=(-0.12, 0.25),
-                color=ink, fontsize=12, ha='right',
-                arrowprops=dict(arrowstyle='-', color=COLORS['distance'], lw=0.8))
+    ax.annotate(f'D = {data.distance:.2f}°', xy=dmid, xytext=(-14, 4), textcoords='offset points',
+                color=ink, fontsize=14, ha='right', va='bottom', path_effects=HALO, zorder=9)
     plot3(ax, data.horizontal_arc, gid='equatorial-azimuth-arc',
-          color=COLORS['azimuth'], lw=0.9, ls=(0, (5, 2)), alpha=0.65, zorder=4)
+          color=COLORS['azimuth'], lw=0.9, ls=DASH, alpha=0.65, zorder=4)
     azimuth_arc = 0.56 * data.horizontal_arc
     plot3(ax, azimuth_arc, gid='equatorial-angle-arc',
-          color=COLORS['azimuth'], lw=2.2, ls=(0, (5, 2)), zorder=6)
+          color=COLORS['azimuth'], lw=2.2, ls=DASH, zorder=6)
     angle_arrows(ax, CAMERA.project_xy(azimuth_arc), COLORS['azimuth'],
                  gid='equatorial-angle-tip')
     amid = CAMERA.project_xy(azimuth_arc[len(azimuth_arc)//2])[0]
-    ax.annotate(f'Δφ = {data.azimuth:.2f}°', xy=amid, xytext=(0.45, -0.78),
-                color=ink, fontsize=12, ha='center',
-                arrowprops=dict(arrowstyle='-', color=COLORS['azimuth'], lw=0.8))
-    lat_label = CAMERA.project_xy(C.unit_from(data.height, -80))[0]
-    ax.annotate('同高度纬线（小圆）', xy=lat_label, xytext=(-0.70, 0.09),
-                color=ink, fontsize=10.5, ha='center',
-                arrowprops=dict(arrowstyle='-', color=COLORS['edge'], lw=0.7))
-    equator_label = CAMERA.project_xy(C.unit_from(0, -80))[0]
-    ax.annotate('赤道（水平大圆）', xy=equator_label, xytext=(-0.50, -0.56),
-                color=ink, fontsize=10.5, ha='center',
-                arrowprops=dict(arrowstyle='-', color=COLORS['edge'], lw=0.7))
-    ax.set(xlim=(-1.23, 1.43), ylim=(-1.10, 1.13), aspect='equal')
+    ax.annotate(f'Δφ = {data.azimuth:.2f}°', xy=amid, xytext=(16, -12), textcoords='offset points',
+                color=ink, fontsize=14, ha='left', va='top', path_effects=HALO, zorder=9)
+    # 纬线与赤道的名字直接写在各自左端的球缘外侧，不拉引线进球。
+    for latitude, text in ((data.height, f'同高纬线 h = {data.height:g}°'), (0, '赤道（水平大圆）')):
+        q = CAMERA.project_xy(latitude_end(latitude))[0]
+        ax.text(q[0] - 0.04, q[1], text, color=ink, fontsize=13, ha='right', va='center',
+                path_effects=HALO, zorder=9)
+    ax.set(xlim=(-1.75, 1.45), ylim=(-1.08, 1.13), aspect='equal')
     ax.axis('off')
 
 
 def make_figure(height=SUN_HEIGHT):
     P.apply_style()
     data = ruler_geometry(height)
-    ink = COLORS['ink']
-    fig = plt.figure(figsize=(9.4, 8.0))
-    fig.text(0.055, 0.94, '同一个天球，两把角度尺', fontsize=18, color=ink)
-    fig.text(0.055, 0.885, f'太阳与幻日同高 h = {height:g}°；两条经线从天顶经过它们，落到赤道。',
-             fontsize=11.5, color=ink)
-    ax = fig.add_axes([0.025, 0.17, 0.95, 0.67], label='celestial-sphere')
+    fig = plt.figure(figsize=(9.6, 6.6))
+    ax = fig.add_axes([0.0, 0.0, 1.0, 1.0], label='celestial-sphere')
     sky_panel(ax, data)
-    fig.legend(handles=[Line2D([], [], color=COLORS['distance'], lw=2, label='球心夹角 · 角距 D'),
-                        Line2D([], [], color=COLORS['azimuth'], lw=2, ls=(0, (5, 2)),
-                               label='球心夹角 · 方位差 Δφ')],
-               loc='lower center', bbox_to_anchor=(0.5, 0.095), ncol=2,
-               labelcolor=ink, handlelength=3)
-    fig.text(0.5, 0.055, '角度按球心量，不按纸面弧长量；同高纬线不是量 D 的那条大圆。',
-             ha='center', fontsize=10.5, color=ink)
     return fig, data
 
 

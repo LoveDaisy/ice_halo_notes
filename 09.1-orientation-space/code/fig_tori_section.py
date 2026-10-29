@@ -11,6 +11,7 @@ import numpy as np
 import fig_intersecting_tori as F
 
 P = F.P
+S = F.S
 # 前侧扇区揭面；母圆、姿态映射及相机均沿用上一版。
 DEFAULT_VARIANT = 'staggered'
 CUTS = {
@@ -60,7 +61,7 @@ def draw_scene(ax, variant, width):
     # 剖切边是原曲面上的母圆，不添加填充圆盘；只画可见弧。
     angles = np.linspace(-np.pi, np.pi, 1201)
     for kind in (F.LOWITZ, F.COLUMN):
-        color = P.PAL['ice_edge'] if kind == F.LOWITZ else P.PAL['ink_soft']
+        color = outline(kind)
         for phi in cut_angles(kind, variant):
             points = F.surface(kind, phi, angles)
             plot_line(ax, points, line_visibility(points, cutter), color=color, lw=1.2)
@@ -69,60 +70,55 @@ def draw_scene(ax, variant, width):
         points = circle_points(sign)
         visible = line_visibility(points, cutter)
         removed = (cutter(F.LOWITZ, points) > 1e-8) & (cutter(F.COLUMN, points) > 1e-8)
-        plot_line(ax, points, visible & removed, color=P.PAL['face_5'],
+        plot_line(ax, points, visible & removed, color=S.family['parry'],
                   lw=1.5, linestyle=(0, (4, 3)))
-        plot_line(ax, points, visible & ~removed, color=P.PAL['face_5'], lw=1.5)
+        plot_line(ax, points, visible & ~removed, color=S.family['parry'], lw=1.5)
     ax.set(xlim=(-3.8, 3.8), ylim=(-2.3, 2.3), aspect='equal')
     ax.axis('off')
 
 
+def outline(kind):
+    return S.surfaces['lowitz' if kind == F.LOWITZ else 'column'].outline
+
+
 def draw_section(ax):
-    ink = P.PAL['ink_soft']
+    ink = S.ink
     angle = np.linspace(-np.pi, np.pi, 801)
-    for kind, style in ((F.LOWITZ, '-'), (F.COLUMN, '--')):
+    # 两个母圆都用实线，靠各自环面的轮廓色与直接标签区分；虚线只留给「被切去部分的交圈」。
+    for kind in (F.LOWITZ, F.COLUMN):
         r = F.MAJOR[kind] + F.MINOR * np.cos(angle)
         z = F.MINOR * np.sin(angle)
-        color = P.PAL['ice_edge'] if kind == F.LOWITZ else P.PAL['ink_soft']
-        ax.plot(r, z, style, color=color, lw=1.4)
+        ax.plot(r, z, '-', color=outline(kind), lw=1.5)
     for sign, text in ((1, '另一原始圈\n经晶体对称对应 Parry'), (-1, 'Parry 原始圈')):
-        ax.scatter([F.CROSS_R], [sign * F.CROSS_Z], s=34,
-                   color=P.PAL['face_5'], edgecolor='white', lw=0.7, zorder=4)
+        ax.scatter([F.CROSS_R], [sign * F.CROSS_Z], s=42,
+                   color=S.family['parry'], edgecolor=S.paper, lw=0.8, zorder=4)
         ax.annotate(text, (F.CROSS_R, sign * F.CROSS_Z),
-                    xytext=(F.CROSS_R, sign * 1.35), ha='center', va='center',
-                    color=ink, fontsize=10,
-                    arrowprops=dict(arrowstyle='-', color=P.PAL['ice_edge'], lw=0.7))
-    ax.text(F.MAJOR[F.COLUMN] - 0.35, 0, '柱晶', ha='center', color=ink, fontsize=10)
-    ax.text(F.MAJOR[F.LOWITZ] + 0.35, 0, 'Lowitz', ha='center', color=ink, fontsize=10)
-    ax.set(xlim=(0.55, 3.65), ylim=(-1.65, 1.65), aspect='equal')
+                    xytext=(F.CROSS_R, sign * 1.42), ha='center', va='center',
+                    color=ink, fontsize=12, linespacing=1.4,
+                    arrowprops=dict(arrowstyle='-', color=ink, lw=0.7, shrinkB=4))
+    ax.text(F.MAJOR[F.COLUMN] - 0.42, 0, '柱晶', ha='center', va='center', color=ink, fontsize=12)
+    ax.text(F.MAJOR[F.LOWITZ] + 0.55, 0, 'Lowitz', ha='center', va='center', color=ink, fontsize=12)
+    ax.set(xlim=(0.55, 3.65), ylim=(-1.75, 1.75), aspect='equal')
     ax.axis('off')
-    ax.set_title('径向剖面 · 两个相交的母圆', color=ink, fontsize=10, pad=7)
+    ax.text(0.5, -0.04, '径向剖面', transform=ax.transAxes, ha='center', va='top',
+            color=ink, fontsize=12)
 
 
 def main(out=None, variant=DEFAULT_VARIANT, width=1601):
     P.apply_style()
-    ink = P.PAL['ink_soft']
-    fig = plt.figure(figsize=(12.8, 7.6))
-    title = '沿径向剖开，看见两条交圈' if variant == 'aligned' else '外环多揭一段，内环少揭一段'
-    fig.text(0.045, 0.935, title, fontsize=18, color=ink)
-    fig.text(0.045, 0.885, '剖面上的两个交点，绕轴各走一圈；浅面是 Lowitz，深面是柱晶。',
-             fontsize=11, color=ink)
-    ax = fig.add_axes([0.02, 0.25, 0.72, 0.59])
+    ink = S.ink
+    fig = plt.figure(figsize=(12.8, 5.3))
+    ax = fig.add_axes([0.0, 0.1, 0.75, 0.9])
     draw_scene(ax, variant, width)
-    section = fig.add_axes([0.76, 0.36, 0.21, 0.36])
+    ax.set_ylim(-2.05, 2.05)
+    section = fig.add_axes([0.765, 0.2, 0.215, 0.74])
     draw_section(section)
-    fig.text(0.865, 0.315, '剖面不填充：这里只是两张薄面。',
-             ha='center', fontsize=9, color=ink)
-    handles = [Line2D([], [], color=P.PAL['arc_roll'], lw=2, label='蓝线：片晶圈（Lowitz 上）'),
-               Line2D([], [], color=P.PAL['face_5'], lw=2, label='橙线：Parry 族的两条交圈'),
-               Line2D([], [], color=P.PAL['face_5'], lw=1.5, ls='--', label='虚线：揭面处补全交圈')]
-    fig.legend(handles=handles, loc='lower center', bbox_to_anchor=(0.5, 0.205),
-               ncol=3, frameon=False, fontsize=10, labelcolor=ink)
-    fig.text(0.5, 0.155, '下圈 t = −90°：Parry 原始姿态。上圈 t = +90°：另一原始圈，经晶体对称对应 Parry。',
-             ha='center', fontsize=10, color=ink)
-    fig.text(0.5, 0.105, '完整 Lowitz 有两条原始交圈；roll 锁 0 的半环只有下圈；按 D₆ 对称认同后两圈同属 Parry 族。',
-             ha='center', fontsize=9.5, color=ink)
-    fig.text(0.5, 0.045, '集合关系示意 · 非整个 SO(3) 的三维欧氏嵌入；切口只揭面，未改变姿态族。背面线不透画。',
-             ha='center', fontsize=9, color=ink)
+    handles = [Line2D([], [], color=S.family['plate'], lw=2.4, label='片晶圈（Lowitz 上）'),
+               Line2D([], [], color=S.family['parry'], lw=2.4, label='Parry 族的两条交圈'),
+               Line2D([], [], color=S.family['parry'], lw=1.8, ls=(0, (4, 3)), label='交圈被切去的一段')]
+    fig.legend(handles=handles, loc='lower center', bbox_to_anchor=(0.39, 0.005),
+               ncol=3, frameon=False, fontsize=12, labelcolor=ink, handlelength=2.2,
+               columnspacing=2.2)
     out = Path(out) if out is not None else Path(__file__).resolve().parents[1] / 'img/tori_section.png'
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=200, metadata={'Software': None})

@@ -3,7 +3,6 @@ from pathlib import Path
 import argparse
 
 import matplotlib.pyplot as plt
-from matplotlib.lines import Line2D
 import numpy as np
 
 import fig_column_torus as T
@@ -26,33 +25,28 @@ def parameter_point(phi, swing):
                      I.display_angle(I.LOWITZ, np.radians(swing)))
 
 
+SWING_PHI = 0.0   # 摆动方向那条小圈的方位：与图 2a 同一位置，偏离正对镜头
+
+
 def main(out=None):
-    fig, ax = T.figure_axes('片晶是 Lowitz 环面上的一圈',
-                            '锁住摆角 t = 0°，只留下方位自由度；解锁摆动，就从片晶圈走上 Lowitz 环面。')
+    fig, ax = T.figure_axes()
     ink = T.TOKENS['ink']
-    image, _ = T.surface_pixels(rings=[(0, T.TOKENS['plate'])],
-                                meridian_color=T.TOKENS['motion'], meridian_phi=-55)
+    image, _ = T.surface_pixels(finish='lowitz', rings=[(0, T.TOKENS['plate'])],
+                                meridian_color=T.TOKENS['motion'], meridian_phi=SWING_PHI)
     ax.imshow(image, origin='lower', extent=T.EXTENT, interpolation='lanczos')
 
-    for phi, swing, text, target in (
-        (-125, 0, '片晶圈 · t = 0°\n沿赤道转动方位 φ', (-3.85, 1.35)),
-        (-55, 30, '摆角 t\n绕长对角线摆动', (3.85, -.65)),
+    for phi, swing, text, target, color in (
+        (-125, 0, '片晶圈 · t = 0°\n沿赤道转动方位 φ', (-3.9, 0.95), T.TOKENS['plate']),
+        (SWING_PHI, 40, '摆角 t\n绕长对角线摆动', (3.9, -1.0), T.TOKENS['motion']),
     ):
         point = parameter_point(phi, swing)
-        ax.annotate(text, T.project(point)[:2], xytext=target, color=ink,
-                    fontsize=10.5, ha='right' if target[0] < 0 else 'left', va='center',
-                    linespacing=1.6,
-                    arrowprops=dict(arrowstyle='-', color=T.TOKENS['mesh'], lw=0.8))
-    T.motion_arrow(ax, parameter_point(np.linspace(-105, -85, 12), 0), T.TOKENS['plate'])
-    T.motion_arrow(ax, parameter_point(-55, np.linspace(25, 40, 12)), T.TOKENS['motion'])
-    handles = [Line2D([], [], color=T.TOKENS['plate'], lw=2, label='片晶圈'),
-               Line2D([], [], color=T.TOKENS['motion'], lw=2, label='固定方位下的摆动')]
-    fig.legend(handles=handles, loc='lower center', bbox_to_anchor=(0.5, 0.205),
-               ncol=2, labelcolor=ink)
-    fig.text(0.5, 0.115, '片晶圈取 c 轴朝上的分支；圈上每一点都是一种片晶姿态。',
-             ha='center', color=ink, fontsize=10)
-    fig.text(0.5, 0.035, '全摆幅参数环面示意 · 与图 3 同向；不是轴角球中的嵌入，网格间距没有物理刻度',
-             ha='center', color=ink, fontsize=9)
+        ax.annotate(text, T.project(point)[:2], xytext=target, color=color,
+                    fontsize=13, ha='right' if target[0] < 0 else 'left', va='center',
+                    linespacing=1.5,
+                    arrowprops=dict(arrowstyle='-', color=ink, lw=0.7, shrinkA=3,
+                                    connectionstyle='angle,angleA=0,angleB=90,rad=5'))
+    T.motion_arrow(ax, parameter_point(np.linspace(-120, -75, 30), 0), T.TOKENS['plate'])
+    T.motion_arrow(ax, parameter_point(SWING_PHI, np.linspace(-25, 60, 40)), T.TOKENS['motion'])
     out = Path(out) if out is not None else Path(__file__).resolve().parents[1] / 'img/plate_lowitz.png'
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=200, metadata={'Software': None})

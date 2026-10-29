@@ -69,8 +69,14 @@ def test_band_overlays_follow_horizontal_axis_constraint():
             u = T.base_terrain(size)[2]
             # c为水平单位向量，s·c范围[-cos h,cos h]。直接取球面z分量，不调用accessible。
             expected = (np.abs(u[..., 2]) <= np.cos(np.radians(h))+1e-12)
-            np.testing.assert_array_equal(image.get_array()[..., 3] > 0, expected)
+            # #48 改画法：族色不再半透明叠在地形上（混色发泥）。大图只在「带内且光学域外」的留白处
+            # 淡染、带外地形另由 column-outside-wash 压淡；小球无地形，整条带淡染。
+            domain = np.isfinite(T.base_terrain(size)[3])
+            tinted = expected & ~domain if name == 'column-terrain' else expected
+            np.testing.assert_array_equal(image.get_array()[..., 3] > 0, tinted)
             assert np.max(image.get_array()[..., 3]) < .5
+            wash = next(im for im in ax.images if im.get_gid() == 'column-outside-wash')
+            np.testing.assert_array_equal(wash.get_array()[..., 3] > 0, domain & ~expected)
             boundaries = [line for line in ax.lines if line.get_gid() == 'column-band-boundary']
             assert len(boundaries) == 2
             for line, latitude in zip(boundaries, (h-90, 90-h)):

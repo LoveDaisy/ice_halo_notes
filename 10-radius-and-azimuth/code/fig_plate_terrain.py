@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap, Normalize
 from halo_notes.draw.projection import Camera
+from halo_notes.draw.style.candidate import scheme
 
 import check_parhelion as C
 
@@ -26,23 +27,21 @@ VIEW_AZ, VIEW_EL = 310.0, 12.0
 CAMERA = Camera(azimuth=VIEW_AZ, elevation=VIEW_EL,
                 projection="perspective", distance=8.0)
 LEVELS = (22, 25, 30, 40, 50)
+S = scheme()
 COLORS = {
-    "ink": P.PAL["ink_soft"],
-    "grid": P.PAL["reference"],
-    "latitude": P.PAL["face_5"],
-    "edge": P.PAL["ice_edge"],
-    "surface": P.PAL["background"],
-}
-# 每套都是单调明度标尺，不叠加球面灯光；D 的数值与定义域不随外观变化。
-RAMPS = {
-    "original": (P.PAL["ice"], P.PAL["face_4"], P.PAL["ink_soft"]),
-    "chalk": ("#EFEDE7", "#AAA69B", "#5B5953"),
-    "mineral": ("#E5EEEB", "#92B1A8", "#385E55"),
+    "ink": S.ink,
+    "grid": S.guide,
+    "latitude": S.family["plate"],
+    "column": S.family["column"],
+    "random": S.family["random"],
+    "edge": S.sphere_edge,
+    "surface": S.paper,
 }
 
 
-def distance_cmap(style="original"):
-    return LinearSegmentedColormap.from_list(f"distance_{style}", RAMPS[style])
+def distance_cmap():
+    """地形色阶：单色相、明度单调，不叠加球面灯光；D 的数值与定义域不随外观变化。"""
+    return LinearSegmentedColormap.from_list(f"distance_{S.terrain}", S.terrain_ramp)
 
 
 def project(u, camera=CAMERA):
@@ -139,10 +138,10 @@ def base_terrain(size=801):
     return arrays
 
 
-def draw_base(ax, style="original"):
+def draw_base(ax):
     """3a–3d 的同一相机、光学域、数值色阶、经网与等值线。"""
     ink, guide = COLORS["ink"], COLORS["grid"]
-    cmap = distance_cmap(style)
+    cmap = distance_cmap()
     norm = Normalize(21.0, 53.0)
     ax.set_aspect("equal")
     x, y, _, d = base_terrain()
@@ -161,29 +160,46 @@ def draw_base(ax, style="original"):
                           colors=ink, linewidths=0.7, alpha=0.8, zorder=3)
     # 等值线标注放在未叠片晶纬线的南半球，避免与最低点争夺视线。
     for level, position in [(25, (0.2, -0.63)), (30, (-0.35, -0.68)), (40, (-0.52, -0.62))]:
-        ax.clabel(contours, levels=[level], inline=True, fontsize=9,
+        ax.clabel(contours, levels=[level], inline=True, fontsize=11,
                   fmt=lambda v: f"{v:g}°", manual=[position])
     outline = project(silhouette())
     ax.plot(outline[:, 0], outline[:, 1], color=COLORS["edge"], lw=0.8, zorder=4)
     return cmap, norm
 
 
-def main(style="original", out=None):
-    if style != "original" and out is None:
-        raise ValueError("候选变体必须显式指定输出路径，不能覆盖原图")
+# 数学下标与中文混排：整串放进 mathtext，中文段包在 \mathrm{} 里由 Hiragino 渲染。
+MATH_RC = {"mathtext.fontset": "custom", "mathtext.rm": "Hiragino Sans GB",
+           "mathtext.it": "Helvetica Neue:italic", "mathtext.bf": "Helvetica Neue:bold",
+           "mathtext.sf": "Helvetica Neue"}
+
+
+def apply_style():
     P.apply_style()
+    plt.rcParams.update(MATH_RC)
+
+
+def limb_point(latitude, side=1):
+    """该纬线上透视可见、像平面最靠右（side=-1 为最靠左）的点：标签从这里水平写出，不用穿过地形的引线。"""
+    u = C.unit_from(latitude, np.linspace(0, 360, 2881))
+    xy = project(u)[:, :2]
+    score = side * xy[:, 0]
+    score[~sphere_visible(u)] = -np.inf
+    return xy[np.argmax(score)]
+
+
+def main(out=None):
+    apply_style()
     ink = COLORS["ink"]
     accent = COLORS["latitude"]
-    fig = plt.figure(figsize=(10.4, 7.6))
-    ax = fig.add_axes([0.045, 0.20, 0.92, 0.68])
-    cmap, norm = draw_base(ax, style)
+    fig = plt.figure(figsize=(9.6, 6.6))
+    ax = fig.add_axes([0.0, 0.12, 1.0, 0.86])
+    cmap, norm = draw_base(ax)
     az = np.linspace(0, 360, 1441)
-    targets = dict(zip(HEIGHTS, (-0.21, 0.14, 0.49, 0.84, 1.17)))
     for h in HEIGHTS:
         critical = h == C.critical_height()
         row = None if critical else latitude_minimum(h)
         line, = visible_curve(ax, C.unit_from(h, az), color=accent if row or critical else ink,
-                              lw=1.5 if row or critical else 1.1,
+                              lw=1.8 if row or critical else 1.1,
                               ls=(0, (5, 2)) if critical else '-' if row else (0, (2, 3)), zorder=5)
         line.set_gid(f'latitude-{h:g}')
         if critical:
@@ -191,39 +207,36 @@ def main(style="original", out=None):
             point = ax.scatter(*xy, s=65, facecolors=COLORS['surface'], edgecolors=ink,
                                linewidth=1.5, zorder=8)
             point.set_gid('critical-closure-contact')
-            text = f'h = h_c ≈ {h:.2f}°\n闭包相切，透射趋零'
+            text = rf"$h = h_c \approx {h:.2f}°\mathrm{{\ \ 闭包相切，透射趋零}}$"
         elif row is None:
-            xy = project(C.unit_from(h, VIEW_AZ))[:2]
-            text = "h = 65°\n整圈已在定义域之外"
+            text = f"h = {h:g}°  整圈在定义域外"
         else:
             u, value = row
             xy = project(u)[:2]
             ax.scatter(*xy, s=45, c=ink, edgecolor=COLORS["surface"],
                        linewidth=1.5, zorder=7)
-            text = f"h = {h:.0f}°    最近 {value:.2f}°"
-            if h == 0:
-                text += "\n与全局最低点重合"
-        target = targets[h]
-        ax.plot([xy[0] + 0.025, 1.11, 1.19], [xy[1], target, target],
-                color=COLORS["edge"], lw=0.7, zorder=6)
-        ax.text(1.23, target, text, fontsize=11, color=ink, va="center", linespacing=1.6)
+            text = f"h = {h:.0f}°  最近 {value:.2f}°"
+        if row is None and not critical:
+            # 65° 纬圈很小、与临界纬线贴得近：标签放到左侧，免得两行挤在一起。
+            x, y = limb_point(h, side=-1)
+            ax.text(x - 0.05, y + 0.03, text, fontsize=13, color=ink, va="bottom", ha="right")
+            continue
+        x, y = limb_point(h)
+        ax.text(x + 0.05, y, text, fontsize=13, color=accent, va="center")
     pole = project(np.array([0, 0, 1.0]))[:2]
-    ax.text(pole[0] - 0.04, pole[1] + 0.055, "c 轴", color=ink, ha="right", fontsize=10)
-    ax.text(-1.06, 0.67, "留白：\n无可行出射方向", ha="right", va="center", color=ink, fontsize=9.5)
-    ax.text(-0.86, -0.35, "u 球", color=ink, fontsize=15)
-    ax.set_xlim(-1.47, 2.48)
+    ax.text(pole[0] - 0.04, pole[1] + 0.055, "c 轴", color=ink, ha="right", fontsize=12)
+    ax.text(-1.06, 0.45, "留白：\n无可行出射方向", ha="right", va="center", color=ink,
+            fontsize=12, linespacing=1.5)
+    ax.text(-1.0, -0.95, "u 球", color=ink, fontsize=14, ha="right")
+    ax.set_xlim(-1.5, 2.3)
     ax.set_ylim(-1.08, 1.28)
     ax.axis("off")
-    fig.text(0.055, 0.935, "片晶：太阳越高，纬线上的最低点也越高", fontsize=16, color=ink)
-    fig.text(0.055, 0.884, "同一条 3–5 光路 · 实心点是纬线最低点；空心点只标临界闭包，不代表有光。",
-             fontsize=10.5, color=ink)
-    cax = fig.add_axes([0.22, 0.115, 0.32, 0.018])
+    cax = fig.add_axes([0.2, 0.075, 0.36, 0.022])
     cb = fig.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap), cax=cax,
                       orientation="horizontal", ticks=[22, 30, 40, 50])
     cb.outline.set_visible(False)
-    cb.ax.tick_params(labelsize=9, length=3, color=ink)
-    cb.set_label("地形数值 D：光点离太阳的角距离（°）", fontsize=10, color=ink)
-    fig.text(0.67, 0.115, "着色表示角距离，不是亮度。", fontsize=9.5, color=ink)
+    cb.ax.tick_params(labelsize=11, length=3, color=ink)
+    cb.set_label("角距离 D（°）", fontsize=12, color=ink)
     out = Path(out) if out is not None else Path(__file__).resolve().parents[1] / "img/plate_terrain.png"
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=200, metadata={"Software": None})
@@ -233,7 +246,6 @@ def main(style="original", out=None):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--style", choices=RAMPS, default="original")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
-    main(args.style, args.output)
+    main(args.output)

@@ -16,8 +16,9 @@ import numpy as np
 from halo_notes.draw.geometry import HexPrism, Polyhedron
 from halo_notes.draw.projection import Camera
 from halo_notes.draw.raypath import RayPath, search_raypath
-from halo_notes.draw.scene import finish, render_crystal
+from halo_notes.draw.scene import Z_EXTERNAL, Z_INTERNAL, draw_segment, finish, render_crystal
 from halo_notes.draw.style import PRESETS
+from halo_notes.draw.style.candidate import scheme
 from halo_notes.draw.style.mapping import FillStyle, LineStyle
 
 import check_parhelion as optics
@@ -30,26 +31,26 @@ _spec = importlib.util.spec_from_file_location(
 P = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(P)
 
-# 几何、光线和分量各司其职；不复制系列调色板。两图共享这些语义入口。
-INK = P.PAL["ink_soft"]
-RAY = P.PAL["accent_warm"]
-COMPONENT = P.PAL["arc_roll"]
-ICE = P.PAL["ice"]
-EDGE = P.PAL["ice_edge"]
-GUIDE = P.PAL["reference"]
-PAPER = P.PAL["background"]
+# 颜色全部取自 #48 候选方案的语义槽；图 4 与图 6 共享这些入口。
+S = scheme()
+INK = S.ink
+RAY = S.ray_in            # 入射与冰内段：珊瑚红
+RAY_OUT = S.ray_out       # 出射段：蓝（系列光线约定）
+ANGLE = S.pair["b"]       # 方位差 Δφ：与图 5 同一个紫
+COMPONENT = S.pair["a"]   # 非族的中性强调（k 的分量）：墨
+ICE = S.crystal_fill
+EDGE = S.crystal_edge
+GUIDE = S.guide
+PAPER = S.paper
 PRISM_STYLE = PRESETS["ice_filled"].replace(
     style_map=PRESETS["ice_filled"].style_map.replace(
         face_fill=FillStyle("ice", alpha=0.27),
         ray_incident=LineStyle("accent_warm", linewidth=1.8),
         ray_internal=LineStyle("accent_warm", linewidth=1.8),
-        ray_exit=LineStyle("accent_warm", linewidth=1.8),
+        ray_exit=LineStyle("accent_cool", linewidth=1.8),
         ray_occluded=LineStyle("accent_warm", linewidth=1.4, alpha=0.75),
     ),
-    geom=PRESETS["ice_filled"].geom.replace(
-        cone_length=0.18, cone_radius=0.055, cone_rings=1,
-        end_markers=False, face_number_height=0.24,
-    ),
+    geom=PRESETS["ice_filled"].geom.replace(end_markers=False, face_number_height=0.24),
 )
 CAMERA = Camera(azimuth=40, elevation=22, distance=9, projection="perspective")
 SUN_HEIGHT = 40.0
@@ -113,6 +114,46 @@ def arrow(ax, start, end, *, color=COMPONENT, lw=1.5, **kwargs):
                                        mutation_scale=12, shrinkA=0, shrinkB=0), **kwargs)
 
 
+def ray_head(ax, p, q, color, zorder=9):
+    """光线上的方向箭头：纸面上同一种实心小三角，三维图与俯视图共用（不用锥体，免得近端视成圆环）。"""
+    d = (np.asarray(q) - np.asarray(p))
+    d = d / np.linalg.norm(d)
+    tip = 0.42 * np.asarray(p) + 0.58 * np.asarray(q)
+    return ax.annotate("", xy=tip, xytext=tip - 0.01 * d,
+                       arrowprops=dict(arrowstyle="-|>", color=color, lw=0,
+                                       mutation_scale=19, shrinkA=0, shrinkB=0), zorder=zorder)
+
+
+def draw_ray3d(ax, scene, camera):
+    """真实光路的透视投影：外部段按晶体遮挡分段，冰内段整段画出；入射红、出射蓝。"""
+    points = scene.path.points
+    exit_hidden = LineStyle("accent_cool", linewidth=1.4, alpha=0.6)
+    for (p0, p1, kind), semantic in zip(scene.path.segments(),
+                                        ("ray_incident", None, "ray_exit")):
+        if semantic is None:
+            xy = camera.project_xy(np.stack([p0, p1]))
+            ax.plot(*xy.T, color=RAY, lw=1.8, alpha=0.85, solid_capstyle="round", zorder=Z_INTERNAL)
+            continue
+        draw_segment(ax, p0, p1, camera=camera, preset=PRISM_STYLE, semantic=semantic,
+                     occluded_semantic="ray_occluded" if semantic == "ray_incident" else exit_hidden,
+                     occluder=scene.crystal,
+                     z_visible=Z_EXTERNAL, z_hidden=Z_INTERNAL)
+    xy = camera.project_xy(points)
+    for i, color in ((0, RAY), (2, RAY_OUT)):
+        ray_head(ax, xy[i], xy[i + 1], color)
+    return xy
+
+
+def draw_ray2d(ax, xy, gid):
+    """平面投影上的同一条光路：入射 + 冰内段一条红线，出射段蓝线，箭头同 ``ray_head``。"""
+    line, = ax.plot(*xy[:3].T, color=RAY, lw=1.8, zorder=4)
+    line.set_gid(gid)
+    out, = ax.plot(*xy[2:].T, color=RAY_OUT, lw=1.8, zorder=4)
+    out.set_gid(f"{gid}-exit")
+    for i, color in enumerate((RAY, RAY, RAY_OUT)):
+        ray_head(ax, xy[i], xy[i + 1], color, zorder=5)
+
+
 def save(fig, name, output=None):
     output = Path(output) if output else Path(__file__).resolve().parents[1] / f"img/{name}.png"
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -133,16 +174,15 @@ def build_comparison():
 
 
 def draw_prism(ax, scene):
-    render_crystal(ax, scene.crystal, [scene.path], camera=CAMERA,
-                   preset=PRISM_STYLE, face_numbers=False)
+    render_crystal(ax, scene.crystal, camera=CAMERA, preset=PRISM_STYLE, face_numbers=False)
     c_line = np.array([[0, 0, -1.6], [0, 0, 1.85]])
     cp = CAMERA.project_xy(c_line)
     ax.plot(*cp.T, color=EDGE, lw=0.8, ls=(0, (3, 3)), zorder=2)
     arrow(ax, cp[-1] - [0, 0.3], cp[-1], color=EDGE)
-    ax.text(*(cp[-1] + [0.12, 0.01]), "竖直棱", color=INK, fontsize=10)
-    xy = CAMERA.project_xy(scene.path.points)
-    ax.text(*(xy[0] + [-0.04, 0.18]), "入射", color=INK, ha="right", fontsize=10)
-    ax.text(*(xy[-1] + [0.06, -0.03]), "出射", color=INK, fontsize=10)
+    ax.text(*(cp[-1] + [0.12, 0.01]), "竖直棱", color=INK, fontsize=12)
+    xy = draw_ray3d(ax, scene, CAMERA)
+    ax.text(*(xy[0] + [-0.06, 0.12]), "入射", color=INK, ha="right", fontsize=12)
+    ax.text(*(xy[-1] + [0.08, -0.03]), "出射", color=INK, fontsize=12, va="center")
     finish(ax, (-2.25, 2.3), (-1.8, 2.05))
 
 
@@ -154,17 +194,48 @@ def horizontal_deviation(scene):
     )))
 
 
+def wedge_edges(scene):
+    """水平截面上入射面 3 与出射面 5 的两条边（纸面坐标）：构成 60° 楔的就是这两面。"""
+    top = scene.crystal.face_vertices(scene.crystal.face(1))
+    edges = []
+    for number in (3, 5):
+        face = scene.crystal.face(number)
+        normal = scene.crystal.normal(face)
+        offset = scene.crystal.face_vertices(face)[0] @ normal
+        on_face = np.abs(top @ normal - offset) < 1e-9
+        edges.append(top[on_face][:, :2] @ SECTION_BASIS.T)
+    return edges
+
+
+def line_intersection(a, b):
+    (p, q), (r, s) = a, b
+    d1, d2 = q - p, s - r
+    t = np.linalg.solve(np.column_stack([d1, -d2]), r - p)[0]
+    return p + t * d1
+
+
 def draw_section(ax, scene):
     section = scene.crystal.face_vertices(scene.crystal.face(1))[:, :2] @ SECTION_BASIS.T
-    ax.add_patch(Polygon(section, facecolor=ICE, edgecolor=EDGE, lw=1.1))
+    ax.add_patch(Polygon(section, facecolor=ICE, edgecolor=EDGE, lw=1.1, alpha=0.55))
+    # 构成 60° 楔的两面：加粗画出，各自延长到相交处标出楔角。
+    edges = wedge_edges(scene)
+    apex = line_intersection(*edges)
+    for edge in edges:
+        line, = ax.plot(*edge.T, color=EDGE, lw=3.0, solid_capstyle="butt", zorder=3)
+        line.set_gid("wedge-face")
+        near = edge[np.argmin(np.linalg.norm(edge - apex, axis=1))]
+        ax.plot(*np.vstack([near, apex]).T, color=EDGE, lw=0.9, ls=(0, (3, 3)), zorder=3)
+    legs = [e.mean(axis=0) - apex for e in edges]
+    angles = sorted(np.arctan2(v[1], v[0]) for v in legs)
+    if angles[1] - angles[0] > np.pi:
+        angles = [angles[1], angles[0] + 2 * np.pi]
+    t = np.linspace(*angles, 40)
+    ax.plot(*(apex[:, None] + 0.32 * np.vstack([np.cos(t), np.sin(t)])), color=EDGE, lw=0.9)
+    mid = np.mean(angles)
+    ax.text(*(apex + 0.55 * np.array([np.cos(mid), np.sin(mid)])), "60°", color=INK,
+            fontsize=12, ha="center", va="center")
     path_xy = scene.path.points[:, :2] @ SECTION_BASIS.T
-    line, = ax.plot(*path_xy.T, color=RAY, lw=1.8, zorder=4)
-    line.set_gid("projected-ray")
-    for p, q in zip(path_xy[:-1], path_xy[1:]):
-        arrow(ax, 0.7 * p + 0.3 * q, 0.4 * p + 0.6 * q, color=RAY, zorder=5)
-    for event in scene.path.events:
-        point = path_xy[event.point_index]
-        ax.scatter(*point, color=RAY, s=19, edgecolors=PAPER, linewidths=0.5, zorder=6)
+    draw_ray2d(ax, path_xy, "projected-ray")
     # 将入射方向平移到出射点，弧线量的是实际水平偏折，不是两面夹角。
     vertex = path_xy[2]
     d_in = path_xy[1] - path_xy[0]
@@ -176,15 +247,14 @@ def draw_section(ax, scene):
     arc = vertex + radius * np.column_stack([np.cos(angles), np.sin(angles)])
     ax.plot(*np.vstack([vertex, vertex + 1.15 * d_in / np.linalg.norm(d_in)]).T,
             color=EDGE, lw=0.9, ls=(0, (3, 3)))
-    line, = ax.plot(*arc.T, color=COMPONENT, lw=1.5, zorder=7)
+    line, = ax.plot(*arc.T, color=ANGLE, lw=1.6, zorder=7)
     line.set_gid("horizontal-deviation-arc")
     ax.annotate("", xy=arc[-1], xytext=arc[-5],
-                arrowprops=dict(arrowstyle="->", color=COMPONENT, lw=1.5), zorder=7)
-    ax.text(0.0, 0.48, "同一个 60° 楔", color=INK, ha="center", fontsize=11)
-    ax.text(1.35, -0.70, f"Δφ = {horizontal_deviation(scene):.2f}°",
-            color=INK, fontsize=12, ha="center")
-    ax.text(1.64, -0.43, "入射方向延长", color=INK, fontsize=8.5, ha="center")
-    finish(ax, (-2.15, 2.5), (-1.03, 1.02))
+                arrowprops=dict(arrowstyle="->", color=ANGLE, lw=1.6), zorder=7)
+    tip = vertex + 1.1 * radius * np.array([np.cos(angles[30]), np.sin(angles[30])])
+    ax.text(tip[0] + 0.1, tip[1], f"Δφ = {horizontal_deviation(scene):.2f}°",
+            color=INK, fontsize=13, ha="left", va="center")
+    finish(ax, (-2.0, 2.9), (-1.42, 1.15))
 
 
 def draw_components(ax, scene):
@@ -199,46 +269,45 @@ def draw_components(ax, scene):
         arrow(ax, start, tip, color=RAY)
         arrow(ax, start, corner, color=COMPONENT, lw=1.2)
         arrow(ax, corner, tip, color=COMPONENT, lw=1.2)
-        ax.text(*(0.5 * (start + corner) + [0, 0.13]), label, ha="center",
-                fontsize=10.5, color=INK)
+        ax.text(*(0.5 * (start + corner) + [0, 0.3]), label, ha="center",
+                fontsize=12, color=INK)
+        ax.text(*(0.5 * (start + corner) + [0, 0.03]), r"$k_\perp$", ha="center", va="bottom",
+                fontsize=13, color=INK)
         ax.text(*(0.5 * (corner + tip) + [0.09, 0]), r"$k_z$", color=INK,
-                fontsize=11, va="center")
+                fontsize=13, va="center")
     ax.plot([-0.1, 2.9], [kvec[0, 2]] * 2, color=EDGE, lw=0.8, ls=(0, (3, 3)))
-    ax.text(1.3, -0.93, "同一入射界面：竖直分量不变，水平分量增大", ha="center",
-            fontsize=10, color=INK)
-    finish(ax, (-0.15, 3.05), (-1.03, 0.38))
+    ax.text(2.95, kvec[0, 2], r"$k_z$", fontsize=13, color=INK, va="center")
+    ax.text(3.2, kvec[0, 2], "相同", fontsize=12, color=INK, va="center")
+    finish(ax, (-0.15, 3.6), (-0.95, 0.55))
 
 
 def make_figure():
     scenes = build_comparison()
     P.apply_style()
-    fig = plt.figure(figsize=(12.4, 9.2))
-    fig.text(0.045, 0.95, "同一个楔，斜穿时水平偏折更大", fontsize=18, color=INK)
-    fig.text(0.045, 0.905, "正穿指光线垂直棱轴；两例都取各自的最小偏向光路。", fontsize=11, color=INK)
+    fig = plt.figure(figsize=(12.4, 8.2))
     for index, (left, scene, title) in enumerate(zip(
         (0.035, 0.525), scenes, ("正穿 · h = 0°", f"斜穿 · h = {SUN_HEIGHT:g}°"),
     )):
-        fig.text(left + 0.02, 0.855, title, fontsize=13, color=INK)
-        ax = fig.add_axes([left, 0.525, 0.44, 0.31], label=f"prism-3d-{index}")
+        fig.text(left + 0.02, 0.965, title, fontsize=14, color=INK, va="top")
+        ax = fig.add_axes([left, 0.575, 0.44, 0.37], label=f"prism-3d-{index}")
         draw_prism(ax, scene)
-        fig.text(left + 0.02, 0.49, "从上往下看", fontsize=11, color=INK)
-        ax2 = fig.add_axes([left, 0.285, 0.44, 0.19], label=f"horizontal-section-{index}")
+        fig.text(left + 0.02, 0.57, "从上往下看", fontsize=13, color=INK, va="top")
+        ax2 = fig.add_axes([left, 0.29, 0.44, 0.28], label=f"horizontal-section-{index}")
         draw_section(ax2, scene)
         k = scene.wavevectors
         n_eff = np.linalg.norm(k[1, :2]) / np.linalg.norm(k[0, :2])
-        fig.text(left + 0.15, 0.26, f"水平截面的 n′ = {n_eff:.3f}", fontsize=12, color=INK)
+        fig.text(left + 0.43, 0.33, f"水平截面的 n′ = {n_eff:.3f}", fontsize=13, color=INK,
+                 ha="right", va="center")
 
-    fig.add_artist(Line2D([0.055, 0.945], [0.225, 0.225], transform=fig.transFigure,
+    fig.add_artist(Line2D([0.055, 0.945], [0.235, 0.235], transform=fig.transFigure,
                          color=GUIDE, lw=0.7))
-    fig.text(0.055, 0.195, "斜穿时，为什么 n′ 变大？", fontsize=12, color=INK)
-    comp = fig.add_axes([0.055, 0.025, 0.40, 0.155], label="wavevector-components")
+    fig.text(0.055, 0.215, f"斜穿（h = {SUN_HEIGHT:g}°）时入射面两侧的 k", fontsize=13,
+             color=INK, va="top")
+    comp = fig.add_axes([0.055, 0.02, 0.44, 0.17], label="wavevector-components")
     draw_components(comp, scenes[1])
-    fig.text(0.54, 0.16, "k = n × 单位传播方向", fontsize=11, color=INK)
-    fig.text(0.54, 0.105, r"$n'=\dfrac{|k_{\perp,\,\mathrm{ice}}|}{|k_{\perp,\,\mathrm{air}}|}"
-             r"=\dfrac{\sqrt{n^2-\sin^2h}}{\cos h}$", fontsize=16, color=INK)
-    fig.legend(handles=[Line2D([], [], color=RAY, lw=1.8, label="光线 / k"),
-                        Line2D([], [], color=COMPONENT, lw=1.5, label="角度 / 分量")],
-               loc="lower left", bbox_to_anchor=(0.525, 0.035), ncol=2, labelcolor=INK)
+    fig.text(0.6, 0.15, r"$\mathbf{k} = n\,\hat{\mathbf{d}}$", fontsize=15, color=INK)
+    fig.text(0.6, 0.075, r"$n'=\dfrac{|k_{\perp,\,\mathrm{ice}}|}{|k_{\perp,\,\mathrm{air}}|}"
+             r"=\dfrac{\sqrt{n^2-\sin^2h}}{\cos h}$", fontsize=17, color=INK)
     return fig, scenes
 
 

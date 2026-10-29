@@ -64,8 +64,8 @@ def test_plate_disjoint_and_d6_identification_is_not_raw_equality():
         np.testing.assert_allclose(plate[:, 2], [0, 0, 1], atol=1e-12)
         assert np.linalg.norm(minus - plus) > 2
         np.testing.assert_allclose(minus @ np.diag([-1, -1, 1]), plus, atol=1e-12)
-        assert F.N.C.d6_index(minus.T @ plus) is not None
-        assert F.N.C.d6_index(plate.T @ minus) is None
+        assert F.C.d6_index(minus.T @ plus) is not None
+        assert F.C.d6_index(plate.T @ minus) is None
     for kind in (F.LOWITZ, F.COLUMN):
         for angle in np.linspace(-np.pi, np.pi, 21):
             np.testing.assert_allclose(F.attitude(kind, 0, angle), F.attitude(kind, 2*np.pi, angle), atol=1e-12)
@@ -133,11 +133,19 @@ def test_two_surface_raster_hits_project_to_pixel_centers():
     np.testing.assert_allclose(F.CAMERA.project_xy(xyz), expected, atol=1e-12)
 
 
-def test_leader_targets_are_visible_not_hidden_backside():
-    for kind, phi, angle, *_ in F.LEADERS:
-        p = F.surface(kind, phi, angle)
-        origin = F.CAMERA.position
-        depth = np.linalg.norm(p - origin)
-        direction = (p - origin) / depth
-        nearest = min(analytic_depth(origin, direction, k) for k in (F.LOWITZ, F.COLUMN))
-        np.testing.assert_allclose(nearest, depth, atol=1e-7)
+def test_full_lowitz_two_circles_and_half_one_circle():
+    # 从已退役的局部邻域图测试迁来：完整 Lowitz 摆角 t=±90° 各交一圈，半环只剩一圈。
+    t = np.arange(-180, 180, 0.5)
+    for phi in (0, 37, 183):
+        r = np.stack([F.lowitz_attitude(phi, angle) for angle in t])
+        intersections = t[np.abs(r[:, 2, 2]) < 1e-12]
+        np.testing.assert_array_equal(intersections, [-90, 90])
+        np.testing.assert_array_equal(intersections[(intersections >= -180) & (intersections <= 0)], [-90])
+        np.testing.assert_allclose(F.lowitz_attitude(phi, 0)[:, 2], [0, 0, 1], atol=1e-12)
+        np.testing.assert_allclose(F.lowitz_attitude(phi, -180), F.lowitz_attitude(phi, 180), atol=1e-12)
+        # 原始两交圈不是同一圈；右乘群元素后才属于同一物理族。
+        a = F.lowitz_attitude(phi, -90)
+        b = F.lowitz_attitude(phi + 180, 90)
+        assert np.linalg.norm(a - b) > 2
+        assert F.C.d6_index(a.T @ b) is not None
+        assert F.C.d6_index(F.lowitz_attitude(phi, 0).T @ a) is None
