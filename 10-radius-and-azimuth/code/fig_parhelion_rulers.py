@@ -10,6 +10,8 @@ from matplotlib.patches import Polygon
 import numpy as np
 
 from halo_notes.draw.projection import Camera
+from halo_notes.draw.scene import _plot_runs
+from halo_notes.draw.sphere import Sphere
 
 import check_parhelion as C
 from fig_plate_terrain import P, plt
@@ -18,7 +20,7 @@ COLORS = {'distance': P.PAL['arc_roll'], 'azimuth': P.PAL['face_5'],
           'ink': P.PAL['ink_soft'], 'guide': P.PAL['reference'],
           'edge': P.PAL['ice_edge'], 'sphere': P.PAL['ice'],
           'paper': P.PAL['background']}
-CAMERA = Camera(azimuth=0, elevation=18, distance=5, projection='perspective')
+CAMERA = Camera(azimuth=-32, elevation=22, distance=5, projection='perspective')
 SUN_HEIGHT = 40.0
 
 
@@ -29,6 +31,9 @@ class RulerGeometry:
     projections: np.ndarray
     great_circle: np.ndarray
     horizontal_arc: np.ndarray
+    meridians: np.ndarray
+    latitude: np.ndarray
+    equator: np.ndarray
     distance: float
     azimuth: float
 
@@ -54,16 +59,23 @@ def ruler_geometry(height=SUN_HEIGHT):
     if height < 0 or height >= C.critical_height() or delta is None:
         raise ValueError('height must lie below the grazing critical height')
     directions = C.unit_from(height, np.array([-delta / 2, delta / 2]))
+    # 沿经线落到赤道的是单位方位方向，不是长度 cos(h) 的垂足。
     projections = directions.copy()
     projections[:, 2] = 0.0
+    projections /= np.linalg.norm(projections, axis=1, keepdims=True)
     distance = C.spherical_distance(height, delta)
     angle = np.radians(distance)
     t = np.linspace(0.0, 1.0, 181)
     great_circle = (np.sin((1 - t) * angle)[:, None] * directions[0]
                     + np.sin(t * angle)[:, None] * directions[1]) / np.sin(angle)
     horizontal_arc = C.unit_from(0.0, np.linspace(-delta / 2, delta / 2, len(t)))
+    meridian_heights = np.unique(np.r_[np.linspace(0, 90, 181), height])[::-1]
+    meridians = np.stack([C.unit_from(meridian_heights, np.full_like(meridian_heights, az))
+                          for az in (-delta / 2, delta / 2)])
+    azimuths = np.linspace(0, 360, 721)
     return RulerGeometry(float(height), directions, projections, great_circle,
-                         horizontal_arc, float(distance), float(delta))
+                         horizontal_arc, meridians, C.unit_from(height, azimuths),
+                         C.unit_from(0, azimuths), float(distance), float(delta))
 
 
 def plot3(ax, points, *, gid=None, **kwargs):
@@ -90,93 +102,71 @@ def sphere_outline():
                               + np.sin(t)[:, None] * CAMERA.cam_up)
 
 
+def surface_guide(ax, points, *, dotted=False):
+    """共用球面朝向与切段机制；背面减淡，纬线另用点线区分。"""
+    visible = dict(color=COLORS['edge'], lw=0.9,
+                   ls=(0, (1.5, 3)) if dotted else '-')
+    hidden = dict(color=COLORS['guide'], lw=0.75, ls=(0, (1.5, 3)))
+    _plot_runs(ax, points, Sphere().facing(points, CAMERA), CAMERA,
+               visible, hidden, 1, -1)
+
+
 def sky_panel(ax, data):
     ink = COLORS['ink']
     rim = CAMERA.project_xy(sphere_outline())
     ax.add_patch(Polygon(rim, facecolor=COLORS['sphere'], alpha=0.20,
                          edgecolor='none', zorder=-10))
     ax.plot(*rim.T, color=COLORS['edge'], lw=0.9, zorder=-2)
-    az = np.linspace(0, 360, 721)
-    horizon = C.unit_from(0, az)
-    ax.add_patch(Polygon(CAMERA.project_xy(horizon), facecolor=COLORS['sphere'],
+    ax.add_patch(Polygon(CAMERA.project_xy(data.equator), facecolor=COLORS['sphere'],
                          alpha=0.35, edgecolor='none', zorder=-5))
-    plot3(ax, horizon, color=COLORS['edge'], lw=0.8, zorder=-1)
-    latitude = C.unit_from(data.height, az)
-    plot3(ax, latitude, color=COLORS['guide'], lw=0.85, ls=(0, (2, 3)), zorder=0)
-    plot3(ax, [[0, 0, -1], [0, 0, 1.15]], color=COLORS['guide'], lw=0.8, zorder=-1)
-    north = CAMERA.project_xy([0, 0, 1.15])[0]
-    ax.text(*north, '天顶', ha='center', va='bottom', color=ink, fontsize=10)
+    surface_guide(ax, data.equator)
+    surface_guide(ax, data.latitude, dotted=True)
+    plot3(ax, [[0, 0, -1], [0, 0, 1]], color=COLORS['guide'], lw=0.7, zorder=-1)
+    north = CAMERA.project_xy([0, 0, 1])[0]
+    ax.scatter(*north, s=22, color=ink, zorder=8)
+    ax.annotate('天顶', xy=north, xytext=(-9, 10), textcoords='offset points',
+                ha='right', va='bottom', color=ink, fontsize=11)
 
-    for i, (direction, foot) in enumerate(zip(data.directions, data.projections)):
-        plot3(ax, [[0, 0, 0], direction], gid=f'direction-{i}',
-              color=COLORS['distance'], lw=1.45, zorder=3)
-        plot3(ax, [[0, 0, 0], foot], gid=f'projection-{i}',
-              color=COLORS['azimuth'], lw=1.45, ls=(0, (5, 2)), zorder=3)
-        plot3(ax, [direction, foot], gid=f'drop-{i}', color=COLORS['edge'],
-              lw=0.9, ls=(0, (3, 3)), zorder=2)
+    for i, (direction, foot, meridian) in enumerate(zip(
+            data.directions, data.projections, data.meridians)):
+        plot3(ax, meridian, gid=f'meridian-{i}', color=COLORS['edge'], lw=1.25, zorder=3)
         xy = CAMERA.project_xy(direction)[0]
         fp = CAMERA.project_xy(foot)[0]
-        ax.scatter(*xy, marker='*' if i == 0 else 'o', s=140 if i == 0 else 48,
+        ax.scatter(*xy, marker='*' if i == 0 else 'o', s=155 if i == 0 else 55,
                    facecolor=COLORS['distance'], edgecolor=COLORS['paper'],
                    linewidth=1, zorder=8)
-        ax.scatter(*fp, s=30, facecolor=COLORS['paper'],
-                   edgecolor=COLORS['azimuth'], linewidth=1.4, zorder=8)
-        dx = -0.14 if i == 0 else 0.14
-        ax.text(xy[0] + dx, xy[1] + 0.045, '太阳' if i == 0 else '幻日',
-                ha='right' if i == 0 else 'left', color=ink, fontsize=12)
+        ax.scatter(*fp, s=40, facecolor=COLORS['paper'],
+                   edgecolor=COLORS['azimuth'], linewidth=1.5, zorder=8)
+        ax.annotate('太阳' if i == 0 else '幻日', xy=xy,
+                    xytext=(-12, -5) if i == 0 else (12, 0), textcoords='offset points',
+                    ha='right' if i == 0 else 'left', va='center', color=ink, fontsize=12)
+        ax.annotate('太阳的方位' if i == 0 else '幻日的方位', xy=fp,
+                    xytext=(-12, -16) if i == 0 else (15, -4), textcoords='offset points',
+                    ha='right' if i == 0 else 'left', va='top', color=ink, fontsize=10.5)
+
     plot3(ax, data.great_circle, gid='sky-great-circle',
-          color=COLORS['distance'], lw=2.1, zorder=5)
-    arc = data.great_circle * 0.58
-    plot3(ax, arc, gid='central-distance-arc', color=COLORS['distance'], lw=1.6, zorder=5)
-    angle_arrows(ax, CAMERA.project_xy(arc), COLORS['distance'])
-    dmid = CAMERA.project_xy(arc[len(arc)//2])[0]
-    ax.annotate(f'D = {data.distance:.2f}°', xy=dmid, xytext=(0.48, 0.21),
-                color=ink, fontsize=11.5, ha='left',
+          color=COLORS['distance'], lw=2.2, zorder=5)
+    angle_arrows(ax, CAMERA.project_xy(data.great_circle), COLORS['distance'])
+    dmid = CAMERA.project_xy(data.great_circle[len(data.great_circle)//2])[0]
+    ax.annotate(f'D = {data.distance:.2f}°', xy=dmid, xytext=(-0.32, 0.60),
+                color=ink, fontsize=12, ha='right',
                 arrowprops=dict(arrowstyle='-', color=COLORS['distance'], lw=0.8))
-    delta_arc = data.horizontal_arc * 0.50
-    plot3(ax, delta_arc, gid='horizontal-angle-arc', color=COLORS['azimuth'],
-          lw=1.5, ls=(0, (5, 2)), zorder=5)
-    angle_arrows(ax, CAMERA.project_xy(delta_arc), COLORS['azimuth'])
-    amid = CAMERA.project_xy(delta_arc[len(delta_arc)//2])[0]
-    ax.annotate('Δφ', xy=amid, xytext=(0.40, -0.40), color=ink, fontsize=13,
+    plot3(ax, data.horizontal_arc, gid='equatorial-azimuth-arc',
+          color=COLORS['azimuth'], lw=2.2, ls=(0, (5, 2)), zorder=5)
+    angle_arrows(ax, CAMERA.project_xy(data.horizontal_arc), COLORS['azimuth'])
+    amid = CAMERA.project_xy(data.horizontal_arc[len(data.horizontal_arc)//2])[0]
+    ax.annotate(f'Δφ = {data.azimuth:.2f}°', xy=amid, xytext=(0.45, -0.78),
+                color=ink, fontsize=12, ha='center',
                 arrowprops=dict(arrowstyle='-', color=COLORS['azimuth'], lw=0.8))
-    ax.scatter(0, 0, s=18, color=ink, zorder=8)
-    ax.text(-0.07, 0.015, 'O', ha='right', va='bottom', color=ink, fontsize=11)
-    ax.text(-0.90, -0.30, '水平面', color=ink, fontsize=10)
-    ax.text(0, -1.17, 'D 沿两方向张成的大圆量，不沿同高纬线量。',
-            ha='center', color=ink, fontsize=10.5)
-    ax.set(xlim=(-1.28, 1.30), ylim=(-1.28, 1.27), aspect='equal')
-    ax.axis('off')
-
-
-def horizontal_panel(ax, data):
-    ink = COLORS['ink']
-    # 俯视坐标的纵轴对准两方向的角平分线，只换纸面基，不改变夹角。
-    def top_view(points):
-        points = np.asarray(points)
-        return np.stack([points[..., 1], points[..., 0]], axis=-1)
-
-    phi = np.linspace(-55, 55, 181)
-    arc = C.unit_from(0, phi) * np.cos(np.radians(data.height))
-    ax.plot(*top_view(arc).T, color=COLORS['guide'], lw=0.9)
-    for i, foot in enumerate(data.projections):
-        end = top_view(foot)
-        line, = ax.plot([0, end[0]], [0, end[1]], color=COLORS['azimuth'],
-                        lw=1.7, ls=(0, (5, 2)))
-        line.set_gid(f'top-view-projection-{i}')
-        ax.scatter(*end, s=45, facecolor=COLORS['paper'], edgecolor=COLORS['azimuth'],
-                   linewidth=1.5, zorder=5)
-        ax.text(end[0] + (-0.04 if i == 0 else 0.04), end[1] + 0.05,
-                '太阳的投影' if i == 0 else '幻日的投影',
-                ha='right' if i == 0 else 'left', color=ink, fontsize=10.5)
-    angle = top_view(data.horizontal_arc * 0.46)
-    line, = ax.plot(*angle.T, color=COLORS['azimuth'], lw=1.8, ls=(0, (5, 2)))
-    line.set_gid('top-view-azimuth-arc')
-    angle_arrows(ax, angle, COLORS['azimuth'])
-    ax.text(0, 0.91, f'Δφ = {data.azimuth:.2f}°', ha='center', color=ink, fontsize=12)
-    ax.scatter(0, 0, s=20, color=ink, zorder=5)
-    ax.text(0, -0.07, 'O', ha='center', va='top', color=ink, fontsize=11)
-    ax.set(xlim=(-0.73, 0.73), ylim=(-0.16, 0.92), aspect='equal')
+    lat_label = CAMERA.project_xy(C.unit_from(data.height, -80))[0]
+    ax.annotate('同高度纬线（小圆）', xy=lat_label, xytext=(-0.70, 0.09),
+                color=ink, fontsize=10.5, ha='center',
+                arrowprops=dict(arrowstyle='-', color=COLORS['edge'], lw=0.7))
+    equator_label = CAMERA.project_xy(C.unit_from(0, -80))[0]
+    ax.annotate('赤道（水平大圆）', xy=equator_label, xytext=(-0.50, -0.56),
+                color=ink, fontsize=10.5, ha='center',
+                arrowprops=dict(arrowstyle='-', color=COLORS['edge'], lw=0.7))
+    ax.set(xlim=(-1.23, 1.43), ylim=(-1.10, 1.13), aspect='equal')
     ax.axis('off')
 
 
@@ -184,34 +174,19 @@ def make_figure(height=SUN_HEIGHT):
     P.apply_style()
     data = ruler_geometry(height)
     ink = COLORS['ink']
-    fig = plt.figure(figsize=(12.2, 7.7))
-    fig.text(0.045, 0.94, '看天球，还是看水平投影？', fontsize=18, color=ink)
-    fig.text(0.045, 0.887, f'同一对方向：太阳与幻日都在高度 h = {height:g}°，却有两种不同的夹角。',
+    fig = plt.figure(figsize=(9.4, 8.0))
+    fig.text(0.055, 0.94, '同一个天球，两把角度尺', fontsize=18, color=ink)
+    fig.text(0.055, 0.885, f'太阳与幻日同高 h = {height:g}°；两条经线从天顶经过它们，落到赤道。',
              fontsize=11.5, color=ink)
-    fig.text(0.055, 0.825, '天球夹角 D', fontsize=13, color=ink)
-    fig.text(0.68, 0.825, '水平方位差 Δφ', fontsize=13, color=ink)
-    ax = fig.add_axes([0.025, 0.205, 0.58, 0.60], label='celestial-sphere')
+    ax = fig.add_axes([0.025, 0.17, 0.95, 0.67], label='celestial-sphere')
     sky_panel(ax, data)
-    top = fig.add_axes([0.655, 0.465, 0.31, 0.31], label='horizontal-view')
-    horizontal_panel(top, data)
-    fig.text(0.675, 0.425, '投影压低了方向，但保留方位。', color=ink, fontsize=10.5)
-    fig.text(0.675, 0.377, '两个方向的高度相同：', color=ink, fontsize=10.5)
-    fig.text(0.675, 0.325, r'$\cos D=\sin^2h+\cos^2h\cos\Delta\varphi$',
-             color=ink, fontsize=14)
-    fig.text(0.675, 0.265, 'h = 0°：两把尺子重合', color=ink, fontsize=11)
-    fig.text(0.675, 0.222, 'h > 0°：天球夹角小于方位差', color=ink, fontsize=11)
-    fig.legend(handles=[Line2D([], [], color=COLORS['distance'], lw=1.8, label='天球夹角 D'),
-                        Line2D([], [], color=COLORS['azimuth'], lw=1.8, ls=(0, (5, 2)),
-                               label='水平投影夹角 Δφ')],
-               loc='lower left', bbox_to_anchor=(0.042, 0.125), ncol=2,
+    fig.legend(handles=[Line2D([], [], color=COLORS['distance'], lw=2, label='最短大圆弧 · 角距 D'),
+                        Line2D([], [], color=COLORS['azimuth'], lw=2, ls=(0, (5, 2)),
+                               label='赤道弧 · 方位差 Δφ')],
+               loc='lower center', bbox_to_anchor=(0.5, 0.095), ncol=2,
                labelcolor=ink, handlelength=3)
-    heights, ds, deltas = curve_data([0, 40, 60])
-    fig.text(0.055, 0.10, '幻日最近处', fontsize=10.5, color=ink)
-    for x, h, d, delta in zip((0.25, 0.49, 0.73), heights, ds, deltas):
-        fig.text(x, 0.10, f'h = {h:g}°', fontsize=10.5, color=ink)
-        fig.text(x, 0.066, f'D {d:.2f}°  /  Δφ {delta:.2f}°', fontsize=10.5, color=ink)
-    fig.text(0.055, 0.024, f'太阳升高，两把尺逐渐分开；达到临界高度（约 {C.critical_height():.2f}°）后不再有正透射光路。',
-             fontsize=10, color=ink)
+    fig.text(0.5, 0.055, '角度按球心量，不按纸面弧长量；同高纬线不是量 D 的那条大圆。',
+             ha='center', fontsize=10.5, color=ink)
     return fig, data
 
 

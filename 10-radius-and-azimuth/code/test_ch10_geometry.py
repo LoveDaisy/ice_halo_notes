@@ -96,10 +96,10 @@ def test_rulers_geometry_rejects_critical_and_supercritical():
     for height in (R.C.critical_height(), R.C.critical_height()+.01, 65.):
         with pytest.raises(ValueError, match='critical'):
             R.ruler_geometry(height)
-    # 新图不再画两曲线，但底部数字对照仍须来自有效域的同一接口。
+    # 单幅球面图只展示有效域内的方向，数值仍由同一物理接口产生。
     fig, data = R.make_figure()
     try:
-        assert {ax.get_label() for ax in fig.axes} == {'celestial-sphere', 'horizontal-view'}
+        assert {ax.get_label() for ax in fig.axes} == {'celestial-sphere'}
         for text in fig.texts:
             assert 'nan' not in text.get_text()
         assert data.height < R.C.critical_height()

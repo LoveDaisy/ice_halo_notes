@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "compare_sha256": "b59a848b07cd7b634c5e71d425d6ecc67fac56951593c03725a06c6154995e63",
+  "compare_sha256": "604da3c12387ef054e41106af04f0571c25adbb442b41c34067e4986990dbfa9",
   "figures": [
     {
       "figure": "1",
@@ -40,7 +40,7 @@
     {
       "figure": "5",
       "image": "img/parhelion_rulers.png",
-      "sha256": "4e4cace8d5f2719bdf1ca569e7e2d8f9e39d181635f24afb80e4bcf7dca049cf"
+      "sha256": "eeb61e53e3bc8633063e1a07b109bb4fdb32db335c3435b1855df48314a6c07b"
     },
     {
       "figure": "6",
