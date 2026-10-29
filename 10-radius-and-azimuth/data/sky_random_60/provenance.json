@@ -1,9 +1,9 @@
 {
   "lumice_version": "v4.6.1",
-  "lumice_bin": "/Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/.lumice/v4.6.1/Lumice",
+  "lumice_bin": "/Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/.lumice/v4.6.1/Lumice",
   "lumice_bin_sha256": "84a1f4cd4416d1c4096adfe4b8c64191c95465a274377d9558a0d8cb7007ddce",
   "config_sha256": "dfa2096908c937e91e5cbbf51f1341f7d13f06ec3c7b4eee416431d12b79e739",
-  "wall_clock_s": 4.755,
+  "wall_clock_s": 4.836,
   "platform": "Darwin 23.6.0 arm64",
   "workers": 4,
   "backend": null,
@@ -11,9 +11,9 @@
   "format": "npy",
   "cli_args": [
     "-f",
-    "/Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_random_60/config.json",
+    "/Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/10-radius-and-azimuth/data/sky_random_60/config.json",
     "-o",
-    "/Users/zhangjiajie/Codes/Writing-Lab/ice-halo-writing-wt-47/10-radius-and-azimuth/data/sky_random_60",
+    "/Users/zhangjiajie/Codes/Writing-Lab/现代冰晕研究漫谈/10-radius-and-azimuth/data/sky_random_60",
     "--format",
     "npy",
     "--workers",

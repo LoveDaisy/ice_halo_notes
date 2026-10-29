@@ -1,46 +1,46 @@
 {
   "schema": 1,
-  "compare_sha256": "21931dd24e2f9b37302d22c77d17a2cf88552e59ec3d0b493d938f36349cb042",
+  "compare_sha256": "773f9c5a564ee5f292e58a3486d92b553f79e095462cc7831144e50d6b2d04f9",
   "figures": [
     {
       "figure": "1",
       "image": "img/axis_angle_ball.png",
-      "sha256": "9393adb02696fcf5c6da1d951b90df107e1a08e64f251f7228c9f2275ee59206"
+      "sha256": "f22bf2306810f215e09c1508126ebb5b5c7e57cc7b85d76ebc87ffb131fbbfff"
     },
     {
       "figure": "2a",
       "image": "img/column_torus.png",
-      "sha256": "d8c99f09d0272290f46ef9ac6f33cc1b3185a658eda1dcd143d2643804f33e5f"
+      "sha256": "25aa30cdd25a77b8e1453b672bd65cd556f003458f057bc60225545e1261cbfa"
     },
     {
       "figure": "2b",
       "image": "img/plate_lowitz.png",
-      "sha256": "3b3e6c191160123e50971bb22ebe9120e13e42369bc70c2b4467fdd8f0e3a3c7"
+      "sha256": "ec0ca4c31b119877b1a4ee7ea88b620dd1cdb960d46c3dbde07c1ebfb5361650"
     },
     {
       "figure": "3",
       "image": "img/tori_section.png",
-      "sha256": "485d9eafd45598e389a8f70bab917f63a6efb446f1afdc9d314ad9673988e910"
+      "sha256": "2b33b4ea1c89bfd41f291a85a203f78a02b18bf747f1b3fc8ec419b7e76a5129"
     },
     {
       "figure": "4a",
       "image": "img/euler_sampling.png",
-      "sha256": "2c2c4c7e14e087c3c2ed9241c34a53efa1226713491d7020b222ed8f02c0ca02"
+      "sha256": "092339733cf6abde83a993fd6646c8889d70c1e01cc723241a97938768cd286d"
     },
     {
       "figure": "4b",
       "image": "img/euler_density.png",
-      "sha256": "a2f9c73049ab40c15bddd8af5620de1a39d264dcecfc0640263ad763cc040729"
+      "sha256": "97533062fa0c54dd176dfd94b16ca3231c24ea0ef496587a7a0bcde60bab9f06"
     },
     {
       "figure": "5a",
       "image": "img/sun_rotation.png",
-      "sha256": "db7210660b7a351e640291be6155f56c5279fbc34cc9e99cf23d705835ee7312"
+      "sha256": "371b9b9b2c6e99a94784111634c86d1fc7aa951405551f5c16f1e0e2b45ced98"
     },
     {
       "figure": "5b",
       "image": "img/angle_fibers.png",
-      "sha256": "2fd8a0ed12a430c6195443824a88821a4d3dbeabcda8b21e78275b11b6b0f4e3"
+      "sha256": "da70cd705fd3a8943aec7b65b83f34f6305e883882a111a9c47ebf5e77fa8481"
     }
   ],
   "optional_pending": [],
