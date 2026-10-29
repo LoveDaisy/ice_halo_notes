@@ -2,6 +2,8 @@
 
 颜色名是"这块颜料叫什么"（ink / ice / accent_warm），不是"用在哪"；
 "用在哪"由第二层 :mod:`mapping` 决定。换主题只换这一层。
+**颜料名 ≠ 语义**：表达概念请用 :mod:`mapping` 的语义名（或图表入口
+``figure_scheme()`` 的语义槽），不要写 ``PAL["face_5"]`` 这类以出处命名的取色。
 """
 
 from __future__ import annotations
@@ -69,6 +71,26 @@ DEFAULT_LIGHT = Palette("default_light", {
     "sample_1": "#8E44AD",
     "sample_2": "#E67E22",
     "sample_3": "#16A085",
+    # ---- 9.1 / ch10 定稿新增（升格自 #48 方案 S1 + T3，2026-10-30 作者签核；只增不改）----
+    "gold": "#E8A020",         # 太阳金
+    "navy": "#2E4B7E",         # 深一档的蓝（Parry ⊂ 柱晶的深浅编码）
+    "stone": "#8C96A3",        # 石板灰（随机族的中性色）
+    "coral_pale": "#F2917C",   # 淡珊瑚（Lowitz ⊃ 片晶的浅一档）
+    "mist": "#D2D6DC",         # 夜空伪彩里随机族的白灰辉光
+    "charcoal": "#2F3A4A",     # 墨（二元对照 A / 地形色阶最深端）
+    "haze": "#C9CFD8",         # 淡雾（球面经纬网 / 辅助线）
+    "fog": "#F3F4F6",          # 地形色阶浅端（纸白微雾）
+    "stone_light": "#A3ABB7",  # 地形色阶中间调
+    # 三组着色曲面的 底色 / mesh / 轮廓 三件套（_mesh 是中间调网格线、_deep 是深色轮廓）
+    "glacier": "#C9DAEF",      # 柱晶环面：冰蓝
+    "glacier_mesh": "#6F88AE",
+    "glacier_deep": "#3E5A86",
+    "blush": "#F8E4DE",        # Lowitz 环面：淡珊瑚粉
+    "blush_mesh": "#C79A8E",
+    "blush_deep": "#9A6556",
+    "frost": "#E3EEF8",        # 中性示意球：极淡蓝白
+    "frost_mesh": "#7D8DA3",
+    "frost_deep": "#56677D",
     # TODO 深色主题：以上新增颜色暂与浅色同值，待深色主题立项时另配
 })
 
