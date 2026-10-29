@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import errno
 import json
 from pathlib import Path
 
@@ -57,7 +58,11 @@ def obtain(family, altitude, *, render=False, replot=False):
                 valid = valid and provenance["lumice_bin_sha256"] == sha256_of(binary)
     if render or not valid:
         if replot:
-            raise FileNotFoundError(f"缺少同配置的原始数据：{folder}；去掉 --replot 重渲")
+            # 带 filename 才能被 repo.testing 的 local_data 钩子识别为「只留本地产物缺失」
+            # 而正确 skip，而不是在干净 checkout 上报错。
+            raise FileNotFoundError(
+                errno.ENOENT, "缺少同配置的原始数据（去掉 --replot 重渲）",
+                str(folder / "img_02.npy"))
         F.run_scene(family, altitude)
     return F.load_scene(folder, 2)
 
