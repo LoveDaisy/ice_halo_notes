@@ -14,12 +14,14 @@ regen 的逐图子进程，同进程批量会互相污染 rc）。闸内新章�
 """
 from __future__ import annotations
 
+import errno
 import json
 import re
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -53,8 +55,10 @@ EXEMPT_CHAPTERS: dict[str, str] = {
 HEX_WHITELIST: dict[str, str] = {}
 
 # 闸 2/3 的图清单（新章加一行）：(章, 图脚本 stem, 透传参数)。
-# ch10 图 1/7 走 --replot（读 git 内 sky json，不跑 Lumice）。
-REGISTRY: list[tuple[str, str, tuple[str, ...]]] = [
+# ch10 图 1/7 走 --replot（读 git 内 sky json，不跑 Lumice），回读 gitignored 的原始
+# .npy：挂 local_data mark（pytest.param 形态），缺文件时由根 conftest 钩子转 skip。
+# pytest 9 未公开 ParameterSet 类型，注解只能写 Any。
+REGISTRY: list[tuple[str, str, tuple[str, ...]] | Any] = [
     ("09.1-orientation-space", "fig_axis_angle_ball", ()),
     ("09.1-orientation-space", "fig_column_torus", ()),
     ("09.1-orientation-space", "fig_plate_lowitz", ()),
@@ -63,7 +67,8 @@ REGISTRY: list[tuple[str, str, tuple[str, ...]]] = [
     ("09.1-orientation-space", "fig_euler_density", ()),
     ("09.1-orientation-space", "fig_sun_rotation", ()),
     ("09.1-orientation-space", "fig_angle_fibers", ()),
-    ("10-radius-and-azimuth", "fig_sky_comparison", ("--replot",)),
+    pytest.param("10-radius-and-azimuth", "fig_sky_comparison", ("--replot",),
+                 marks=pytest.mark.local_data),
     ("10-radius-and-azimuth", "fig_solar_circle", ()),
     ("10-radius-and-azimuth", "fig_terrain_domain", ()),
     ("10-radius-and-azimuth", "fig_random_terrain", ()),
@@ -72,10 +77,17 @@ REGISTRY: list[tuple[str, str, tuple[str, ...]]] = [
     ("10-radius-and-azimuth", "fig_bravais_prism", ()),
     ("10-radius-and-azimuth", "fig_parhelion_rulers", ()),
     ("10-radius-and-azimuth", "fig_tangent_direction", ()),
-    ("10-radius-and-azimuth", "fig_column_sky", ("--replot",)),
+    pytest.param("10-radius-and-azimuth", "fig_column_sky", ("--replot",),
+                 marks=pytest.mark.local_data),
 ]
 
 HEX_RE = re.compile(r"""['"]#[0-9a-fA-F]{3,8}['"]""")
+
+
+def _entry_values(entry: Any) -> tuple:
+    """pytest.param(...) 解出底层三元组、普通 tuple 原样返回，供 ids 推导：
+    ParameterSet 按 (values, marks, id) 三字段迭代，直接解包会把 marks 当图名。"""
+    return tuple(entry.values) if hasattr(entry, "values") else tuple(entry)
 
 
 def in_scope_chapters() -> list[Path]:
@@ -116,8 +128,26 @@ def audit_figure(chapter: str, script_stem: str, args: tuple[str, ...] = ()) -> 
         [sys.executable, "-m", "halo_notes.repo.figure_audit", str(script), *args,
          "--output", str(out_png)],
         cwd=REPO_ROOT, capture_output=True, text=True, timeout=600)
+    if proc.returncode != 0:
+        missing = _missing_from_stdout(proc.stdout)
+        if missing:
+            # 子进程的 FileNotFoundError 跨进程只剩退出码；按 stdout 末行的结构化上报
+            # 还原同型异常，交给根 conftest 的 local_data 钩子分类转 skip。
+            raise FileNotFoundError(errno.ENOENT, "子进程渲染缺本地数据", missing)
     assert proc.returncode == 0, f"{script_stem} 渲染失败：\n{proc.stderr[-2000:]}"
     return json.loads(proc.stdout.strip().splitlines()[-1]), script.parent
+
+
+def _missing_from_stdout(stdout: str) -> str | None:
+    """子进程 FileNotFoundError 的结构化上报（stdout 末行 JSON 的 ``figure_audit_missing``）；无则 None。"""
+    lines = stdout.strip().splitlines()
+    if not lines:
+        return None
+    try:
+        payload = json.loads(lines[-1])
+    except json.JSONDecodeError:
+        return None
+    return payload.get("figure_audit_missing") if isinstance(payload, dict) else None
 
 
 # ---- 闸 1：十六进制字面量 ---------------------------------------------------
@@ -152,7 +182,8 @@ def test_gate_pure_functions(tmp_path):
     assert min_display_px([{"t": "a", "pt": 8}], width_px=2160, dpi=200) < MIN_DISPLAY_PX
 
 
-@pytest.mark.parametrize("chapter, script_stem, args", REGISTRY, ids=[s for _, s, _ in REGISTRY])
+@pytest.mark.parametrize("chapter, script_stem, args", REGISTRY,
+                         ids=[_entry_values(e)[1] for e in REGISTRY])
 def test_gates_2_and_3_figure_text(chapter, script_stem, args):
     """每张注册图：图面文字无裸下标（闸 2）、最小显示高 ≥ 8 px（闸 3）。"""
     record, _ = audit_figure(chapter, script_stem, args)
