@@ -5,6 +5,8 @@
 savefig 目标一律重定向到临时目录：闸只读不写，绝不碰正式 `img/` 与 `data/`。
 用法：``python -m halo_notes.repo.figure_audit <fig脚本路径> [透传参数...]``，stdout 末行是 JSON：
 ``{"texts": [{"t": str, "pt": float}...], "width_px": float, "dpi": float}``（只含可见非空 Text）。
+图脚本抛带 filename 的 ``FileNotFoundError``（如 ``--replot`` 缺 gitignored 原始数据）时，stdout 末行
+改打 ``{"figure_audit_missing": <路径>}`` 后原样抛出——供父进程还原成同型异常走 local_data 的 skip 判定。
 """
 from __future__ import annotations
 
@@ -45,7 +47,14 @@ def main() -> None:
     Figure.savefig = capture
     sys.path.insert(0, str(script.parent))
     sys.argv = [str(script), *sys.argv[2:]]
-    runpy.run_path(str(script), run_name="__main__")
+    try:
+        runpy.run_path(str(script), run_name="__main__")
+    except FileNotFoundError as exc:
+        if exc.filename:
+            # FileNotFoundError 的类型跨不了进程边界；带路径结构化上报到 stdout 末行，
+            # 父进程据此还原同型异常，供 local_data 钩子转 skip（其余失败照常 traceback）。
+            print(json.dumps({"figure_audit_missing": exc.filename}))
+        raise
     print(json.dumps(record, ensure_ascii=False))
 
 
