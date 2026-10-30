@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+from types import MappingProxyType
 from typing import Any, Mapping
 
 
@@ -46,6 +47,56 @@ class MarkerStyle:
     color: str
     size: float = 4.0       # 直径，pt
     alpha: float = 1.0
+
+
+@dataclass(frozen=True)
+class SurfaceStyle:
+    """一种着色曲面：底色、环境光占比（越高越哑光）、mesh 线色与半宽、轮廓线色。
+
+    颜色字段填的是配色板里的颜色名；解析成 hex 的 :class:`~figure.Surface` 由
+    图表入口 ``figure_scheme()`` 给出。
+    """
+
+    base: str
+    ambient: float
+    mesh: str
+    mesh_width: float = 0.004
+    outline: str | None = None
+
+
+# 取向族（篇内一致）：柱晶蓝 / 片晶红是系列两主色，包含关系用同色相深浅编码
+# （Parry ⊂ 柱晶深一档、Lowitz ⊃ 片晶浅一档），随机族中性石板灰
+_FAMILY_COLORS = MappingProxyType({
+    "random": "stone",
+    "column": "arc_roll",
+    "parry": "navy",
+    "plate": "face_3",
+    "lowitz": "coral_pale",
+})
+# 黑底天象上的族辉光：随机族为中性白灰，柱晶 / 片晶沿用蓝 / 红
+_SKY_GLOW_COLORS = MappingProxyType({
+    "random": "mist",
+    "column": "accent_cool",
+    "plate": "face_3",
+})
+# 黑底天象上的中性元素：文字、等角距圈 / 地平线等辅助线、夜空底色
+_SKY_COLORS = MappingProxyType({
+    "ink": "ink_faint",
+    "ring": "slate",
+    "guide": "cloud",
+    "night": "ink",
+})
+# 非族非光线的二元对照（路线 A/B、D 与 Δφ 等）：a 墨实线，b 紫虚线（pair_dash）
+_PAIR_COLORS = MappingProxyType({
+    "a": "charcoal",
+    "b": "face_8",
+})
+# 三组着色曲面：柱晶环面（冰蓝）、Lowitz 环面（淡珊瑚）、中性示意球（极淡蓝白）
+_SURFACE_STYLES = MappingProxyType({
+    "column": SurfaceStyle("glacier", 0.80, "glacier_mesh", 0.0042, "glacier_deep"),
+    "lowitz": SurfaceStyle("blush", 0.84, "blush_mesh", 0.0042, "blush_deep"),
+    "neutral": SurfaceStyle("frost", 0.84, "frost_mesh", 0.0040, "frost_deep"),
+})
 
 
 @dataclass(frozen=True)
@@ -116,6 +167,23 @@ class SemanticStyleMap:
     # 面号 → 配色板颜色名；给定时截面边编号按面号取色（字号 / 透明度仍取对应 face_number* 语义），
     # None = 全部用语义里的颜色。3D 贴面编号不读这个字段
     face_number_colors: Mapping[int, str] | None = None
+    # ---- 9.1 / ch10 图表语义（升格自 #48 定稿，2026-10-30 作者签核）：只增不改 ----
+    # 作用域是「篇内一致」：``figure_scheme(**overrides)`` 按篇覆盖这里的字段，不做全系列硬映射
+    family_colors: Mapping[str, str] = _FAMILY_COLORS        # 取向族 → 颜色名
+    sky_glow_colors: Mapping[str, str] = _SKY_GLOW_COLORS    # 黑底天象的族辉光 → 颜色名
+    sky_colors: Mapping[str, str] = _SKY_COLORS              # 黑底天象中性元素（ink/ring/guide/night）→ 颜色名
+    sun_color: str = "gold"                                  # 太阳：金色圆点 / 箭头
+    point_color: str = "accent_cool"                         # 光点方向 x = 出射光反向（语义同源，色随 ray_exit）
+    pair_colors: Mapping[str, str] = _PAIR_COLORS            # 非族二元对照：a 墨实线 / b 紫虚线
+    pair_dash: tuple = (0, (4.0, 2.6))                       # 对照 B 的虚线相位
+    ink_color: str = "ink_soft"                              # 图面文字 / 引线
+    guide_color: str = "haze"                                # 经纬网 / 辅助线
+    terrain_ramp: tuple[str, ...] = ("fog", "stone_light", "charcoal")   # 地形色阶：单色相、明度单调
+    crystal_fill: FillStyle = FillStyle("ice", alpha=0.8)    # 晶体填充（冰蓝半透明）
+    crystal_edge: str = "ice_edge"                           # 晶体线框
+    sphere_fill: FillStyle = FillStyle("ice", alpha=0.24)    # 示意球（天球 / u 球 / 小球）底色
+    sphere_edge: str = "ice_edge"                            # 示意球轮廓
+    surface_styles: Mapping[str, SurfaceStyle] = _SURFACE_STYLES   # 着色曲面：column / lowitz / neutral
 
     def replace(self, **changes: Any) -> "SemanticStyleMap":
         return replace(self, **changes)

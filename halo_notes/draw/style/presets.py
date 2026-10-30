@@ -71,3 +71,24 @@ ICE_FILLED = DEFAULT.replace(
 )
 
 PRESETS: dict[str, Preset] = {p.name: p for p in (DEFAULT, ICE_FILLED)}
+
+
+def crystal_preset(base: Preset | None = None) -> Preset:
+    """晶体渲染预设：在 ``ice_filled`` 上用图表语义的晶体填充 / 线框，不标背面编号，编号正放。
+
+    填充 / 线框取 ``figure_scheme()`` 的 ``crystal_fill`` / ``crystal_edge`` 槽。
+    小尺寸晶体的背面贴面编号是镜像变形字，缩小后成乱码，一律不标；正面的贴面编号随姿态
+    转成倒置 / 侧卧（「3」读成「ε」「ω」），也改为面心水平正放（``FLAT``）。
+    """
+    from .figure import figure_scheme
+    from .geom_style import FaceNumberStyle
+
+    s = figure_scheme()
+    base = base or PRESETS["ice_filled"]
+    fill = base.style_map.face_fill
+    return base.replace(
+        name=f"{base.name}_crystal",
+        palette=base.palette.with_colors(ice=s.crystal_fill, ice_edge=s.crystal_edge),
+        style_map=base.style_map.replace(face_fill=fill.__class__(fill.color, s.crystal_fill_alpha)),
+        geom=base.geom.replace(label_hidden_faces=False, face_number_style=FaceNumberStyle.FLAT),
+    )

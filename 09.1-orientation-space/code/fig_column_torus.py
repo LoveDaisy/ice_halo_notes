@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import importlib.util
 from pathlib import Path
 
 import matplotlib
@@ -11,17 +10,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import to_rgb
 from matplotlib.lines import Line2D
+from halo_notes.draw import chart as P
 from halo_notes.draw.projection import Camera
 
-from halo_notes.draw.style.candidate import scheme
+from halo_notes.draw.style.figure import figure_scheme
 from lumice_integral.symmetry.attitude import column_attitude
-
-ROOT = Path(__file__).resolve().parents[2]
-_spec = importlib.util.spec_from_file_location(
-    "_ch8_plot", ROOT / "08-wedge-times-fold/code/_ch8_plot.py"
-)
-P = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(P)
 
 MAJOR, MINOR = 2.5, 1.0
 PARRY_THETA = 180.0
@@ -33,7 +26,7 @@ EXTENT = (-3.8, 3.8, -2.3, 2.3)
 FIGSIZE = (11.6, 5.6)
 AX_RECT = [0.0, 0.12, 1.0, 0.88]
 XLIM, YLIM = (-5.7, 5.7), (-2.3, 2.3)
-S = scheme()
+S = figure_scheme()
 # 篇内语义：柱晶蓝、Parry 深蓝、片晶红；「固定一个自由度后剩下的那个转动方向」用紫。
 TOKENS = dict(plate=S.family['plate'], parry=S.family['parry'], motion=S.pair['b'],
               ink=S.ink)

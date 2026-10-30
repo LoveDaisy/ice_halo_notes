@@ -13,10 +13,11 @@ from halo_notes.draw.projection import Camera
 from halo_notes.draw.scene import finish, render_crystal
 from halo_notes.draw.sphere import Sphere, graticule
 from halo_notes.draw.style import PRESETS
-from halo_notes.draw.style.candidate import crystal_preset, scheme
+from halo_notes.draw.style.figure import figure_scheme
+from halo_notes.draw.style.presets import crystal_preset
 from fig_column_torus import P
 
-S = scheme()
+S = figure_scheme()
 INK = S.ink
 # 篇内语义色：太阳（ŝ 与晶体系里的 u）金色；非族的中性强调（轴角直径、采样点、密度曲线）墨色；
 # 路线 A / B 等二元对照用墨实线 / 紫虚线。族色（柱晶蓝、片晶红、Parry 深蓝）只给族。
