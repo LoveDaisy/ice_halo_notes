@@ -26,6 +26,10 @@ dev = ["pytest"]
 packages = ["halo_notes"]
 
 [tool.pytest.ini_options]
+# scratchpad 是任务管理目录（gitignored），其中的 test_*.py 是各任务的一次性验证脚本而非仓库测试；
+# 排除出默认递归收集，避免任务临时脚本在 collect 阶段炸断全仓 pytest（显式路径不受影响）。
+# 显式设置会整体替换 pytest 默认值，故带全默认项。
+norecursedirs = [".*", "build", "dist", "CVS", "_darcs", "{arch}", "*.egg", "scratchpad"]
 markers = [
     "slow: 真跑 Lumice CLI，默认不执行（uv run pytest -m slow 才跑）",
     "local_data: 依赖只留本地的产物（原始渲染 / 中间缓存）；干净 checkout 上缺文件时 skip（见 halo_notes/repo/testing.py）",
